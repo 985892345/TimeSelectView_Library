@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TimeSelectView">
+        <!--时间轴起始时间-->
+        <attr name="startHour" format="integer"/>
+        <!--时间轴结束时间，若在明天2点结束，请设置为26( = 24 + 2)-->
+        <attr name="endHour" format="integer"/>
+        <!--当前时间线的时间(支持小数)-->
+        <attr name="centerTime" format="float"/>
+        <!--任务边框颜色-->
+        <attr name="borderColor" format="integer"/>
+        <!--任务内部颜色-->
+        <attr name="insideColor" format="integer"/>
+        <!--时间轴左侧的时间间隔宽度-->
+        <attr name="intervalLeft" format="dimension"/>
+        <!--时间轴每小时间的间隔高度-->
+        <attr name="intervalHeight" format="dimension"/>
+        <!--时间轴左侧时间文字大小(任务文字大小随之改变）-->
+        <attr name="timeTextSize" format="dimension"/>
+        <!--任务名称文字大小-->
+        <attr name="taskTextSize" format="dimension"/>
+        <!--最终的任务区域是否显示时间差-->
+        <attr name="isShowDiffTime" format="boolean"/>
+        <!--最终的任务区域是否显示上下边界时间-->
+        <attr name="isShowTopBottomTime" format="boolean"/>
+    </declare-styleable>
+</resources>
