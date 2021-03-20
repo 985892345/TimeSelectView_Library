@@ -3,7 +3,12 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import java.util.*
 
-class TSViewTimeUtil(util: TimeSelectViewUtil) {
+/**
+ * @author 985892345
+ * @date 2021/3/20
+ * @description
+ */
+class TSViewTimeUtil(util: TSViewUtil) {
 
     companion object {
         /**
@@ -46,5 +51,62 @@ class TSViewTimeUtil(util: TimeSelectViewUtil) {
             nowTime += 24
         }
         return (mExtraHeight + (nowTime - mStartHour) * mIntervalHeight).toInt()
+    }
+
+    fun getTime(y: Int): String {
+        val h: Int = getHour(y)
+        val m: Int = getMinute(y)
+        return timeToString(h, m)
+    }
+
+    fun getDTime(top: Int, bottom: Int): String {
+        val lastH = getHour(top)
+        val lastM = getMinute(top)
+        var h = getHour(bottom)
+        var m = getMinute(bottom)
+        if (m >= lastM) {
+            m -= lastM
+            h -= lastH
+        }else {
+            m += 60 - lastM
+            h -= lastH + 1
+        }
+        return timeToString(h, m)
+    }
+
+    fun getHour(y: Int): Int {
+        return if (y >= mExtraHeight) {
+            (y - mExtraHeight) / mIntervalHeight + mStartHour
+        }else {
+            mStartHour - ((mExtraHeight - y) / mIntervalHeight + 1);
+        }
+    }
+
+    fun getMinute(y: Int): Int {
+        return if (y >= mExtraHeight) {
+           ((y - mExtraHeight) % mIntervalHeight / mIntervalHeight.toFloat() * 60).toInt()
+        }else {
+            ((mIntervalHeight - (mExtraHeight - y) % mIntervalHeight) / mIntervalHeight.toFloat() * 60).toInt()
+        }
+    }
+
+    private fun timeToString(hour: Int, minute: Int): String {
+        val stH: String = when {
+            hour < 10 -> {
+                "0$hour"
+            }hour < 24 -> {
+                hour.toString()
+            }else -> {
+                "0${hour%24}"
+            }
+        }
+        val stM: String = when {
+            minute < 10 -> {
+                "0$minute"
+            }else -> {
+                minute.toString()
+            }
+        }
+        return "$stH:$stM"
     }
 }

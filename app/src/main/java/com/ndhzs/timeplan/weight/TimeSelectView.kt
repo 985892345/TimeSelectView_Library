@@ -1,7 +1,5 @@
 package com.ndhzs.timeplan.weight
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
@@ -9,9 +7,14 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
 import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
-import com.ndhzs.timeplan.weight.timeselectview.utils.TimeSelectViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 import kotlin.math.abs
 
+/**
+ * @author 985892345
+ * @date 2021/3/20
+ * @description
+ */
 class TimeSelectView(context: Context, attrs: AttributeSet? = null) : ScrollView(context, attrs) {
 
     /**
@@ -45,8 +48,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : ScrollView
      * 最终的任务区域是否显示上下边界时间
      */
     fun setIsShowTopBottomTime(boolean: Boolean) {
-        if (mUtil.mIsShowTopBottomTime != boolean) {
-            mUtil.mIsShowTopBottomTime = boolean
+        if (mUtil.mIsShowStartEndTime != boolean) {
+            mUtil.mIsShowStartEndTime = boolean
             mChildLayout.notifyRectViewRedraw()
         }
     }
@@ -91,7 +94,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : ScrollView
 
 
 
-    private val mUtil = TimeSelectViewUtil(context, attrs)
+    private val mUtil = TSViewUtil(context, attrs)
     private val mChildLayout = ChildLayout(context, mUtil)
 
     init {

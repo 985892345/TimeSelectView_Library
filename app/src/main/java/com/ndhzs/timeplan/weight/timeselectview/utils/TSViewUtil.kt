@@ -4,9 +4,13 @@ import android.content.Context
 import android.util.AttributeSet
 import com.ndhzs.timeplan.R
 
-class TimeSelectViewUtil(context: Context, attrs: AttributeSet? = null) {
+/**
+ * @author 985892345
+ * @date 2021/3/20
+ * @description
+ */
+class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
 
-    val mTimeUtil = TSViewTimeUtil(this)
     val mEndHour: Int  //结束时间
     val mStartHour:Int  //起始时间
     val mCenterTime: Float //当前时间线，支持小数
@@ -19,7 +23,9 @@ class TimeSelectViewUtil(context: Context, attrs: AttributeSet? = null) {
     val mTimeTextSize: Float //时间字体大小
     val mTaskTextSize: Float //任务字体大小
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
-    var mIsShowTopBottomTime: Boolean //最终的任务区域是否显示上下边界时间
+    var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
+    val mTimeUtil: TSViewTimeUtil
+    val mDrawUtil: TSViewDrawUtil
 
     init {
         val ty = context.obtainStyledAttributes(attrs, R.styleable.TimeSelectView)
@@ -33,9 +39,11 @@ class TimeSelectViewUtil(context: Context, attrs: AttributeSet? = null) {
         mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, 40f)
         mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, 40f)
         mIsShowDiffTime = ty.getBoolean(R.styleable.TimeSelectView_isShowDiffTime, false)
-        mIsShowTopBottomTime = ty.getBoolean(R.styleable.TimeSelectView_isShowTopBottomTime, true)
+        mIsShowStartEndTime = ty.getBoolean(R.styleable.TimeSelectView_isShowTopBottomTime, true)
         mExtraHeight = mIntervalHeight/2
         mTotalHeight = (mEndHour - mStartHour) * mIntervalHeight + 2 * mExtraHeight
         ty.recycle()
+        mTimeUtil = TSViewTimeUtil(this)
+        mDrawUtil = TSViewDrawUtil(this)
     }
 }

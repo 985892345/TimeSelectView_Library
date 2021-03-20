@@ -6,10 +6,15 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
-import com.ndhzs.timeplan.weight.timeselectview.utils.TimeSelectViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
+/**
+ * @author 985892345
+ * @date 2021/3/20
+ * @description
+ */
 @SuppressLint("ViewConstructor")
-class NowTimeLineView(context: Context, util: TimeSelectViewUtil) : View(context) {
+class NowTimeLineView(context: Context, util: TSViewUtil) : View(context) {
 
     private val mLineWidth = 3F
     private val mBallRadius = 7

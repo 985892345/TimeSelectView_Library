@@ -5,10 +5,15 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
-import com.ndhzs.timeplan.weight.timeselectview.utils.TimeSelectViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
+/**
+ * @author 985892345
+ * @date 2021/3/20
+ * @description
+ */
 @SuppressLint("ViewConstructor")
-class SeparatorLineView(context: Context, util: TimeSelectViewUtil) : View(context) {
+class SeparatorLineView(context: Context, util: TSViewUtil) : View(context) {
     companion object {
         /**
          * 右边的间隔宽度
