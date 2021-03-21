@@ -1,17 +1,20 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils
+package com.ndhzs.timeplan.weight.timeselectview.utils.ondraw
 
 import android.graphics.*
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description
+ * @description 用来绘制任务的类
  */
-class TSViewDrawUtil(util: TSViewUtil) {
+class RectViewDrawUtil(util: TSViewUtil) {
 
     private val mUtil = util
     private val mTimeUtil = util.mTimeUtil
+    private val mLongPress = util.mLongPress
     private val mTextPaint: Paint //任务名称画笔
     private val mDTimePaint: Paint //时间差值画笔
     private val mInsidePaint: Paint //圆角矩形内部画笔
@@ -24,9 +27,9 @@ class TSViewDrawUtil(util: TSViewUtil) {
 
     private val mTBTimeAscent: Float
     private val mTBTimeDescent: Float
-    private val mRectMinHeight: Float
-    private val mRectLesserHeight: Float
-    private val mRectShowStartTimeHeight: Float
+    private val mRectMinHeight: Float //能生成任务的最小高度
+    private val mRectShowTBTimeHeight: Float //显示顶部和底部的最小高度
+    private val mRectShowStartTimeHeight: Float //显示开始时间的最小高度
     private val mTextCenter: Float //任务名称的水平线
     private var mDTimeCenter: Float //时间差值的水平线
     private val mDTimeHalfHeight: Float //右侧时间的字体高度的一半
@@ -51,7 +54,7 @@ class TSViewDrawUtil(util: TSViewUtil) {
         fontMetrics = mTBTimePaint.fontMetrics
         mTBTimeAscent = fontMetrics.ascent
         mTBTimeDescent = fontMetrics.descent
-        mRectLesserHeight = (mTBTimeDescent - mTBTimeAscent) * 2
+        mRectShowTBTimeHeight = (mTBTimeDescent - mTBTimeAscent) * 2
         fontMetrics = mStartTimePaint.fontMetrics
         mRectShowStartTimeHeight = fontMetrics.descent - fontMetrics.ascent
         fontMetrics = mDTimePaint.fontMetrics
@@ -77,7 +80,7 @@ class TSViewDrawUtil(util: TSViewUtil) {
         return paint
     }
 
-    fun drawRect(canvas: Canvas, rect: Rect, name: String, bean: TSViewBean?) {
+    fun drawRect(canvas: Canvas, rect: Rect, bean: TSViewBean?) {
         if (bean != null) {
             mBorderPaint.color = bean.borderColor
             mInsidePaint.color = bean.insideColor
@@ -92,15 +95,15 @@ class TSViewDrawUtil(util: TSViewUtil) {
         mRectF.set(l, t, r, b)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mInsidePaint)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mBorderPaint)
-        when (LongPress.CONDITION) {
+        when (mLongPress.condition) {
             LongPress.EMPTY_AREA -> {
-                canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
-                if (mRectF.height() > mRectShowStartTimeHeight && bean != null) {
+                if (mRectF.height() > mRectShowStartTimeHeight) {
                     canvas.drawText(mTimeUtil.getTime(rect.top), mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
                 }
-            }LongPress.TOP, LongPress.BOTTOM -> {
-                canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
-            }else -> {}
+            }
+            LongPress.NULL, LongPress.TOP, LongPress.INSIDE, LongPress.BOTTOM -> {
+                canvas.drawText(bean!!.name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
+            }
         }
     }
 
@@ -131,7 +134,7 @@ class TSViewDrawUtil(util: TSViewUtil) {
     }
 
     fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
-        if (rect.height() > mRectLesserHeight) {
+        if (rect.height() > mRectShowTBTimeHeight) {
             val l = rect.left + BORDER_WIDTH + 1F
             val t = rect.top - mTBTimeAscent
             val b = rect.bottom - mTBTimeDescent

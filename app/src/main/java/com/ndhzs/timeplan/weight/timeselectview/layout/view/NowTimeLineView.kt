@@ -39,7 +39,7 @@ class NowTimeLineView(context: Context, util: TSViewUtil) : View(context) {
         /*
         * 为了防止因父布局调用addView()后重新layout()而回到原位置
         * */
-        val nowTimeHeight = mTimeUtil.getNowTimeHeight() - mBallRadius
+        val nowTimeHeight = mTimeUtil.getTimeHeight() - mBallRadius
         super.layout(l, nowTimeHeight, r, nowTimeHeight + 2 * mBallRadius)
     }
 

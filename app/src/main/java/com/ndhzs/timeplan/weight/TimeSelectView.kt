@@ -1,21 +1,19 @@
 package com.ndhzs.timeplan.weight
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
-import android.view.animation.DecelerateInterpolator
-import android.widget.ScrollView
-import androidx.core.animation.addListener
 import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
+import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
-import kotlin.math.abs
+import com.ndhzs.timeplan.weight.timeselectview.utils.touchevent.TSViewTouchEvent
 
 /**
  * @author 985892345
  * @date 2021/3/20
  * @description
  */
-class TimeSelectView(context: Context, attrs: AttributeSet? = null) : ScrollView(context, attrs) {
+class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouchEvent(context, attrs) {
 
     /**
      * 设置是否显示当前时间线
@@ -54,51 +52,90 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : ScrollView
         }
     }
 
-    private var mAnimator: ValueAnimator? = null
     /**
-     * 与scrollTo()类似，但速度较缓慢
+     * 设置两个TimeSelectView的相互联合
      */
-    fun slowlyMoveTo(y: Int) {
-        mAnimator = ValueAnimator.ofInt(scrollY, y)
-        mAnimator?.let {
-            it.addUpdateListener { animator ->
-                val nowY = animator.animatedValue as Int
-                scrollTo(0, nowY)
-            }
-            it.addListener(onEnd = {mAnimator = null})
-            it.duration = abs(scrollY - y).toLong()
-            it.interpolator = DecelerateInterpolator()
-            it.start()
-        }
+    fun setLinkedTSView(linkedTimeSelectView: TimeSelectView) {
+        mLinkedTsView = linkedTimeSelectView
     }
 
     /**
-     * 与scrollBy()类似，但速度较缓慢，不建议短时间大量调用
+     * 设置长按监听接口
      */
-    fun slowlyMoveBy(dy: Int) {
-        cancelSlowlyMove()
-        slowlyMoveTo(scrollY + dy)
+    fun setOnLongPressListener(l: OnLongPressListener) {
+        mLongPressListener = l
     }
-
-    /**
-     * 取消slowlyMoveTo()、slowlyMoveBy()的滑动
-     */
-    fun cancelSlowlyMove() {
-        mAnimator?.let {
-            if (it.isRunning) {
-                it.cancel()
-                mAnimator = null
-            }
-        }
-    }
-
-
 
     private val mUtil = TSViewUtil(context, attrs)
+    private val mTimeUtil = mUtil.mTimeUtil
+    private val mLongPress = mUtil.mLongPress
     private val mChildLayout = ChildLayout(context, mUtil)
+    private var mLinkedTsView: TimeSelectView? = null
+    private var mLongPressListener: OnLongPressListener? = null
 
     init {
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         addView(mChildLayout, lp)
+        moveToCenterTime()
+    }
+
+    private fun moveToCenterTime() {
+        if (mUtil.mCenterTime == -1F) { //以当前时间线为中线
+            post(object : Runnable {
+                override fun run() {
+                    scrollY = mTimeUtil.getTimeHeight() - width / 2
+                    postDelayed(this, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
+                }
+            })
+        }else { //以mCenterTime为中线，不随时间移动
+            post {
+                scrollY = mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width/2
+            }
+        }
+    }
+
+    private val mBackCurrentTimeRun = Runnable {
+        scrollY = if (mUtil.mCenterTime == -1F) {
+            mTimeUtil.getTimeHeight() - width/2
+        }else {
+            mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width/2
+        }
+    }
+
+    override fun dispatchTouchEventDown() {
+        removeCallbacks(mBackCurrentTimeRun)
+        mLinkedTsView?.let {
+            it.removeCallbacks(it.mBackCurrentTimeRun)
+        }
+    }
+
+    override fun dispatchTouchEventUp() {
+        mLongPress.condition = LongPress.NULL
+        postDelayed(mBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
+    }
+
+    override fun onInterceptTouchEventDown(x: Int, y: Int): Boolean {
+        //点击的是左部区域，直接拦截
+        if (x < mUtil.mIntervalLeft + 3) {
+            return true
+        }
+        //对ScrollView的外部大小的上下mExtraHeight距离进行拦截
+        if (y < mUtil.mExtraHeight || y > height - mUtil.mExtraHeight) {
+            return true
+        }
+        return false
+    }
+
+    override fun onLongPressStart() {
+        mLongPressListener?.onLongPressStart()
+    }
+
+    override fun onLongPressEnd() {
+        mLongPressListener?.onLongPressEnd()
+    }
+
+    interface OnLongPressListener {
+        fun onLongPressStart()
+        fun onLongPressEnd()
     }
 }

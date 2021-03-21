@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 import android.content.Context
 import android.util.AttributeSet
 import com.ndhzs.timeplan.R
+import com.ndhzs.timeplan.weight.timeselectview.utils.ondraw.RectViewDrawUtil
 
 /**
  * @author 985892345
@@ -25,13 +26,14 @@ class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
     val mTimeUtil: TSViewTimeUtil
-    val mDrawUtil: TSViewDrawUtil
+    val mDrawUtil: RectViewDrawUtil
+    val mLongPress: LongPress = LongPress()
 
     init {
         val ty = context.obtainStyledAttributes(attrs, R.styleable.TimeSelectView)
         mEndHour = ty.getInteger(R.styleable.TimeSelectView_endHour, 26)
         mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 2)
-        mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, -1f)
+        mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, -1F)
         mBorderColor = ty.getColor(R.styleable.TimeSelectView_borderColor, 0xFF0000)
         mInsideColor = ty.getColor(R.styleable.TimeSelectView_insideColor, 0xDCCC48)
         mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, 110f).toInt()
@@ -44,6 +46,6 @@ class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
         mTotalHeight = (mEndHour - mStartHour) * mIntervalHeight + 2 * mExtraHeight
         ty.recycle()
         mTimeUtil = TSViewTimeUtil(this)
-        mDrawUtil = TSViewDrawUtil(this)
+        mDrawUtil = RectViewDrawUtil(this)
     }
 }

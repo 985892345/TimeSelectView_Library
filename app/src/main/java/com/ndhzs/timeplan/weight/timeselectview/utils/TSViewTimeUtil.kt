@@ -6,7 +6,7 @@ import java.util.*
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description
+ * @description 用来进行时间与高度转换的类
  */
 class TSViewTimeUtil(util: TSViewUtil) {
 
@@ -17,7 +17,7 @@ class TSViewTimeUtil(util: TSViewUtil) {
         const val DELAY_NOW_TIME_REFRESH = 30000L
 
         /**
-         * 回到当前时间的延缓时间
+         * 回到当前时间高度的间隔时间
          */
         const val DELAY_BACK_CURRENT_TIME = 10000L
     }
@@ -45,12 +45,12 @@ class TSViewTimeUtil(util: TSViewUtil) {
         return hour + minute / 60F + second / 3600F
     }
 
-    fun getNowTimeHeight(): Int {
-        var nowTime = getNowTime()
-        if (nowTime < mStartHour) {
-            nowTime += 24
+    fun getTimeHeight(time: Float = getNowTime()): Int {
+        var time1 = time
+        if (time1 < mStartHour) {
+            time1 += 24
         }
-        return (mExtraHeight + (nowTime - mStartHour) * mIntervalHeight).toInt()
+        return (mExtraHeight + (time1 - mStartHour) * mIntervalHeight).toInt()
     }
 
     fun getTime(y: Int): String {
