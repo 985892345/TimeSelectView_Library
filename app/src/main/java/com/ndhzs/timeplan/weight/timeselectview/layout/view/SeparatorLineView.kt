@@ -15,10 +15,6 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 @SuppressLint("ViewConstructor")
 class SeparatorLineView(context: Context, util: TSViewUtil) : View(context) {
     companion object {
-        /**
-         * 右边的间隔宽度
-         */
-        const val INTERVAL_RIGHT = 10
 
         /**
          * 垂直分割线厚度
@@ -29,6 +25,11 @@ class SeparatorLineView(context: Context, util: TSViewUtil) : View(context) {
          * 水平分割线厚度
          */
         const val HORIZONTAL_LINE_WIDTH = 1
+
+        /**
+         * 右边的间隔宽度
+         */
+        const val INTERVAL_RIGHT_WIDTH = 10
     }
 
     private val mUtil = util
@@ -76,7 +77,7 @@ class SeparatorLineView(context: Context, util: TSViewUtil) : View(context) {
             val baseline = y + mLeftTimeCenter //时间文字相对于矩形的水平线高度
             canvas.drawText(hour, intervalLeft/2F, baseline, mLeftTimePaint)
             val lineHeight = y + HORIZONTAL_LINE_WIDTH/2F
-            canvas.drawLine(intervalLeft.toFloat(), lineHeight, (width - INTERVAL_RIGHT).toFloat(), lineHeight, mHLinePaint)
+            canvas.drawLine(intervalLeft.toFloat(), lineHeight, (width - INTERVAL_RIGHT_WIDTH).toFloat(), lineHeight, mHLinePaint)
         }
     }
 }

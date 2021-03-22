@@ -8,6 +8,8 @@ import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
+import androidx.viewpager2.widget.ViewPager2
+import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
 import kotlin.math.abs
 
 /**
@@ -79,16 +81,16 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
                 mInitialX = x
                 mInitialY = y
                 postDelayed(mLongPressRun, 250)
-                /*
-                 * 如果不在DOWN事件手动调用onTouchEvent(), ScrollView就不会移动,
-                 * 因为子View的onTouchEvent()已经把DOWN事件拦截了, ScrollView中
-                 * 不执行onTouchEvent()的DOWN事件，将不会滑动
-                 * */
-                onTouchEvent(ev)
-                cancelSlowlyMove()
                 dispatchTouchEventDown()
             }
             MotionEvent.ACTION_MOVE -> {
+                if (!mIsLongPress) {
+                    if (abs(x - mInitialX) > MOVE_THRESHOLD || abs(y - mInitialY) > MOVE_THRESHOLD) {
+                        removeCallbacks(mLongPressRun)
+                    }else {
+                        return true
+                    }
+                }
             }
             MotionEvent.ACTION_UP -> {
                 removeCallbacks(mLongPressRun)
@@ -107,26 +109,60 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
         val y = ev.y.toInt()
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
+                cancelSlowlyMove()
                 if (onInterceptTouchEventDown(x, y)) {
                     removeCallbacks(mLongPressRun)
+                    return true
                 }
+                /*
+                 * 如果不在DOWN事件手动调用onTouchEvent(), ScrollView就不会移动,
+                 * 因为子View的onTouchEvent()已经把DOWN事件拦截了, ScrollView中
+                 * 不执行onTouchEvent()的DOWN事件，将不会滑动
+                 * */
+                onTouchEvent(ev)
             }
             MotionEvent.ACTION_MOVE -> {
+                if (mIsLongPress) {
+                    automaticSlide()
+                }else {
+                    return true
+                }
             }
         }
         return super.onInterceptTouchEvent(ev)
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        when (ev.action) {
-            MotionEvent.ACTION_DOWN -> {
-
-            }
-            MotionEvent.ACTION_MOVE -> {
-
+        val viewPager2 = getLinkedViewPager2()
+        viewPager2?.let {
+            when (ev.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    it.isUserInputEnabled = false
+                }
+                MotionEvent.ACTION_MOVE -> {
+                    if (scrollY == 0 && y > mInitialY) {
+                        it.isUserInputEnabled = true
+                        return false
+                    }
+                    if (scrollY + height == getChildAt(0).height && y < mInitialY) {
+                        it.isUserInputEnabled = true
+                        return false
+                    }
+                }
             }
         }
         return super.onTouchEvent(ev)
+    }
+
+    private fun automaticSlide() {
+        when (getLongPressCondition()) {
+            LongPress.TOP, LongPress.BOTTOM, LongPress.EMPTY_AREA -> {
+
+            }
+            LongPress.INSIDE -> {
+
+            }
+        }
     }
 
     abstract fun dispatchTouchEventDown()
@@ -134,4 +170,8 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
     abstract fun onInterceptTouchEventDown(x: Int, y: Int): Boolean
     abstract fun onLongPressStart()
     abstract fun onLongPressEnd()
+    abstract fun getLinkedViewPager2(): ViewPager2?
+    abstract fun getLongPressCondition(): Int
+    abstract fun getUpperLimit(): Int
+    abstract fun getLowerLimit(): Int
 }

@@ -19,15 +19,14 @@ class RectView(context: Context, util: TSViewUtil) : View(context) {
     private val mUtil = util
     private val mTimeUtil = util.mTimeUtil
     private val mDrawUtil = util.mDrawUtil
+    private val mRectUtil = util.mRectUtil
     private val mLongPress = util.mLongPress
     private val mInitialRect = Rect()
-    private val mDeletedRect = Rect()
-    private val mDeletedBean: TSViewBean? = null
-    private val mRectWithBean = HashMap<Rect, TSViewBean>()
+    private val mRectWithBean = mRectUtil.mRectWithBean
 
     override fun onDraw(canvas: Canvas) {
         if (!mInitialRect.isEmpty) {
-            mDrawUtil.drawRect(canvas, mInitialRect, mDeletedBean)
+            mDrawUtil.drawRect(canvas, mInitialRect, mRectUtil.mDeletedBean)
             mDrawUtil.drawArrows(canvas, mInitialRect, mTimeUtil.getDTime(mInitialRect.top, mInitialRect.bottom))
             mDrawUtil.drawStartEndTime(canvas, mInitialRect, mTimeUtil.getTime(mInitialRect.top), mTimeUtil.getTime(mInitialRect.bottom))
         }

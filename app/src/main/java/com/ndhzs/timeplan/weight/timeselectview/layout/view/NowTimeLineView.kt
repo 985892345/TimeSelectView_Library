@@ -51,7 +51,7 @@ class NowTimeLineView(context: Context, util: TSViewUtil) : View(context) {
     override fun onDraw(canvas: Canvas) {
         val cx = mIntervalLeft - SeparatorLineView.VERTICAL_LINE_WIDTH/2F
         val cy = mBallRadius.toFloat()
-        val stopX = (width - SeparatorLineView.INTERVAL_RIGHT).toFloat()
+        val stopX = (width - SeparatorLineView.INTERVAL_RIGHT_WIDTH).toFloat()
         canvas.drawCircle(cx, cy, cy, mTimeLinePaint)
         canvas.drawLine(cx, cy, stopX, cy, mTimeLinePaint)
     }

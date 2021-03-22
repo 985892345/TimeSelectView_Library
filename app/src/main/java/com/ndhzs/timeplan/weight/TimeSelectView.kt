@@ -2,6 +2,7 @@ package com.ndhzs.timeplan.weight
 
 import android.content.Context
 import android.util.AttributeSet
+import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
 import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
@@ -66,11 +67,20 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
         mLongPressListener = l
     }
 
+    /**
+     * 解决与ViewPager2的同向滑动冲突
+     * @param viewPager2 传入ViewPager2，不是ViewPager
+     */
+    fun setLinkedViewPager2(viewPager2: ViewPager2) {
+        mLinkedViewPager2 = viewPager2
+    }
+
     private val mUtil = TSViewUtil(context, attrs)
     private val mTimeUtil = mUtil.mTimeUtil
     private val mLongPress = mUtil.mLongPress
     private val mChildLayout = ChildLayout(context, mUtil)
     private var mLinkedTsView: TimeSelectView? = null
+    private var mLinkedViewPager2: ViewPager2? = null
     private var mLongPressListener: OnLongPressListener? = null
 
     init {
@@ -127,12 +137,16 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
     }
 
     override fun onLongPressStart() {
+
         mLongPressListener?.onLongPressStart()
     }
 
     override fun onLongPressEnd() {
         mLongPressListener?.onLongPressEnd()
     }
+
+    override fun getLinkedViewPager2(): ViewPager2? = mLinkedViewPager2
+    override fun getLongPressCondition(): Int  = mUtil.mLongPress.condition
 
     interface OnLongPressListener {
         fun onLongPressStart()

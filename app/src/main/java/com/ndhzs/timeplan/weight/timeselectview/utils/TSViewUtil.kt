@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 import android.content.Context
 import android.util.AttributeSet
 import com.ndhzs.timeplan.R
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.utils.ondraw.RectViewDrawUtil
 
 /**
@@ -27,6 +28,7 @@ class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
     val mTimeUtil: TSViewTimeUtil
     val mDrawUtil: RectViewDrawUtil
+    val mRectUtil: RectViewRectUtil
     val mLongPress: LongPress = LongPress()
 
     init {
@@ -47,5 +49,9 @@ class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
         ty.recycle()
         mTimeUtil = TSViewTimeUtil(this)
         mDrawUtil = RectViewDrawUtil(this)
+        mRectUtil = RectViewRectUtil(this)
     }
+
+    fun getTop(): Int = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
+    fun getBottom(): Int = mTotalHeight - mExtraHeight
 }
