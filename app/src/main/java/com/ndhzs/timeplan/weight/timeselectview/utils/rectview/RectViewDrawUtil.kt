@@ -1,8 +1,6 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils.ondraw
+package com.ndhzs.timeplan.weight.timeselectview.utils.rectview
 
 import android.graphics.*
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
-import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
 /**
@@ -13,8 +11,6 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 class RectViewDrawUtil(util: TSViewUtil) {
 
     private val mUtil = util
-    private val mTimeUtil = util.mTimeUtil
-    private val mLongPress = util.mLongPress
     private val mTextPaint: Paint //任务名称画笔
     private val mDTimePaint: Paint //时间差值画笔
     private val mInsidePaint: Paint //圆角矩形内部画笔
@@ -27,7 +23,7 @@ class RectViewDrawUtil(util: TSViewUtil) {
 
     private val mTBTimeAscent: Float
     private val mTBTimeDescent: Float
-    private val mRectMinHeight: Float //能生成任务的最小高度
+    val mRectMinHeight: Float //能生成任务的最小高度
     private val mRectShowTBTimeHeight: Float //显示顶部和底部的最小高度
     private val mRectShowStartTimeHeight: Float //显示开始时间的最小高度
     private val mTextCenter: Float //任务名称的水平线
@@ -41,8 +37,8 @@ class RectViewDrawUtil(util: TSViewUtil) {
 
     init {
         mArrowsPaint = generatePaint(0x000000)
-        mInsidePaint = generatePaint(util.mInsideColor)
-        mBorderPaint = generatePaint(util.mBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
+        mInsidePaint = generatePaint(util.mDefaultInsideColor)
+        mBorderPaint = generatePaint(util.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
         mTextPaint = generateTextPaint(util.mTaskTextSize)
         mDTimePaint = generateTextPaint(0.7F * util.mTimeTextSize, Paint.Align.RIGHT)
         mTBTimePaint = generateTextPaint(0.8F * util.mTimeTextSize, Paint.Align.LEFT)
@@ -80,14 +76,9 @@ class RectViewDrawUtil(util: TSViewUtil) {
         return paint
     }
 
-    fun drawRect(canvas: Canvas, rect: Rect, bean: TSViewBean?) {
-        if (bean != null) {
-            mBorderPaint.color = bean.borderColor
-            mInsidePaint.color = bean.insideColor
-        }else {
-            mBorderPaint.color = mUtil.mBorderColor
-            mInsidePaint.color = mUtil.mInsideColor
-        }
+    fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int) {
+        mBorderPaint.color = borderColor
+        mInsidePaint.color = insideColor
         val l = rect.left + BORDER_WIDTH / 2F
         val t = rect.top + BORDER_WIDTH / 2F
         val r = rect.right - BORDER_WIDTH / 2F
@@ -95,16 +86,7 @@ class RectViewDrawUtil(util: TSViewUtil) {
         mRectF.set(l, t, r, b)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mInsidePaint)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mBorderPaint)
-        when (mLongPress.condition) {
-            LongPress.EMPTY_AREA -> {
-                if (mRectF.height() > mRectShowStartTimeHeight) {
-                    canvas.drawText(mTimeUtil.getTime(rect.top), mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
-                }
-            }
-            LongPress.NULL, LongPress.TOP, LongPress.INSIDE, LongPress.BOTTOM -> {
-                canvas.drawText(bean!!.name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
-            }
-        }
+        canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
     }
 
     fun drawArrows(canvas: Canvas, rect: Rect, dTime: String) {
@@ -131,6 +113,11 @@ class RectViewDrawUtil(util: TSViewUtil) {
             canvas.drawPath(mArrowsPath, mArrowsPaint)
             mArrowsPath.rewind()
         }
+    }
+
+    fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String) {
+        val t = rect.top + BORDER_WIDTH / 2F
+        canvas.drawText(sTime, mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
     }
 
     fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {

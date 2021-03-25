@@ -3,11 +3,12 @@ package com.ndhzs.timeplan.weight
 import android.content.Context
 import android.util.AttributeSet
 import androidx.viewpager2.widget.ViewPager2
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
-import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
-import com.ndhzs.timeplan.weight.timeselectview.utils.touchevent.TSViewTouchEvent
+import com.ndhzs.timeplan.weight.timeselectview.utils.tsview.TSViewTouchEvent
 
 /**
  * @author 985892345
@@ -61,10 +62,18 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
     }
 
     /**
+     * 点击当前任务的监听
+     */
+    fun setOnClickListener(l: ((v: TimeSelectView, bean: TSViewBean) -> Unit)) {
+        mOnClickListener = l
+    }
+
+    /**
      * 设置长按监听接口
      */
-    fun setOnLongPressListener(l: OnLongPressListener) {
-        mLongPressListener = l
+    fun setOnLongPressListener(start: ((condition: TSViewLongClick) -> Unit), end: ((condition: TSViewLongClick) -> Unit)) {
+        mOnLongClickStartListener = start
+        mOnLongClickEndListener = end
     }
 
     /**
@@ -75,18 +84,30 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
         mLinkedViewPager2 = viewPager2
     }
 
+    /**
+     * 得到当前的和与之联合的TimeSelectView是否是处于长按状态，
+     * 若你想得到所有的TimeSelectView是否是处于长按状态，可以使用TSViewLongClick.sIsLongClick
+     */
+    fun getIsLongClick(): Boolean = mIsLongClick
+
     private val mUtil = TSViewUtil(context, attrs)
     private val mTimeUtil = mUtil.mTimeUtil
-    private val mLongPress = mUtil.mLongPress
+    private val mRectUtil = mUtil.mRectUtil
     private val mChildLayout = ChildLayout(context, mUtil)
+    private var mIsLongClick = false
     private var mLinkedTsView: TimeSelectView? = null
     private var mLinkedViewPager2: ViewPager2? = null
-    private var mLongPressListener: OnLongPressListener? = null
+    private var mOnClickListener: ((v: TimeSelectView, bean: TSViewBean) -> Unit)? = null
+    private var mOnLongClickStartListener: ((condition: TSViewLongClick) -> Unit)? = null
+    private var mOnLongClickEndListener: ((condition: TSViewLongClick) -> Unit)? = null
 
     init {
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         addView(mChildLayout, lp)
         moveToCenterTime()
+        mUtil.setOnConditionEndListener {
+            onLongPressEnd(it)
+        }
     }
 
     private fun moveToCenterTime() {
@@ -99,16 +120,16 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
             })
         }else { //以mCenterTime为中线，不随时间移动
             post {
-                scrollY = mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width/2
+                scrollY = mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width / 2
             }
         }
     }
 
     private val mBackCurrentTimeRun = Runnable {
         scrollY = if (mUtil.mCenterTime == -1F) {
-            mTimeUtil.getTimeHeight() - width/2
+            mTimeUtil.getTimeHeight() - width / 2
         }else {
-            mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width/2
+            mTimeUtil.getTimeHeight(mUtil.mCenterTime) - width / 2
         }
     }
 
@@ -120,7 +141,6 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
     }
 
     override fun dispatchTouchEventUp() {
-        mLongPress.condition = LongPress.NULL
         postDelayed(mBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
     }
 
@@ -136,20 +156,29 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : TSViewTouc
         return false
     }
 
-    override fun onLongPressStart() {
-
-        mLongPressListener?.onLongPressStart()
+    override fun isClick(insideX: Int, insideY: Int) {
+        val bean = mRectUtil.isInRect(insideX, insideY)
+        if (bean != null) {
+            mOnClickListener?.invoke(this, bean)
+        }
     }
 
-    override fun onLongPressEnd() {
-        mLongPressListener?.onLongPressEnd()
+    override fun onLongPressStart(insideX: Int, insideY: Int) {
+        mIsLongClick = true
+        mLinkedTsView?.mIsLongClick = true
+        mRectUtil.longClickConditionJudge(insideX, insideY)
+        mOnLongClickStartListener?.invoke(mUtil.mCondition)
     }
 
-    override fun getLinkedViewPager2(): ViewPager2? = mLinkedViewPager2
-    override fun getLongPressCondition(): Int  = mUtil.mLongPress.condition
+    private fun onLongPressEnd(condition: TSViewLongClick) {
+        mIsLongClick = false
+        mLinkedTsView?.mIsLongClick = false
+        mOnLongClickEndListener?.invoke(condition)
+    }
 
-    interface OnLongPressListener {
-        fun onLongPressStart()
-        fun onLongPressEnd()
+    override fun setLinkedViewPager2(): ViewPager2? = mLinkedViewPager2
+
+    override fun setUpperAndLowerLimit(insideX: Int, insideY: Int): IntArray {
+        TODO("Not yet implemented")
     }
 }

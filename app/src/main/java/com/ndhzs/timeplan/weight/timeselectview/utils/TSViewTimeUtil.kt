@@ -54,12 +54,12 @@ class TSViewTimeUtil(util: TSViewUtil) {
     }
 
     fun getTime(y: Int): String {
-        val h: Int = getHour(y)
-        val m: Int = getMinute(y)
+        val h = getHour(y)
+        val m = getMinute(y)
         return timeToString(h, m)
     }
 
-    fun getDTime(top: Int, bottom: Int): String {
+    fun getDiffTime(top: Int, bottom: Int): String {
         val lastH = getHour(top)
         val lastM = getMinute(top)
         var h = getHour(bottom)
@@ -91,7 +91,7 @@ class TSViewTimeUtil(util: TSViewUtil) {
     }
 
     private fun timeToString(hour: Int, minute: Int): String {
-        val stH: String = when {
+        val stH = when {
             hour < 10 -> {
                 "0$hour"
             }hour < 24 -> {

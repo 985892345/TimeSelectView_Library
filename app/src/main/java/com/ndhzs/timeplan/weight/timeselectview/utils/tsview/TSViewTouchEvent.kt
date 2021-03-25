@@ -1,4 +1,4 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils.touchevent
+package com.ndhzs.timeplan.weight.timeselectview.utils.tsview
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -9,7 +9,6 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.utils.LongPress
 import kotlin.math.abs
 
 /**
@@ -64,13 +63,14 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
     }
 
     private var mIsLongPress = false
+    private var mIsAutoSlide = false
     private var mInitialX = 0
     private var mInitialY = 0
     private val mLongPressRun = Runnable {
         mIsLongPress = true
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(30)
-        onLongPressStart()
+        onLongPressStart(mInitialX + scrollX, mInitialY + scrollY)
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -88,6 +88,18 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
                     if (abs(x - mInitialX) > MOVE_THRESHOLD || abs(y - mInitialY) > MOVE_THRESHOLD) {
                         removeCallbacks(mLongPressRun)
                     }else {
+                        /*
+                        * 这里return true可以终止事件向下传递，意思就是MOVE事件会一直卡在这里
+                        * onInterceptTouchEvent和onTouchEvent将会收不到MOVE这个事件，将不会被调用
+                        * 所以这里可以用来等待长按时间结束。
+                        *
+                        * 如果你想在子View的onTouchEvent中判断是否是长按，就会出一个问题
+                        * 一旦子View的onTouchEvent的DOWN事件return true，而你在子View的MOVE事件中又不想拦截，
+                        * 想把事件给ScrollView处理，那么理所当然你想的是在子View的MOVE事件中return false，
+                        * 你会以为这样ScrollView就会收到子View传来的MOVE事件，那你就大错特错了，如果在
+                        * 子View的onTouchEvent的DOWN事件return true的前提下，又在子View的MOVE事件中return false，
+                        * 这样的结果是MOVE事件会直接越级传递给Activity，不会再经过ScrollView
+                        * */
                         return true
                     }
                 }
@@ -96,7 +108,6 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
                 removeCallbacks(mLongPressRun)
                 if (mIsLongPress) {
                     mIsLongPress = false
-                    onLongPressEnd()
                 }
                 dispatchTouchEventUp()
             }
@@ -113,27 +124,49 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
                 if (onInterceptTouchEventDown(x, y)) {
                     removeCallbacks(mLongPressRun)
                     return true
+                }else {
+                    /*
+                    * 如果不在DOWN事件手动调用onTouchEvent(), ScrollView就不会移动,
+                    * 因为子View的onTouchEvent()已经把DOWN事件拦截了, ScrollView中
+                    * 不执行onTouchEvent()的DOWN事件，将不会滑动
+                    * */
+                    onTouchEvent(ev)
                 }
-                /*
-                 * 如果不在DOWN事件手动调用onTouchEvent(), ScrollView就不会移动,
-                 * 因为子View的onTouchEvent()已经把DOWN事件拦截了, ScrollView中
-                 * 不执行onTouchEvent()的DOWN事件，将不会滑动
-                 * */
-                onTouchEvent(ev)
             }
+            /*
+            * onInterceptTouchEvent中一旦有一步return true，后面的所有事件都不会在接受
+            * 比如，我在onInterceptTouchEvent的DOWN中return true，则onInterceptTouchEvent的MOVE、UP中就不会再接受到事件，
+            * 事件会从dispatchTouchEvent的MOVE直接传递到onTouchEvent，不会再经过onInterceptTouchEvent的MOVE
+            * 一句话总结就是onInterceptTouchEvent一旦return true，就不会再调用
+            *
+            * 所以这里的MOVE只有在完全分辨出是否是长按后才会被调用，因为前面的dispatchTouchEvent在完全判断是长按前MOVE一直
+            * return true，将事件一直不向下传递
+            * */
             MotionEvent.ACTION_MOVE -> {
                 if (mIsLongPress) {
-                    automaticSlide()
+                    automaticSlide(x + scrollX, y + scrollY)
                 }else {
                     return true
                 }
             }
+            /*
+            * 根据上面写的注释，可得到这里的UP事件只有在DOWN、MOVE都return false的情况下才会调用
+            * */
+            MotionEvent.ACTION_UP -> {
+                if (mIsAutoSlide) {
+                    upperLimit = -1
+                    lowerLimit = -1
+                    automaticSlideEnd()
+                }else if (abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
+                    isClick(x + scrollX, y + scrollY)
+                }
+            }
         }
-        return super.onInterceptTouchEvent(ev)
+        return false
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        val viewPager2 = getLinkedViewPager2()
+        val viewPager2 = setLinkedViewPager2()
         viewPager2?.let {
             when (ev.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -154,24 +187,26 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
         return super.onTouchEvent(ev)
     }
 
-    private fun automaticSlide() {
-        when (getLongPressCondition()) {
-            LongPress.TOP, LongPress.BOTTOM, LongPress.EMPTY_AREA -> {
-
-            }
-            LongPress.INSIDE -> {
-
+    private var upperLimit = -1
+    private var lowerLimit = -1
+    private fun automaticSlide(insideX: Int, insideY: Int) {
+        if (upperLimit == -1) {
+            val intArray = setUpperAndLowerLimit(insideX, insideY)
+            if (intArray.size == 2) {
+                upperLimit = intArray.minOrNull()!!
+                lowerLimit = intArray.maxOrNull()!!
+                automaticSlideStart()
+                mIsAutoSlide = true
             }
         }
     }
-
-    abstract fun dispatchTouchEventDown()
-    abstract fun dispatchTouchEventUp()
-    abstract fun onInterceptTouchEventDown(x: Int, y: Int): Boolean
-    abstract fun onLongPressStart()
-    abstract fun onLongPressEnd()
-    abstract fun getLinkedViewPager2(): ViewPager2?
-    abstract fun getLongPressCondition(): Int
-    abstract fun getUpperLimit(): Int
-    abstract fun getLowerLimit(): Int
+    protected open fun automaticSlideStart() {}
+    protected open fun automaticSlideEnd() {}
+    protected open fun dispatchTouchEventDown() {}
+    protected open fun dispatchTouchEventUp() {}
+    protected open fun onInterceptTouchEventDown(x: Int, y: Int): Boolean = false
+    protected open fun isClick(insideX: Int, insideY: Int) {}
+    protected open fun onLongPressStart(insideX: Int, insideY: Int) {}
+    protected open fun setLinkedViewPager2(): ViewPager2? = null
+    protected open fun setUpperAndLowerLimit(insideX: Int, insideY: Int): IntArray = intArrayOf(-1, -1)
 }

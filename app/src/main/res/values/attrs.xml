@@ -7,10 +7,12 @@
         <attr name="endHour" format="integer"/>
         <!--当前时间线的时间(支持小数)-->
         <attr name="centerTime" format="float"/>
-        <!--任务边框颜色-->
-        <attr name="borderColor" format="integer"/>
-        <!--任务内部颜色-->
-        <attr name="insideColor" format="integer"/>
+        <!--默认任务边框颜色-->
+        <attr name="defaultBorderColor" format="integer"/>
+        <!--默认任务内部颜色-->
+        <attr name="defaultInsideColor" format="integer"/>
+        <!--默认任务名称-->
+        <attr name="defaultTaskName" format="string"/>
         <!--时间轴左侧的时间间隔宽度-->
         <attr name="intervalLeft" format="dimension"/>
         <!--时间轴每小时间的间隔高度-->
