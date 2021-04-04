@@ -1,9 +1,8 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils.tsview
+package com.ndhzs.timeplan.weight.timeselectview.utils.tscrollview
 
 import android.animation.ValueAnimator
 import android.content.Context
 import android.os.Vibrator
-import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
 import android.widget.ScrollView
@@ -16,7 +15,7 @@ import kotlin.math.abs
  * @date 2021/3/21
  * @description 处理TimeSelectView的触摸事件
  */
-abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : ScrollView(context, attrs) {
+abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
 
     private var mAnimator: ValueAnimator? = null
     /**
@@ -70,7 +69,7 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
         mIsLongPress = true
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(30)
-        onLongPressStart(mInitialX + scrollX, mInitialY + scrollY)
+        onLongClickStart(mInitialX + scrollX, mInitialY + scrollY)
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -144,7 +143,7 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
             * */
             MotionEvent.ACTION_MOVE -> {
                 if (mIsLongPress) {
-                    automaticSlide(x + scrollX, y + scrollY)
+                    automaticSlide(x, y, x + scrollX, y + scrollY)
                 }else {
                     return true
                 }
@@ -153,12 +152,8 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
             * 根据上面写的注释，可得到这里的UP事件只有在DOWN、MOVE都return false的情况下才会调用
             * */
             MotionEvent.ACTION_UP -> {
-                if (mIsAutoSlide) {
-                    upperLimit = -1
-                    lowerLimit = -1
-                    automaticSlideEnd()
-                }else if (abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
-                    isClick(x + scrollX, y + scrollY)
+                if (!mIsLongPress && abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
+                    onClick(x + scrollX, y + scrollY)
                 }
             }
         }
@@ -187,26 +182,11 @@ abstract class TSViewTouchEvent(context: Context, attrs: AttributeSet?) : Scroll
         return super.onTouchEvent(ev)
     }
 
-    private var upperLimit = -1
-    private var lowerLimit = -1
-    private fun automaticSlide(insideX: Int, insideY: Int) {
-        if (upperLimit == -1) {
-            val intArray = setUpperAndLowerLimit(insideX, insideY)
-            if (intArray.size == 2) {
-                upperLimit = intArray.minOrNull()!!
-                lowerLimit = intArray.maxOrNull()!!
-                automaticSlideStart()
-                mIsAutoSlide = true
-            }
-        }
-    }
-    protected open fun automaticSlideStart() {}
-    protected open fun automaticSlideEnd() {}
     protected open fun dispatchTouchEventDown() {}
     protected open fun dispatchTouchEventUp() {}
     protected open fun onInterceptTouchEventDown(x: Int, y: Int): Boolean = false
-    protected open fun isClick(insideX: Int, insideY: Int) {}
-    protected open fun onLongPressStart(insideX: Int, insideY: Int) {}
+    protected open fun onClick(insideX: Int, insideY: Int) {}
+    protected open fun onLongClickStart(insideX: Int, insideY: Int) {}
     protected open fun setLinkedViewPager2(): ViewPager2? = null
-    protected open fun setUpperAndLowerLimit(insideX: Int, insideY: Int): IntArray = intArrayOf(-1, -1)
+    protected open fun automaticSlide(x: Int, y: Int, insideX: Int, insideY: Int) {}
 }

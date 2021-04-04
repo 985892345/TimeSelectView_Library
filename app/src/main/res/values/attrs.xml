@@ -1,26 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="TimeSelectView">
+        <!--时间轴个数(建议3个以下)-->
+        <attr name="amount" format="integer"/>
+        <!--时间轴背景的圆角度数-->
+        <attr name="cardCornerRadius" format="dimension"/>
+
         <!--时间轴起始时间-->
         <attr name="startHour" format="integer"/>
-        <!--时间轴结束时间，若在明天2点结束，请设置为26( = 24 + 2)-->
+        <!--时间轴结束时间，若在明天2点结束，请设置为26( = 24 + 2)，若有几个时间轴，将平分时间-->
         <attr name="endHour" format="integer"/>
         <!--当前时间线的时间(支持小数)-->
         <attr name="centerTime" format="float"/>
+
         <!--默认任务边框颜色-->
-        <attr name="defaultBorderColor" format="integer"/>
+        <attr name="defaultBorderColor" format="color"/>
         <!--默认任务内部颜色-->
-        <attr name="defaultInsideColor" format="integer"/>
+        <attr name="defaultInsideColor" format="color"/>
         <!--默认任务名称-->
         <attr name="defaultTaskName" format="string"/>
+
+        <!--时间默认间隔数，必须为60的因数，若不是，将以15为间隔数-->
+        <attr name="timeInterval" format="integer"/>
+
+        <!--时间轴宽度-->
+        <attr name="timelineWidth" format="dimension"/>
+        <!--相邻时间轴间隔-->
+        <attr name="timelineInterval" format="dimension"/>
         <!--时间轴左侧的时间间隔宽度-->
         <attr name="intervalLeft" format="dimension"/>
         <!--时间轴每小时间的间隔高度-->
         <attr name="intervalHeight" format="dimension"/>
-        <!--时间轴左侧时间文字大小(任务文字大小随之改变）-->
+
+        <!--时间轴左侧时间文字大小(任务文字大小随之改变)-->
         <attr name="timeTextSize" format="dimension"/>
         <!--任务名称文字大小-->
         <attr name="taskTextSize" format="dimension"/>
+
         <!--最终的任务区域是否显示时间差-->
         <attr name="isShowDiffTime" format="boolean"/>
         <!--最终的任务区域是否显示上下边界时间-->

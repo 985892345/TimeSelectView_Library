@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.FrameLayout
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.NowTimeLineView
-import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectView
-import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IChildLayout
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 
 /**
  * @author 985892345
@@ -14,42 +14,38 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
  * @description
  */
 @SuppressLint("ViewConstructor")
-class ChildLayout(context: Context, util: TSViewUtil) : FrameLayout(context) {
+class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInternalData, time: ITSViewTime) : FrameLayout(context) {
 
     /**
      * 设置是否显示当前时间线
      */
     fun showNowTimeLine() {
         if (mNowTimeLineView == null) {
-            mNowTimeLineView = NowTimeLineView(context, mUtil)
+            mNowTimeLineView = NowTimeLineView(context, mData, mTime)
             val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-            addView(mNowTimeLineView, lp)
+            addView(mNowTimeLineView, lp) //由于这个只会在一个TimeSelectView中添加，所以就不写在TSViewUtil中
         }
     }
 
-    fun notifyRectViewRedraw() {
-        mRectView.invalidate()
-    }
 
 
-
-    private val mUtil = util
-    private val mRectView = RectView(context, util)
-
-    private val mSeparatorLineView = SeparatorLineView(context, util)
-
-    init {
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        lp.leftMargin = util.mIntervalLeft
-        addView(mRectView, lp)
-        lp.leftMargin = 0
-        addView(mSeparatorLineView, lp)
-    }
+    private val mIChildLayout = iChildLayout
+    private val mData = data
+    private val mTime = time
 
     private var mNowTimeLineView: NowTimeLineView? = null
 
+    init {
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        lp.leftMargin = mData.mIntervalLeft
+        mIChildLayout.addRectView(lp, this)
+        val lp2 = LayoutParams(lp)
+        lp2.leftMargin = 0
+        mIChildLayout.addSeparatorLineView(lp2, this)
+    }
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(mUtil.mTotalHeight, MeasureSpec.EXACTLY)
+        val newHeightMeasureSpec = MeasureSpec.makeMeasureSpec(mData.mTotalHeight, MeasureSpec.EXACTLY)
         super.onMeasure(widthMeasureSpec, newHeightMeasureSpec)
     }
 }

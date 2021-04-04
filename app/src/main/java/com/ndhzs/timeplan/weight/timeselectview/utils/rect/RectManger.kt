@@ -1,49 +1,43 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils.rectview
+package com.ndhzs.timeplan.weight.timeselectview.utils.rect
 
 import android.graphics.Rect
-import android.util.Log
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 
 /**
  * @author 985892345
  * @date 2021/3/22
  * @description 用来专门管理与Rect相关的计算，比如求上下其他的Rect的边界
  */
-class RectViewRectUtil(util: TSViewUtil) {
+class RectManger(data: TSViewInternalData) : IRectManger {
 
     companion object {
         private const val TOP_BOTTOM_WIDTH = 17 //长按响应顶部和底部的宽度
     }
 
-    private val mUtil = util
+    private val mData = data
 
-    val mRectWithBean = HashMap<Rect, TSViewBean>()
+    private val mRectWithBean = HashMap<Rect, TSViewBean>()
+    private var mInitialSideY = 0
+    private var mUpperLimit = data.mRectViewTop
+    private var mLowerLimit = data.mRectViewBottom
+    private lateinit var mDeletedRect: Rect
+    private lateinit var mDeletedBean: TSViewBean
 
-    var mInitialSideY = 0
-    var mUpperLimit = util.getTop()
-        private set
-    var mLowerLimit = util.getBottom()
-        private set
-    lateinit var mDeletedRect: Rect
-        private set
-    lateinit var mDeletedBean: TSViewBean
-        private set
+    override fun getInitialSideY(): Int = mInitialSideY
 
-    fun deletedRect(rect: Rect) {
-        val bean = mRectWithBean[rect]
-        if (bean != null) {
-            mDeletedRect = rect
-            mDeletedBean = bean
-            mRectWithBean.remove(rect)
-        }else {
-            Log.e("123", "this rect is not in mRectWithBean!")
-        }
-    }
+    override fun getDeletedRect(): Rect = mDeletedRect
 
-    fun getUpperLimit(insideY: Int): Int {
+    override fun getDeletedBean(): TSViewBean = mDeletedBean
+
+    override fun getRectWithBeanMap(): HashMap<Rect, TSViewBean> = mRectWithBean
+
+    override fun getUpperLimit(): Int = mUpperLimit
+
+    override fun getUpperLimit(insideY: Int): Int {
         val bottoms = ArrayList<Int>()
         mRectWithBean.forEach {
             val bottom = it.key.bottom
@@ -51,10 +45,12 @@ class RectViewRectUtil(util: TSViewUtil) {
                 bottoms.add(bottom + SeparatorLineView.HORIZONTAL_LINE_WIDTH)
             }
         }
-        return bottoms.maxOrNull() ?: mUtil.getTop()
+        return bottoms.maxOrNull() ?: mData.mRectViewTop
     }
 
-    fun getLowerLimit(insideY: Int): Int {
+    override fun getLowerLimit(): Int = mLowerLimit
+
+    override fun getLowerLimit(insideY: Int): Int {
         val tops = ArrayList<Int>()
         mRectWithBean.forEach {
             val top = it.key.top
@@ -62,10 +58,13 @@ class RectViewRectUtil(util: TSViewUtil) {
                 tops.add(top - SeparatorLineView.HORIZONTAL_LINE_WIDTH)
             }
         }
-        return tops.maxOrNull() ?: mUtil.getBottom()
+        return tops.maxOrNull() ?: mData.mRectViewBottom
     }
 
-    fun longClickConditionJudge(insideX: Int, insideY: Int) {
+    /**
+     * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean
+     */
+    override fun longClickConditionJudge(insideX: Int, insideY: Int) {
         mUpperLimit = getUpperLimit(insideY)
         mLowerLimit = getLowerLimit(insideY)
         mRectWithBean.forEach {
@@ -74,24 +73,27 @@ class RectViewRectUtil(util: TSViewUtil) {
                 when {
                     insideY - rect.top < TOP_BOTTOM_WIDTH -> {
                         mInitialSideY = rect.bottom
-                        mUtil.mCondition = TSViewLongClick.TOP
+                        mData.mCondition = TSViewLongClick.TOP
                     }
                     rect.bottom - insideY < TOP_BOTTOM_WIDTH -> {
                         mInitialSideY = rect.top
-                        mUtil.mCondition = TSViewLongClick.BOTTOM
+                        mData.mCondition = TSViewLongClick.BOTTOM
                     }
                     else -> {
-                        mUtil.mCondition = TSViewLongClick.INSIDE
+                        mData.mCondition = TSViewLongClick.INSIDE
                     }
                 }
-            }else {
-                mInitialSideY = insideY
-                mUtil.mCondition = TSViewLongClick.EMPTY_AREA
+                mDeletedRect = rect
+                mDeletedBean = it.value
+                mRectWithBean.remove(rect)
+                return@longClickConditionJudge
             }
         }
+        mInitialSideY = insideY
+        mData.mCondition = TSViewLongClick.EMPTY_AREA
     }
 
-    fun isInRect(insideX: Int, insideY: Int): TSViewBean? {
+    override fun isInRect(insideX: Int, insideY: Int): TSViewBean? {
         mRectWithBean.forEach {
             val rect = it.key
             if (insideX >= rect.left && insideX <= rect.right && insideY >= rect.top && insideY <= rect.bottom) {

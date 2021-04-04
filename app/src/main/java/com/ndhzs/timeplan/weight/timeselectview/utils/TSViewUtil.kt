@@ -1,81 +1,99 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
-import android.util.AttributeSet
-import com.ndhzs.timeplan.R
+import android.widget.FrameLayout
+import androidx.viewpager2.widget.ViewPager2
+import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.layout.BackCardView
+import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
+import com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectView
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
-import com.ndhzs.timeplan.weight.timeselectview.utils.rectview.RectViewDrawUtil
-import com.ndhzs.timeplan.weight.timeselectview.utils.rectview.RectViewRectUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectDraw
+import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectManger
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IChildLayout
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectImgView
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSView
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITimeScrollView
 
 /**
  * @author 985892345
  * @date 2021/3/20
  * @description
  */
-class TSViewUtil(context: Context, attrs: AttributeSet? = null) {
+class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: TimeSelectView) : ITSView, ITimeScrollView, IChildLayout, IRectImgView {
 
-    val mEndHour: Int  //结束时间
-    val mStartHour:Int  //起始时间
-    val mCenterTime: Float //当前时间线，支持小数
-    val mDefaultBorderColor:Int //默认矩形边框颜色
-    val mDefaultInsideColor:Int //默认矩形内部颜色
-    val mDefaultTaskName: String //默认任务名称
-    val mExtraHeight:Int //上方和下方多的高度
-    val mIntervalLeft: Int //左边的文字间隔宽度
-    val mIntervalHeight: Int //一个小时的间隔高度
-    val mTotalHeight: Int //总高度
-    val mTimeTextSize: Float //时间字体大小
-    val mTaskTextSize: Float //任务字体大小
-    var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
-    var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
-    val mTimeUtil: TSViewTimeUtil
-    val mDrawUtil: RectViewDrawUtil
-    val mRectUtil: RectViewRectUtil
-    var mCondition = TSViewLongClick.NULL
-        set(value) {
-            if (value == TSViewLongClick.NULL) {
-                onConditionEndListener?.invoke(mCondition)
-                TSViewLongClick.sIsNotLongClickCount--
-            }else {
-                TSViewLongClick.sIsNotLongClickCount++
-            }
-            field = value
-        }
-    private var onConditionEndListener: ((condition: TSViewLongClick) -> Unit)? = null
+    private val mTime = TSViewTimeUtil(data)
+    private val mRectDraw = RectDraw(data)
+    private val mRectManger = RectManger(data)
 
-    init {
-        val ty = context.obtainStyledAttributes(attrs, R.styleable.TimeSelectView)
-        mEndHour = ty.getInteger(R.styleable.TimeSelectView_endHour, 26)
-        mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 2)
-        mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, -1F)
-        mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, 0xFFFF0000.toInt())
-        mDefaultInsideColor = ty.getColor(R.styleable.TimeSelectView_defaultInsideColor, 0xFFDCCC48.toInt())
-        mDefaultTaskName = ty.getString(R.styleable.TimeSelectView_defaultTaskName).toString()
-        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, 110F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 194F).toInt()
-        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, 40F)
-        mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, 40F)
-        mIsShowDiffTime = ty.getBoolean(R.styleable.TimeSelectView_isShowDiffTime, false)
-        mIsShowStartEndTime = ty.getBoolean(R.styleable.TimeSelectView_isShowTopBottomTime, true)
-        mExtraHeight = mIntervalHeight/2
-        mTotalHeight = (mEndHour - mStartHour) * mIntervalHeight + 2 * mExtraHeight
-        ty.recycle()
-        mTimeUtil = TSViewTimeUtil(this)
-        mDrawUtil = RectViewDrawUtil(this)
-        mRectUtil = RectViewRectUtil(this)
+    private val mTimeSelectView = timeSelectView
+    private val mBackCardView = BackCardView(context, data)
+    private val mRectImgView = RectImgView(context, this, data, mTime, mRectDraw)
+    private val mTimeScrollView = TimeScrollView(context, this, data, mTime, mRectManger)
+    private val mChildLayout = ChildLayout(context, this, data, mTime)
+    private val mRectView = RectView(context, data, mTime, mRectDraw, mRectManger)
+    private val mSeparatorLineView = SeparatorLineView(context, data)
+
+
+    override fun addBackCardView(lp: FrameLayout.LayoutParams, v: TimeSelectView) {
+        v.addView(mBackCardView, lp)
     }
 
-    /**
-     * 返回RectView实际绘制区域的顶部值
-     */
-    fun getTop(): Int = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
 
-    /**
-     * 返回RectView实际绘制区域的底部值
-     */
-    fun getBottom(): Int = mTotalHeight - mExtraHeight
 
-    fun setOnConditionEndListener(l: ((condition: TSViewLongClick) -> Unit)) {
-        onConditionEndListener = l
+    override fun addRectImgView(lp: FrameLayout.LayoutParams, v: TimeSelectView) {
+        v.addView(mRectImgView, lp)
     }
+    override fun slideRectImgView(x: Int, y: Int) {
+        mRectImgView.slideRectImgView(x, y)
+    }
+    override fun getOuterTop(): Int = mRectImgView.getOuterTop()
+    override fun getOuterBottom(): Int = mRectImgView.getOuterBottom()
+
+
+
+    override fun addTimeScrollView(lp: FrameLayout.LayoutParams, v: TimeSelectView) {
+        v.addView(mTimeScrollView, lp)
+    }
+    override fun setOnClickListener(onClick: ((bean: TSViewBean) -> Unit)) {
+        mTimeScrollView.setOnClickListener(onClick)
+    }
+    override fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit)) {
+        mTimeScrollView.setOnTSVLongClickListener(onStart, onEnd)
+    }
+    override fun setLinkedViewPager2(viewPager2: ViewPager2) {
+        mTimeScrollView.setLinkedViewPager2(viewPager2)
+    }
+
+
+
+    override fun addChildLayout(lp: FrameLayout.LayoutParams, v: TimeScrollView) {
+        v.addView(mChildLayout, lp)
+    }
+    override fun showNowTimeLine() {
+        mChildLayout.showNowTimeLine()
+    }
+
+
+
+    override fun addRectView(lp: FrameLayout.LayoutParams, v: ChildLayout) {
+        v.addView(mRectView, lp)
+    }
+    override fun notifyAllRectRedraw() {
+        mRectView.notifyAllRectRedraw()
+    }
+    override fun slideDrawRect(insideY: Int) {
+        mRectView.slideDrawRect(insideY)
+    }
+
+
+
+    override fun addSeparatorLineView(lp: FrameLayout.LayoutParams, v: ChildLayout) {
+        v.addView(mSeparatorLineView, lp)
+    }
+
+    override fun getScrollY(): Int = mTimeScrollView.scrollY
 }

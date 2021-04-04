@@ -1,16 +1,17 @@
-package com.ndhzs.timeplan.weight.timeselectview.utils.rectview
+package com.ndhzs.timeplan.weight.timeselectview.utils.rect
 
 import android.graphics.*
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 
 /**
  * @author 985892345
  * @date 2021/3/20
  * @description 用来绘制任务的类
  */
-class RectViewDrawUtil(util: TSViewUtil) {
+class RectDraw(data: TSViewInternalData) : IRectDraw {
 
-    private val mUtil = util
+    private val mData = data
     private val mTextPaint: Paint //任务名称画笔
     private val mDTimePaint: Paint //时间差值画笔
     private val mInsidePaint: Paint //圆角矩形内部画笔
@@ -23,7 +24,7 @@ class RectViewDrawUtil(util: TSViewUtil) {
 
     private val mTBTimeAscent: Float
     private val mTBTimeDescent: Float
-    val mRectMinHeight: Float //能生成任务的最小高度
+    private val mRectMinHeight: Float //能生成任务的最小高度
     private val mRectShowTBTimeHeight: Float //显示顶部和底部的最小高度
     private val mRectShowStartTimeHeight: Float //显示开始时间的最小高度
     private val mTextCenter: Float //任务名称的水平线
@@ -37,12 +38,12 @@ class RectViewDrawUtil(util: TSViewUtil) {
 
     init {
         mArrowsPaint = generatePaint(0x000000)
-        mInsidePaint = generatePaint(util.mDefaultInsideColor)
-        mBorderPaint = generatePaint(util.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
-        mTextPaint = generateTextPaint(util.mTaskTextSize)
-        mDTimePaint = generateTextPaint(0.7F * util.mTimeTextSize, Paint.Align.RIGHT)
-        mTBTimePaint = generateTextPaint(0.8F * util.mTimeTextSize, Paint.Align.LEFT)
-        mStartTimePaint = generateTextPaint(0.8F * util.mTimeTextSize)
+        mInsidePaint = generatePaint(mData.mDefaultInsideColor)
+        mBorderPaint = generatePaint(mData.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
+        mTextPaint = generateTextPaint(mData.mTaskTextSize)
+        mDTimePaint = generateTextPaint(0.7F * mData.mTimeTextSize, Paint.Align.RIGHT)
+        mTBTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize, Paint.Align.LEFT)
+        mStartTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize)
 
         var fontMetrics = mTextPaint.fontMetrics
         mTextCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
@@ -76,7 +77,9 @@ class RectViewDrawUtil(util: TSViewUtil) {
         return paint
     }
 
-    fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int) {
+    override fun getMinHeight(): Float = mRectMinHeight
+
+    override fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int) {
         mBorderPaint.color = borderColor
         mInsidePaint.color = insideColor
         val l = rect.left + BORDER_WIDTH / 2F
@@ -89,7 +92,7 @@ class RectViewDrawUtil(util: TSViewUtil) {
         canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
     }
 
-    fun drawArrows(canvas: Canvas, rect: Rect, dTime: String) {
+    override fun drawArrows(canvas: Canvas, rect: Rect, dTime: String) {
         if (rect.height() > mRectMinHeight) {
             val timeRight = rect.right - BORDER_WIDTH - 1F
             canvas.drawText(dTime, timeRight, rect.centerY() + mDTimeCenter, mDTimePaint)
@@ -115,12 +118,12 @@ class RectViewDrawUtil(util: TSViewUtil) {
         }
     }
 
-    fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String) {
+    override fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String) {
         val t = rect.top + BORDER_WIDTH / 2F
         canvas.drawText(sTime, mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
     }
 
-    fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
+    override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
         if (rect.height() > mRectShowTBTimeHeight) {
             val l = rect.left + BORDER_WIDTH + 1F
             val t = rect.top - mTBTimeAscent

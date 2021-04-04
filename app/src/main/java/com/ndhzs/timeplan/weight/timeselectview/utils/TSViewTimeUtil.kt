@@ -1,14 +1,16 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import java.util.*
+import kotlin.math.ceil
 
 /**
  * @author 985892345
  * @date 2021/3/20
  * @description 用来进行时间与高度转换的类
  */
-class TSViewTimeUtil(util: TSViewUtil) {
+class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
 
     companion object {
         /**
@@ -22,12 +24,12 @@ class TSViewTimeUtil(util: TSViewUtil) {
         const val DELAY_BACK_CURRENT_TIME = 10000L
     }
 
-    private val mStartHour = util.mStartHour
+    private val mData = data
+    private val mStartHour = mData.mStartHour
     private val mHLineWidth = SeparatorLineView.HORIZONTAL_LINE_WIDTH //水平线厚度
-    private val mExtraHeight = util.mExtraHeight //上方或下方其中一方多余的高度
-    private val mIntervalHeight = util.mIntervalHeight //一个小时的间隔高度
-    val mEveryMinuteHeight = FloatArray(61)
-    var mTimeInterval: Int = 15
+    private val mExtraHeight = mData.mExtraHeight //上方或下方其中一方多余的高度
+    private val mIntervalHeight = mData.mIntervalHeight //一个小时的间隔高度
+    private val mEveryMinuteHeight = FloatArray(61)
 
     init {
         val everyMinuteWidth = mIntervalHeight / 60F //计算出一分钟要多少格，用小数表示
@@ -37,15 +39,12 @@ class TSViewTimeUtil(util: TSViewUtil) {
         mEveryMinuteHeight[60] = mIntervalHeight.toFloat()
     }
 
-    fun getNowTime(): Float {
-        val calendar = Calendar.getInstance()
-        val hour = calendar[Calendar.HOUR_OF_DAY]
-        val minute = calendar[Calendar.MINUTE]
-        val second = calendar[Calendar.SECOND]
-        return hour + minute / 60F + second / 3600F
+
+    override fun getNowTimeHeight(): Int {
+        return getTimeHeight(getNowTime())
     }
 
-    fun getTimeHeight(time: Float = getNowTime()): Int {
+    override fun getTimeHeight(time: Float): Int {
         var time1 = time
         if (time1 < mStartHour) {
             time1 += 24
@@ -53,13 +52,13 @@ class TSViewTimeUtil(util: TSViewUtil) {
         return (mExtraHeight + (time1 - mStartHour) * mIntervalHeight).toInt()
     }
 
-    fun getTime(y: Int): String {
+    override fun getTime(y: Int): String {
         val h = getHour(y)
         val m = getMinute(y)
         return timeToString(h, m)
     }
 
-    fun getDiffTime(top: Int, bottom: Int): String {
+    override fun getDiffTime(top: Int, bottom: Int): String {
         val lastH = getHour(top)
         val lastM = getMinute(top)
         var h = getHour(bottom)
@@ -74,7 +73,7 @@ class TSViewTimeUtil(util: TSViewUtil) {
         return timeToString(h, m)
     }
 
-    fun getHour(y: Int): Int {
+    override fun getHour(y: Int): Int {
         return if (y >= mExtraHeight) {
             (y - mExtraHeight) / mIntervalHeight + mStartHour
         }else {
@@ -82,12 +81,32 @@ class TSViewTimeUtil(util: TSViewUtil) {
         }
     }
 
-    fun getMinute(y: Int): Int {
+    override fun getMinute(y: Int): Int {
         return if (y >= mExtraHeight) {
            ((y - mExtraHeight) % mIntervalHeight / mIntervalHeight.toFloat() * 60).toInt()
         }else {
             ((mIntervalHeight - (mExtraHeight - y) % mIntervalHeight) / mIntervalHeight.toFloat() * 60).toInt()
         }
+    }
+
+    override fun getMinuteTopHeight(minute: Int): Int {
+        return ceil(mEveryMinuteHeight[minute]).toInt()
+    }
+
+    override fun getMinuteBottomHeight(minute: Int): Int {
+        return if (minute < 60) {
+            getMinuteTopHeight(minute + 1) - 1
+        }else {
+            getMinuteTopHeight(60)
+        }
+    }
+
+    private fun getNowTime(): Float {
+        val calendar = Calendar.getInstance()
+        val hour = calendar[Calendar.HOUR_OF_DAY]
+        val minute = calendar[Calendar.MINUTE]
+        val second = calendar[Calendar.SECOND]
+        return hour + minute / 60F + second / 3600F
     }
 
     private fun timeToString(hour: Int, minute: Int): String {
