@@ -11,7 +11,6 @@ import android.graphics.Rect
  */
 interface IRectDraw {
     fun getMinHeight(): Float
-
     fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int)
     fun drawArrows(canvas: Canvas, rect: Rect, dTime: String)
     fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String)

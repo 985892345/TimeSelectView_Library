@@ -6,7 +6,6 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
 /**
  * @author 985892345
@@ -14,7 +13,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
  * @description
  */
 @SuppressLint("ViewConstructor")
-class SeparatorLineView(context: Context, data: TSViewInternalData) : View(context) {
+class SeparatorLineView(context: Context, data: TSViewInternalData, position: Int) : View(context) {
     companion object {
         /**
          * 垂直分割线厚度
@@ -33,6 +32,7 @@ class SeparatorLineView(context: Context, data: TSViewInternalData) : View(conte
     }
 
     private val mData = data
+    private val mPosition = position
     private val mVLinePaint: Paint = Paint() //Vertical Line 垂直线画笔
     private val mHLinePaint: Paint = Paint() //Horizontal Line 水平线画笔
     private val mLeftTimePaint: Paint = Paint() //左侧时间画笔
@@ -57,13 +57,13 @@ class SeparatorLineView(context: Context, data: TSViewInternalData) : View(conte
     }
 
     override fun onDraw(canvas: Canvas) {
-        val startHour = mData.mStartHour
+        val startHour = mData.mATimeRange * mPosition + mData.mStartHour
         val extraHeight = mData.mExtraHeight
         val intervalLeft = mData.mIntervalLeft
         val intervalHeight = mData.mIntervalHeight
         val vLineX = (intervalHeight - VERTICAL_LINE_WIDTH/2).toFloat()
-        canvas.drawLine(vLineX, 0F, vLineX, mData.mTotalHeight.toFloat(), mVLinePaint)
-        for (i in mData.mStartHour..mData.mEndHour) {
+        canvas.drawLine(vLineX, 0F, vLineX, mData.mInsideTotalHeight.toFloat(), mVLinePaint)
+        for (i in startHour..(startHour + mData.mATimeRange)) {
             val hour = when {
                 i < 10 -> {
                     "0$i:00"

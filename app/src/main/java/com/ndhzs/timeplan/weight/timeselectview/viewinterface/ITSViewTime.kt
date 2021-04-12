@@ -7,8 +7,8 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
  * @description
  */
 interface ITSViewTime {
-    fun getNowTimeHeight(): Int
-    fun getTimeHeight(time: Float): Int
+    fun getNowTimeHeight(position: Int): Int
+    fun getTimeHeight(time: Float, position: Int): Int
     fun getTime(y: Int): String
     fun getDiffTime(top: Int, bottom: Int): String
     fun getHour(y: Int): Int

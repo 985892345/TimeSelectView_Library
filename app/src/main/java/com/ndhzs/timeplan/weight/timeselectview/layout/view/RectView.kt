@@ -22,22 +22,27 @@ import kotlin.math.min
  * @description
  */
 @SuppressLint("ViewConstructor")
-class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, draw: IRectDraw, rectManger: IRectManger) : View(context) {
+class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, draw: IRectDraw, rectManger: IRectManger, position: Int) : View(context) {
 
     /**
-     * 用于在TimeScrollView滑动过程和自身MOVE事件中绘制矩形，此时长按已经确认，所以Rect的起始高度已经确定
-     * @param insideY Rect的底部高度
+     * 用于在TimeScrollView滑动过程和自身MOVE事件中绘制矩形，此时长按已经确认，所以Rect的起始高度已经确定。
+     *
+     * 注意：只有在自身处于触摸时调用该方法才有效。
+     *
+     * @param insideY Rect结束的高度
      */
     fun slideDrawRect(insideY: Int) {
-        val sideY = mRectManger.getInitialSideY()
-        if (insideY > sideY) {
-            mInitialRect.top = sideY
-            mInitialRect.bottom = min(insideY, mRectManger.getLowerLimit())
-        }else {
-            mInitialRect.bottom = sideY
-            mInitialRect.top = max(insideY, mRectManger.getUpperLimit())
+        if (mIsTouchEvent) {
+            val sideY = mRectManger.getInitialSideY()
+            if (insideY > sideY) {
+                mInitialRect.top = sideY
+                mInitialRect.bottom = min(insideY, mRectManger.getLowerLimit())
+            } else {
+                mInitialRect.bottom = sideY
+                mInitialRect.top = max(insideY, mRectManger.getUpperLimit())
+            }
+            invalidate()
         }
-        invalidate()
     }
 
     /**
@@ -54,12 +59,16 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
     private val mTime = time
     private val mDraw = draw
     private val mRectManger = rectManger
+    private val mPosition = position
     private val mInitialRect = Rect()
     private val mRectWithBean = mRectManger.getRectWithBeanMap()
+
+    private var mIsTouchEvent = false
 
     override fun onDraw(canvas: Canvas) {
         when (mData.mCondition) {
             EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
+                val top = mInitialRect.top + mPosition * mData.mATimeRange
                 val startTime = mTime.getTime(mInitialRect.top)
                 val endTime = mTime.getTime(mInitialRect.bottom)
                 val diffTime = mTime.getDiffTime(mInitialRect.top, mInitialRect.bottom)
@@ -104,6 +113,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
         val y = event.y.toInt()
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
+                mIsTouchEvent = true
                 mInitialX = x
                 mInitialY = y
             }
@@ -147,6 +157,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
                 mData.mCondition = NULL
                 mInitialRect.setEmpty()
                 invalidate()
+                mIsTouchEvent = false
             }
         }
         return true

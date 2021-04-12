@@ -2,25 +2,46 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.cardview.widget.CardView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
 
 /**
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/4
- * @description
+ * @description [com.ndhzs.timeplan.weight.timeselectview.TimeSelectView]之下，里面是CardView
  */
 @SuppressLint("ViewConstructor")
-class BackCardView(context: Context, data: TSViewInternalData) : LinearLayout(context) {
+class BackCardView(context: Context, private val data: TSViewInternalData) : LinearLayout(context) {
+
+    /**
+     * 得到TimeSelectView的最小宽度，用于在wrap_content中。
+     *
+     * 其中先“ / 2 * 2 ”是lp.leftMargin和lp.rightMargin是Int类型，会有精度损失
+     */
+    fun getMinWidth(): Int = data.mAllTimelineWidth + data.mTimelineInterval / 2 * 2
+
+    /**
+     * 得到TimeSElectView的外部最小高度
+     */
+    fun getMinOuterHeight(): Int = 500
+
+    fun getDividerLines(): IntArray = mDividerLines
+
+    companion object {
+        /**
+         * 为了显示CardView虚影的上下间隔值
+         */
+        const val topBottomMargin = 5
+    }
+
+    private val mDividerLines = IntArray(data.mTSViewAmount - 1)
 
     init {
         orientation = HORIZONTAL
         val cardView = CardView(context)
-        val lp = LayoutParams(data.mTimelineWidth, ViewGroup.LayoutParams.MATCH_PARENT)
+        val lp = LayoutParams(data.mTimelineWidth, LayoutParams.MATCH_PARENT)
         lp.topMargin = topBottomMargin
         lp.bottomMargin = topBottomMargin
         lp.leftMargin = data.mTimelineInterval/2
@@ -31,13 +52,9 @@ class BackCardView(context: Context, data: TSViewInternalData) : LinearLayout(co
             val cardView2 = CardView(context)
             cardView2.radius = data.mCardCornerRadius
             addView(cardView2, lp)
+            mDividerLines[it] = data.mTimelineWidth + data.mTimelineInterval * (it + 1)
         }
     }
 
-    companion object {
-        /**
-         * 为了显示CardView虚影的上下间隔值
-         */
-        const val topBottomMargin = 5
-    }
+
 }

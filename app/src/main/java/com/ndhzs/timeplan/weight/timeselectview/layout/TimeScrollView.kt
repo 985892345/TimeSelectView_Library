@@ -16,7 +16,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITimeScrollView
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description
+ * @description [com.ndhzs.timeplan.weight.timeselectview.TimeSelectView]之下，[ScrollLayout]之上
  */
 @SuppressLint("ViewConstructor")
 class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: TSViewInternalData, time: ITSViewTime, rectManger: IRectManger) : TScrollViewTouchEvent(context) {
@@ -60,8 +60,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private var mOnLongClickEndListener: ((condition: TSViewLongClick) -> Unit)? = null
 
     init {
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        iTimeScrollView.addChildLayout(lp, this)
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, data.mInsideTotalHeight)
+        iTimeScrollView.addScrollLayout(lp, this)
         data.setOnConditionEndListener {
             onLongClickEnd(it)
         }
@@ -72,22 +72,22 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         if (mData.mCenterTime == -1F) { //以当前时间线为中线
             post(object : Runnable {
                 override fun run() {
-                    scrollY = mTime.getNowTimeHeight() - width / 2
+                    scrollY = mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
                     postDelayed(this, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
                 }
             })
         }else { //以mCenterTime为中线，不随时间移动
             post {
-                scrollY = mTime.getTimeHeight(mData.mCenterTime) - width / 2
+                scrollY = mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
             }
         }
     }
 
     private val mBackCurrentTimeRun = Runnable {
         scrollY = if (mData.mCenterTime == -1F) {
-            mTime.getNowTimeHeight() - width / 2
+            mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
         }else {
-            mTime.getTimeHeight(mData.mCenterTime) - width / 2
+            mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
         }
     }
 
@@ -121,9 +121,12 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     override fun onLongClickStart(insideX: Int, insideY: Int) {
         mData.mIsLongClick = true
         mRectManger.longClickConditionJudge(insideX, insideY)
-        upperLimit = mRectManger.getUpperLimit()
-        lowerLimit = mRectManger.getLowerLimit()
-        forbidSlideCenter = insideY - scrollY
+        if (mData.mCondition == INSIDE) {
+            mITimeScrollView.entireMoveStart(mRectManger.getDeletedRect(), mRectManger.getDeletedBean())
+        }
+        mUpperLimit = mRectManger.getUpperLimit()
+        mLowerLimit = mRectManger.getLowerLimit()
+        mForbidSlideCenter = insideY - scrollY
         mOnLongClickStartListener?.invoke(mData.mCondition)
     }
 
@@ -134,23 +137,23 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     override fun setLinkedViewPager2(): ViewPager2? = mLinkedViewPager2
 
-    private var preY = 0
-    private var velocity = 0
-    private var startRun = false
-    private var forbidSlideCenter = 0
-    private var upperLimit = Int.MIN_VALUE
-    private var lowerLimit = Int.MAX_VALUE
-    private val slideRunnable = object: Runnable {
+    private var mPreY = 0
+    private var mVelocity = 0
+    private var mStartRun = false
+    private var mForbidSlideCenter = 0
+    private var mUpperLimit = Int.MIN_VALUE
+    private var mLowerLimit = Int.MAX_VALUE
+    private val mSlideRunnable = object: Runnable {
         override fun run() {
-            scrollBy(0, velocity)
+            scrollBy(0, mVelocity)
             when (mData.mCondition) {
                 TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN,
                 BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN,
                 EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                     //要是不手动调用，在手指不移动却又在自动滑动的情况下RctView不会自动更新
-                    iTimeScrollView.slideDrawRect(scrollY + preY + velocity)
+                    iTimeScrollView.slideDrawRect(scrollY + mPreY + mVelocity)
                 }
-                else -> {}
+                else -> {} //这里时INSIDE情况，因为RectImgView不是内部坐标系，可以直接交给MOVE事件处理
             }
             postDelayed(this, 20)
         }
@@ -162,10 +165,10 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                 val isNotTopSlide = y > AUTO_MOVE_THRESHOLD
                 val isNotBottomSlide = y < height - AUTO_MOVE_THRESHOLD
-                val isInCanSlideLimit = insideY in upperLimit..lowerLimit
+                val isInCanSlideLimit = insideY in mUpperLimit..mLowerLimit
                 if (isNotTopSlide && isNotBottomSlide || !isInCanSlideLimit) {
-                    removeCallbacks(slideRunnable)
-                    startRun = false
+                    removeCallbacks(mSlideRunnable)
+                    mStartRun = false
                     mData.mStartAutoSlide = false
                     when (mData.mCondition) {
                         TOP_SLIDE_UP, TOP_SLIDE_DOWN -> {
@@ -180,15 +183,15 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                         else -> {}
                     }
                 }else {
-                    if (!startRun) {
-                        startRun = true
+                    if (!mStartRun) {
+                        mStartRun = true
                         mData.mStartAutoSlide = true
-                        post(slideRunnable)
+                        post(mSlideRunnable)
                     }
                     if (!isNotTopSlide) { //往上滑
-                        velocity = -((AUTO_MOVE_THRESHOLD - y) * MULTIPLE).toInt()
-                        if (y > preY + 5 || scrollY == 0) {
-                            velocity = 0
+                        mVelocity = -((AUTO_MOVE_THRESHOLD - y) * MULTIPLE).toInt()
+                        if (y > mPreY + 5 || scrollY == 0) {
+                            mVelocity = 0
                         }
                         when (mData.mCondition) {
                             TOP -> {
@@ -203,9 +206,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             else -> {}
                         }
                     }else { //往下滑
-                        velocity = ((y - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (y < preY - 5 || scrollY + height == mData.mTotalHeight) {
-                            velocity = 0
+                        mVelocity = ((y - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
+                        if (y < mPreY - 5 || scrollY + height == mData.mInsideTotalHeight) {
+                            mVelocity = 0
                         }
                         when (mData.mCondition) {
                             TOP -> {
@@ -220,7 +223,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             else -> {}
                         }
                     }
-                    preY = y
+                    mPreY = y
                 }
             }
             INSIDE, INSIDE_SLIDE_UP, INSIDE_SLIDE_DOWN -> {
@@ -229,32 +232,33 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val bottom = mITimeScrollView.getOuterBottom()
                 val isNotTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
                 val isNotBottomSlide = bottom - scrollY > height - AUTO_MOVE_THRESHOLD * 0.4F
-                val isInForbidSlideLimit = insideY in (forbidSlideCenter - 50)..(forbidSlideCenter + 50)
+                val isInForbidSlideLimit = insideY in (mForbidSlideCenter - 50)..(mForbidSlideCenter + 50)
                 if (isNotTopSlide && isNotBottomSlide || isInForbidSlideLimit) {
-                    removeCallbacks(slideRunnable)
-                    startRun = false
+                    removeCallbacks(mSlideRunnable)
+                    mStartRun = false
                     mData.mStartAutoSlide = false
                     mData.mCondition = INSIDE
                 }else {
-                    if (!startRun) {
-                        startRun = true
+                    if (!mStartRun) {
+                        mStartRun = true
                         mData.mStartAutoSlide = true
-                        post(slideRunnable)
+                        mForbidSlideCenter = height/2
+                        post(mSlideRunnable)
                     }
                     if (!isNotTopSlide) { //往上滑
-                        velocity = -((AUTO_MOVE_THRESHOLD - top) * MULTIPLE).toInt()
-                        if (y > preY + 5 || scrollY == 0) {
-                            velocity = 0
+                        mVelocity = -((AUTO_MOVE_THRESHOLD - top) * MULTIPLE).toInt()
+                        if (y > mPreY + 5 || scrollY == 0) {
+                            mVelocity = 0
                         }
                         mData.mCondition = INSIDE_SLIDE_UP
                     }else { //往下滑
-                        velocity = ((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (y < preY - 5 || scrollY + height == mData.mTotalHeight) {
-                            velocity = 0
+                        mVelocity = ((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
+                        if (y < mPreY - 5 || scrollY + height == mData.mInsideTotalHeight) {
+                            mVelocity = 0
                         }
                         mData.mCondition = INSIDE_SLIDE_DOWN
                     }
-                    preY = y
+                    mPreY = y
                 }
             }
             else -> {}

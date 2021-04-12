@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="TimeSelectView">
-        <!--时间轴个数(建议3个以下)-->
+        <!--时间轴个数(最大为3个)-->
         <attr name="amount" format="integer"/>
         <!--时间轴背景的圆角度数-->
         <attr name="cardCornerRadius" format="dimension"/>
 
         <!--时间轴起始时间-->
         <attr name="startHour" format="integer"/>
-        <!--时间轴结束时间，若在明天2点结束，请设置为26( = 24 + 2)，若有几个时间轴，将平分时间-->
-        <attr name="endHour" format="integer"/>
         <!--当前时间线的时间(支持小数)-->
         <attr name="centerTime" format="float"/>
 

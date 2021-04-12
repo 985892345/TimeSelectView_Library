@@ -2,8 +2,8 @@ package com.ndhzs.timeplan.weight.timeselectview
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import android.view.Gravity
-import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
@@ -17,7 +17,8 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSView
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/2
- * @description
+ * @description 顶层View，依次包含[BackCardView]、
+ * [com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]
  */
 class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
 
@@ -97,19 +98,43 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     private val mData = TSViewInternalData(context, attrs)
     private val mUtil = TSViewUtil(context, mData, this)
-    private val mITSView: ITSView = mUtil
+    private val mITSView: ITSView = mUtil.My1ITSView()
 
     init {
         val lp1 = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
         lp1.gravity = Gravity.CENTER
         mITSView.addBackCardView(lp1, this)
 
-        val lp2 = LayoutParams(lp1)
+        val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         lp2.topMargin = BackCardView.topBottomMargin
         lp2.bottomMargin = BackCardView.topBottomMargin
         mITSView.addTimeScrollView(lp2, this)
+    }
 
-        val lp3 = LayoutParams(lp2)
-        mITSView.addRectImgView(lp3, this)
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val minWidth = mITSView.getOuterMinWidth()
+        var newWidthMS = widthMeasureSpec
+        var newHeightMS = heightMeasureSpec
+        when (MeasureSpec.getMode(widthMeasureSpec)) {
+            MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
+                newWidthMS = MeasureSpec.makeMeasureSpec(minWidth, MeasureSpec.EXACTLY)
+            }
+            MeasureSpec.EXACTLY -> {
+                if (MeasureSpec.getSize(widthMeasureSpec) < minWidth) {
+                    Log.e("123", "Your layout_width of TimeSelectView is too small to include timeline!!!!!")
+                    Log.e("123", "Please enlarge the layout_width or shrink the timelineWidth of attrs.")
+                }
+                newWidthMS = widthMeasureSpec
+            }
+        }
+
+        when (MeasureSpec.getMode(heightMeasureSpec)) {
+            MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
+                newHeightMS = MeasureSpec.makeMeasureSpec(mITSView.getOuterMinHeight(), MeasureSpec.EXACTLY)
+            }
+            MeasureSpec.EXACTLY -> {}
+        }
+
+        super.onMeasure(newWidthMS, newHeightMS)
     }
 }

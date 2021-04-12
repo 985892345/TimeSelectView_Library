@@ -22,6 +22,11 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
          * 回到当前时间高度的间隔时间
          */
         const val DELAY_BACK_CURRENT_TIME = 10000L
+
+        /**
+         * 用于[getTimeHeight]中，代表返回ScrollView应滑到的高度
+         */
+        const val SCROLLVIEW_HEIGHT = -1
     }
 
     private val mData = data
@@ -40,16 +45,27 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
 
-    override fun getNowTimeHeight(): Int {
-        return getTimeHeight(getNowTime())
+    override fun getNowTimeHeight(position: Int): Int {
+        return getTimeHeight(getNowTime(), position)
     }
 
-    override fun getTimeHeight(time: Float): Int {
-        var time1 = time
-        if (time1 < mStartHour) {
-            time1 += 24
+    override fun getTimeHeight(time: Float, position: Int): Int {
+        var t = time
+        if (t < mStartHour) {
+            t += 24
         }
-        return (mExtraHeight + (time1 - mStartHour) * mIntervalHeight).toInt()
+        t -= mStartHour
+        return when (position) {
+            SCROLLVIEW_HEIGHT -> {
+                while (t > mData.mATimeRange) {
+                    t -= mData.mATimeRange
+                }
+                (mExtraHeight + t * mIntervalHeight).toInt()
+            }
+            else -> {
+                (mExtraHeight + (t - mData.mATimeRange * position) * mIntervalHeight).toInt()
+            }
+        }
     }
 
     override fun getTime(y: Int): String {

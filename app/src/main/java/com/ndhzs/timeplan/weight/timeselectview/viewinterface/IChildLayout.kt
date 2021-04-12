@@ -11,6 +11,6 @@ import com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout
  * @description
  */
 interface IChildLayout {
-    fun addRectView(lp: FrameLayout.LayoutParams, v: ChildLayout)
-    fun addSeparatorLineView(lp: FrameLayout.LayoutParams, v: ChildLayout)
+    fun addRectView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int)
+    fun addSeparatorLineView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int)
 }
