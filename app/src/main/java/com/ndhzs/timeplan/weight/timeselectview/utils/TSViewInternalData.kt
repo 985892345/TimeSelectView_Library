@@ -101,7 +101,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, mTimelineWidth / 2.5F).toInt()
         mExtraHeight = mIntervalHeight / 2
         mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
-        mRectViewWidth = mTimelineWidth - mIntervalLeft
+        mRectViewWidth = mTimelineWidth - mIntervalLeft - SeparatorLineView.INTERVAL_RIGHT_WIDTH
 
         mRectViewTop = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
         mRectViewBottom = mInsideTotalHeight - mExtraHeight

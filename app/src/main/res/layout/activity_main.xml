@@ -13,7 +13,7 @@
         android:layout_height="0dp"
         android:layout_marginTop="32dp"
         android:layout_marginBottom="32dp"
-        app:amount="1"
+        app:amount="2"
         app:cardCornerRadius="8dp"
         app:centerTime="10.5"
         app:timelineWidth="160dp"

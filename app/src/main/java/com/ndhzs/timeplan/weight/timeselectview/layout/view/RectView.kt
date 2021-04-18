@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
@@ -164,6 +165,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
                 }
                 mData.mCondition = NULL
                 mInitialRect.setEmpty()
+                mRectWithBean = mIRectView.getRectWithBeanMap()
                 invalidate()
                 mIsTouchEvent = false
             }

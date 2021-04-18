@@ -28,7 +28,7 @@ class SeparatorLineView(context: Context, data: TSViewInternalData, position: In
         /**
          * 右边的间隔宽度
          */
-        const val INTERVAL_RIGHT_WIDTH = 10
+        const val INTERVAL_RIGHT_WIDTH = 12
     }
 
     private val mData = data

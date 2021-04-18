@@ -96,7 +96,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
                     rect.top + position * mData.mTimelineRange * mData.mIntervalHeight,
                     rect.right,
                     rect.bottom + position * mData.mTimelineRange * mData.mIntervalHeight)
-            mAllRectWithBean[rect] = bean
+            mAllRectWithBean[newRect] = bean
         }
 
         override fun addRectFromDeleted(rect: Rect) {
@@ -104,7 +104,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
                     rect.top + position * mData.mTimelineRange * mData.mIntervalHeight,
                     rect.right,
                     rect.bottom + position * mData.mTimelineRange * mData.mIntervalHeight)
-            mAllRectWithBean[rect] = mDeletedBean
+            mAllRectWithBean[newRect] = mDeletedBean
         }
 
         override fun getInitialSideY(): Int {
