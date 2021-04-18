@@ -37,7 +37,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
             if (rectInsideY > sideY) {
                 mInitialRect.top = sideY
                 mInitialRect.bottom = min(rectInsideY, mIRectView.getClickLowerLimit())
-            } else {
+            }else {
                 mInitialRect.bottom = sideY
                 mInitialRect.top = max(rectInsideY, mIRectView.getClickUpperLimit())
             }
@@ -49,6 +49,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
      * 通知RectView的所有矩形重新绘制，一般用于在设置任务显示的颜色、时间等属性时调用
      */
     fun notifyAllRectRedraw() {
+        mRectWithBean = mIRectView.getRectWithBeanMap()
         invalidate()
     }
 
@@ -57,7 +58,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
      */
     fun addRectFromDeleted(rect: Rect) {
         mIRectView.addRectFromDeleted(rect)
-        invalidate()
+        notifyAllRectRedraw()
     }
 
 
@@ -72,6 +73,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
     private var mRectWithBean: HashMap<Rect, TSViewBean>? = null
 
     private var mIsTouchEvent = false
+
 
     override fun onDraw(canvas: Canvas) {
         when (mData.mCondition) {
@@ -114,6 +116,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
 
     private var mInitialX = 0
     private var mInitialY = 0
+    private var mIsFirstMove = true
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x.toInt()
@@ -121,12 +124,22 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 mIsTouchEvent = true
+                mIsFirstMove = true
                 mInitialX = x
                 mInitialY = y
                 mInitialRect.right = mData.mRectViewWidth
-                mRectWithBean = mIRectView.getRectWithBeanMap()
             }
             MotionEvent.ACTION_MOVE -> {
+                if (mIsFirstMove) {
+                    mIsFirstMove = false
+                    when (mData.mCondition) {
+                        TOP, BOTTOM -> {
+                            mInitialRect.set(mIRectView.getDeletedRect())
+                        }
+                        else -> {}
+                    }
+                    mRectWithBean = mIRectView.getRectWithBeanMap()
+                }
                 when (mData.mCondition) {
                     TOP, BOTTOM, EMPTY_AREA -> {
                         slideDrawRect(y)

@@ -30,7 +30,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
     }
 
     companion object {
-        private const val TOP_BOTTOM_WIDTH = 17 //长按响应顶部和底部的宽度
+        private const val TOP_BOTTOM_WIDTH = 20 //长按响应顶部和底部的宽度
     }
 
     private val mData = data
@@ -38,7 +38,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
     private var mClickUpperLimit = mData.mRectViewTop
     private var mClickLowerLimit = mData.mRectViewBottom
     private val mAllRectWithBean = HashMap<Rect, TSViewBean>()
-    private lateinit var mDeletedRect: Rect
+    private var mDeletedRect = Rect()
     private lateinit var mDeletedBean: TSViewBean
 
     private val mMyIRectViews = ArrayList<MyIRectView>()
@@ -151,7 +151,15 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
                     bottoms.add(bottom + SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }
-            return bottoms.maxOrNull() ?: mData.mRectViewTop
+            return if (bottoms.maxOrNull() == null) {
+                mData.mRectViewTop
+            }else {
+                if (bottoms.maxOrNull()!! < mData.mRectViewTop) {
+                    mData.mRectViewTop
+                }else {
+                    bottoms.maxOrNull()!!
+                }
+            }
         }
 
         fun getLowerLimit(insideY: Int): Int {
@@ -162,7 +170,15 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
                     tops.add(top - SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }
-            return tops.maxOrNull() ?: mData.mRectViewBottom
+            return if (tops.minOrNull() == null) {
+                mData.mRectViewBottom
+            }else {
+                if (tops.minOrNull()!! > mData.mRectViewBottom) {
+                    mData.mRectViewBottom
+                }else {
+                    tops.minOrNull()!!
+                }
+            }
         }
 
         fun getBean(insideY: Int): TSViewBean? {
@@ -188,7 +204,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime) : IRectManger {
                     }else {
                         mData.mCondition = TSViewLongClick.INSIDE
                     }
-                    mDeletedRect = rect
+                    mDeletedRect.set(rect)
                     mDeletedBean = it.value
                     if (mData.mTSViewAmount == 1) {
                         mAllRectWithBean.remove(rect)

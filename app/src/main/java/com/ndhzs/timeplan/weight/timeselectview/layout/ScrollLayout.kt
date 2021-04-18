@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
+import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.FrameLayout
@@ -30,26 +31,32 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         iScrollLayout.addRectImgView(lp2, this)
     }
 
+    private var mInitialX = 0
+    private var mInitialY = 0
     private val mData = data
     private val mRectManger = rectManger
     private val mIScrollLayout = iScrollLayout
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         if (ev.action == MotionEvent.ACTION_MOVE) {
-            if (mData.mCondition == INSIDE) {
-                val rect = mRectManger.getDeletedRect()
-                val bean = mRectManger.getDeletedBean()
-                val position = mIScrollLayout.getRectViewPosition(ev.rawX.toInt())
-                mIScrollLayout.entireMoveStart(rect, bean, position!!)
-                mIScrollLayout.notifyRectViewRedraw()
-                return true
+            when (mData.mCondition) {
+                INSIDE, INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
+                    mInitialX = ev.x.toInt()
+                    mInitialY = ev.y.toInt()
+                    val rect = mRectManger.getDeletedRect()
+                    val bean = mRectManger.getDeletedBean()
+                    val position = mIScrollLayout.getRectViewPosition(ev.rawX.toInt())
+                    mIScrollLayout.entireMoveStart(rect, bean, position!!)
+                    mIScrollLayout.notifyRectViewRedraw()
+                    return true
+                }
+                else -> {}
             }
         }
         return super.onInterceptTouchEvent(ev)
     }
 
-    private var mInitialX = 0
-    private var mInitialY = 0
+
     private var mNowPosition: Int? = null
 
     @SuppressLint("ClickableViewAccessibility")
@@ -57,13 +64,12 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         val x = event.x.toInt()
         val y = event.y.toInt()
         when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                mInitialX = x
-                mInitialY = y
-            }
             MotionEvent.ACTION_MOVE -> {
-                if (mData.mCondition == INSIDE) {
-                    mIScrollLayout.slideRectImgView(x - mInitialX, y - mInitialY)
+                when (mData.mCondition) {
+                    INSIDE -> {
+                        mIScrollLayout.slideRectImgView(x - mInitialX, y - mInitialY)
+                    }
+                    else -> {}
                 }
             }
             MotionEvent.ACTION_UP -> {

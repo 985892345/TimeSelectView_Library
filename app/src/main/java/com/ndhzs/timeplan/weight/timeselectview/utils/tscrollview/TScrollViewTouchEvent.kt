@@ -155,7 +155,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             * */
             MotionEvent.ACTION_MOVE -> {
                 if (mIsLongClick) {
-                    automaticSlide(x, y, x + scrollX, y + scrollY, x - mInitialX, y - mInitialY)
+                    automaticSlide(x, y, x + scrollX, y + scrollY)
                 }else {
                     return true
                 }
@@ -213,5 +213,5 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     protected open fun onClick(insideX: Int, insideY: Int) {}
     protected open fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {}
     protected open fun setLinkedViewPager2(): ViewPager2? = null
-    protected open fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int, dx: Int, dy: Int) {}
+    protected open fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int) {}
 }

@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -14,7 +15,6 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectImgView
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 /**
@@ -27,7 +27,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
 
     /**
      * 整体移动开始时调用
-     * @param rect 内部坐标值的Rect
+     * @param rect RectView内部坐标值的Rect
      */
     fun start(rect: Rect, bean: TSViewBean, position: Int) {
         mPosition = position
@@ -36,6 +36,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
         mRect.top = rect.top
         mRect.right = rect.right + distance
         mRect.bottom = rect.bottom
+        mInitialRect.set(mRect)
         mBean = bean
         for (i in mDividerLines.indices) {
             if (i == 0) {
@@ -46,6 +47,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
                 mDividerLines[i] = mIRectImgView.getRectViewToRectImgViewDistance(i) - mData.mIntervalLeft
             }
         }
+        Log.d("123", "[(RectImgView.kt:50)]\t--> $mRect")
         invalidate()
     }
 
@@ -63,9 +65,9 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
         val animator = ValueAnimator.ofInt(mRect.top, insideFinalTop)
         animator.addUpdateListener {
             mRect.top = it.animatedValue as Int
-            mRect.left = ((mRect.top - insideFinalTop) / dTop.toFloat() * dLeft + insideFinalLeft).roundToInt()
-            mRect.bottom = mRect.top + rectWidth
-            mRect.right = mRect.left + rectHeight
+            mRect.left = ((mRect.top - insideFinalTop) / dTop.toFloat() * dLeft + insideFinalLeft).toInt()
+            mRect.bottom = mRect.top + rectHeight
+            mRect.right = mRect.left + rectWidth
             invalidate()
         }
         animator.addListener(onEnd = {
@@ -85,7 +87,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
         val animator = ValueAnimator.ofInt(mRect.width(), 0)
         animator.addUpdateListener {
             val dWidth = it.animatedValue as Int
-            val dHeight = (dWidth / mRect.width().toFloat() * mRect.height()).roundToInt()
+            val dHeight = (dWidth / mRect.width().toFloat() * mRect.height()).toInt()
             mRect.left += dWidth/2
             mRect.right -= dWidth/2
             mRect.top += dHeight/2
@@ -130,14 +132,14 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
 
     /**
      * 整体滑动时调用
-     * @param dx 大于0向右移动
-     * @param dy 大于0向右移动
+     * @param dx 与初始位置的差值，大于0向右移动
+     * @param dy 与初始位置的差值，大于0向右移动
      */
     fun slideRectImgView(dx: Int, dy: Int) {
-        mRect.left += dx
-        mRect.top += dy
-        mRect.right += dx
-        mRect.bottom += dy
+        mRect.left = dx + mInitialRect.left
+        mRect.top = dy + mInitialRect.top
+        mRect.right = dx + mInitialRect.right
+        mRect.bottom = dy + mInitialRect.bottom
         invalidate()
     }
 
@@ -146,6 +148,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     private val mTime = time
     private val mIRectImgView = iRectImgView
     private val mRect = Rect()
+    private val mInitialRect = Rect()
     private var mPosition = 0
     private lateinit var mBean: TSViewBean
     private val mDividerLines = IntArray(data.mTSViewAmount + 1)
@@ -157,13 +160,11 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     override fun onDraw(canvas: Canvas) {
         if (!mRect.isEmpty) {
             mDraw.drawRect(canvas, mRect, mBean.name, mBean.borderColor, mBean.insideColor)
-            if (mData.mTSViewAmount > 1) {
-                val top = mRect.top
-                val bottom = mRect.bottom
-                for (i in 0 until mDividerLines.size - 2) {
-                    if (mRect.left in mDividerLines[i]..mDividerLines[i + 1]) {
-                        mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom, i))
-                    }
+            val top = mRect.top
+            val bottom = mRect.bottom
+            for (i in 0 until mDividerLines.size - 1) {
+                if (mRect.left in mDividerLines[i]..mDividerLines[i + 1]) {
+                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom, i))
                 }
             }
             if (mData.mIsShowDiffTime) {

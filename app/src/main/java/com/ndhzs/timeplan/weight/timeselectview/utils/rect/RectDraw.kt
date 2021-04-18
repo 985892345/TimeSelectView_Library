@@ -100,9 +100,9 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
             val verticalInterval = BORDER_WIDTH * 2
             val centerX = rect.right - 24
             val l = centerX - horizontalInterval
-            val t = rect.top + BORDER_WIDTH
+            val t = rect.top + verticalInterval
             val r = centerX + horizontalInterval
-            val b = rect.bottom - BORDER_WIDTH
+            val b = rect.bottom - verticalInterval
             mArrowsPath.moveTo(centerX.toFloat(), t.toFloat())
             mArrowsPath.lineTo(centerX.toFloat(), rect.centerY() - mDTimeHalfHeight)
 
