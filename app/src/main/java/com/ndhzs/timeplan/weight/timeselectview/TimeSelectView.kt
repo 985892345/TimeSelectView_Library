@@ -10,7 +10,7 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.BackCardView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewUtil
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewObjectsManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSView
 
 /**
@@ -97,7 +97,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun getIsLongClick(): Boolean = mData.mIsLongClick
 
     private val mData = TSViewInternalData(context, attrs)
-    private val mUtil = TSViewUtil(context, mData, this)
+    private val mUtil = TSViewObjectsManger(context, mData, this)
     private val mITSView: ITSView = mUtil.My1ITSView()
 
     init {

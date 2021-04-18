@@ -17,29 +17,49 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.*
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description
+ * @description 所有View的管理工具
  */
-class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: TimeSelectView) {
+class TSViewObjectsManger(context: Context, data: TSViewInternalData, timeSelectView: TimeSelectView) {
 
     private val mContext = context
     private val mData = data
     private val mTime = TSViewTimeUtil(data)
     private val mRectDraw = RectDraw(data)
-    private val mRectManger = RectManger(data)
-
-    private val mTimeSelectView = timeSelectView
-
-    private val mBackCardView = BackCardView(context, data)
-    private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), data, mTime, mRectManger)
-
-    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data)
-
-    private val mParentLayout = ParentLayout(context, My4IParentLayout(), data)
-    private val mRectImgView = RectImgView(context, My4IRectImgView(), data, mTime, mRectDraw)
+    private val mRectManger = RectManger(data, mTime)
 
     private val mChildLayouts = ArrayList<ChildLayout>()
     private val mRectViews = ArrayList<RectView>()
     private val mSeparatorLineViews = ArrayList<SeparatorLineView>()
+
+    private val mParentLayout = ParentLayout(context, My4IParentLayout(), data)
+    private val mRectImgView = RectImgView(context, My4IRectImgView(), data, mTime, mRectDraw)
+
+    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data, mRectManger)
+    private val mBackCardView = BackCardView(context, data)
+
+    private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), data, mTime, mRectManger)
+
+    private fun getChildLayoutLocation(position: Int): Rect {
+        val rect = Rect()
+        mChildLayouts[position].getGlobalVisibleRect(rect)
+        return rect
+    }
+
+    private fun getRectViewPosition(rowX: Int): Int? {
+        for (i in 0 until mData.mTSViewAmount) {
+            val rect = getRectViewRawLocation(i)
+            if (rowX in rect.left..rect.right) {
+                return i
+            }
+        }
+        return null
+    }
+
+    private fun getRectViewRawLocation(position: Int): Rect {
+        val rect = Rect()
+        mRectViews[position].getGlobalVisibleRect(rect)
+        return rect
+    }
 
 
     inner class My1ITSView : ITSView {
@@ -82,6 +102,10 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
         override fun getOuterMinHeight(): Int {
             return mBackCardView.getMinOuterHeight()
         }
+
+        override fun initializeBean(beans: List<TSViewBean>) {
+            mRectManger.initializeBean(beans)
+        }
     }
 
     inner class My2ITimeScrollView : ITimeScrollView {
@@ -95,8 +119,8 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
             }
         }
 
-        override fun slideRectImgView(x: Int, y: Int) {
-            mRectImgView.slideRectImgView(x, y)
+        override fun slideRectImgView(dx: Int, dy: Int) {
+            mRectImgView.slideRectImgView(dx, dy)
         }
 
         override fun getOuterTop(): Int {
@@ -107,8 +131,8 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
             return mRectImgView.getInsideBottom() - mTimeScrollView.scrollY
         }
 
-        override fun entireMoveStart(rect: Rect, bean: TSViewBean) {
-            mRectImgView.start(rect, bean)
+        override fun getRectViewPosition(rowX: Int): Int? {
+            return this@TSViewObjectsManger.getRectViewPosition(rowX)
         }
     }
 
@@ -119,6 +143,56 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
 
         override fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
             v.addView(mRectImgView, lp)
+        }
+
+        override fun getRectViewPosition(rowX: Int): Int? {
+            return this@TSViewObjectsManger.getRectViewPosition(rowX)
+        }
+
+        override fun getPreRectViewPosition(): Int {
+            return mTimeScrollView.mClickPosition!!
+        }
+
+        override fun getRectViewRawLocation(position: Int): Rect {
+            return this@TSViewObjectsManger.getRectViewRawLocation(position)
+        }
+
+        override fun getChildLayoutLocation(position: Int): Rect {
+            return this@TSViewObjectsManger.getChildLayoutLocation(position)
+        }
+
+        override fun getRectImgViewRawRect(): Rect {
+            return mRectImgView.getRawRect()
+        }
+
+        override fun entireMoveStart(rect: Rect, bean: TSViewBean, position: Int) {
+            mRectImgView.start(rect, bean, position)
+        }
+
+        override fun slideRectImgView(dx: Int, dy: Int) {
+            mRectImgView.slideRectImgView(dx, dy)
+        }
+
+        override fun slideEndRectImgView(rawFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit?) {
+            mRectImgView.over(rawFinalLeft, insideFinalTop, onEndListener)
+        }
+
+        override fun deleteRectImgView(onEndListener: () -> Unit?) {
+            mRectImgView.delete(onEndListener)
+        }
+
+        override fun setIsCanLongClick(boolean: Boolean) {
+            mTimeScrollView.setIsCanLongClick(boolean)
+        }
+
+        override fun notifyRectViewRedraw() {
+            mRectViews.forEach {
+                it.notifyAllRectRedraw()
+            }
+        }
+
+        override fun notifyRectViewAddRectFromDeleted(rect: Rect, position: Int) {
+            mRectViews[position].addRectFromDeleted(rect)
         }
     }
 
@@ -131,17 +205,7 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
     }
 
     inner class My4IRectImgView : IRectImgView {
-        override fun getDividerLines(): IntArray {
-            val array = mBackCardView.getDividerLines()
-            repeat(array.size) {
-                array[it] += mBackCardView.left
-            }
-            return array
-        }
 
-        override fun getScrollY(): Int {
-            return mTimeScrollView.scrollY
-        }
         override fun getRectViewToRectImgViewDistance(position: Int): Int {
             val mRectViewLocation = IntArray(2)
             val mRectImgViewLocation = IntArray(2)
@@ -153,7 +217,7 @@ class TSViewUtil(context: Context, data: TSViewInternalData, timeSelectView: Tim
 
     inner class My5IChildLayout : IChildLayout {
         override fun addRectView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val rectView = RectView(mContext, mData, mTime, mRectDraw, mRectManger, position)
+            val rectView = RectView(mContext, mData, mTime, mRectDraw, mRectManger.MyIRectView(), position)
             mRectViews.add(rectView)
             v.addView(rectView, lp)
         }

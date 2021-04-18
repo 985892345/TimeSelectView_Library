@@ -27,16 +27,12 @@ class BackCardView(context: Context, private val data: TSViewInternalData) : Lin
      */
     fun getMinOuterHeight(): Int = 500
 
-    fun getDividerLines(): IntArray = mDividerLines
-
     companion object {
         /**
          * 为了显示CardView虚影的上下间隔值
          */
-        const val topBottomMargin = 5
+        const val topBottomMargin = 10
     }
-
-    private val mDividerLines = IntArray(data.mTSViewAmount - 1)
 
     init {
         orientation = HORIZONTAL
@@ -52,7 +48,6 @@ class BackCardView(context: Context, private val data: TSViewInternalData) : Lin
             val cardView2 = CardView(context)
             cardView2.radius = data.mCardCornerRadius
             addView(cardView2, lp)
-            mDividerLines[it] = data.mTimelineWidth + data.mTimelineInterval * (it + 1)
         }
     }
 

@@ -24,7 +24,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     val mDefaultTaskName: String //默认任务名称
 
     var mTimeInterval: Int //时间间隔数
-    val mATimeRange: Int //单个时间轴的时长
+    val mTimelineRange: Int //单个时间轴的时长
 
     val mCardCornerRadius: Float //时间轴背景的圆角度数
 
@@ -37,10 +37,10 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     val mIntervalLeft: Int //左边时间刻度文字间隔宽度
     val mIntervalHeight: Int //一个小时的间隔高度
     val mInsideTotalHeight: Int //总高度
+    val mRectViewWidth: Int //矩形绘制宽度
 
     val mRectViewTop: Int //RectView实际绘制区域的顶部值
     val mRectViewBottom: Int //RectView实际绘制区域的底部值
-    lateinit var mRectViewLefts: IntArray //所有的RectView的左边值到TimeSelectView的
 
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
@@ -95,12 +95,13 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mTimelineInterval = ty.getDimension(R.styleable.TimeSelectView_timelineInterval, 20F).toInt()
         mAllTimelineWidth = mTSViewAmount * (mTimelineWidth + mTimelineInterval) - mTimelineInterval
 
-        mATimeRange = 24 / mTSViewAmount
+        mTimelineRange = 24 / mTSViewAmount
 
-        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth/5F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, mTimelineWidth/2.5F).toInt()
+        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth / 5F).toInt()
+        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, mTimelineWidth / 2.5F).toInt()
         mExtraHeight = mIntervalHeight / 2
-        mInsideTotalHeight = mATimeRange * mIntervalHeight + 2 * mExtraHeight
+        mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
+        mRectViewWidth = mTimelineWidth - mIntervalLeft
 
         mRectViewTop = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
         mRectViewBottom = mInsideTotalHeight - mExtraHeight

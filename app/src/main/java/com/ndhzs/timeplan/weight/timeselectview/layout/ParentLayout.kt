@@ -16,7 +16,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IParentLayout
 class ParentLayout(context: Context, iParentLayout: IParentLayout, data: TSViewInternalData) : LinearLayout(context) {
     init {
         orientation = HORIZONTAL
-        val lp = LayoutParams(data.mTimelineWidth, data.mInsideTotalHeight)
+        val lp = LayoutParams(data.mTimelineWidth, LayoutParams.MATCH_PARENT)
         iParentLayout.addChildLayout(lp, this, 0)
         val lp2 = LayoutParams(lp)
         lp2.leftMargin = data.mTimelineInterval

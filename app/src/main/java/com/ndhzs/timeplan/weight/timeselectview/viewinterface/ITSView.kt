@@ -11,7 +11,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/4
- * @description
+ * @description [com.ndhzs.timeplan.weight.timeselectview.TimeSelectView]
  */
 interface ITSView {
     fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup)
@@ -23,4 +23,5 @@ interface ITSView {
     fun setLinkedViewPager2(viewPager2: ViewPager2)
     fun getOuterMinWidth(): Int
     fun getOuterMinHeight(): Int
+    fun initializeBean(beans: List<TSViewBean>)
 }

@@ -5,7 +5,9 @@ import android.content.Context
 import android.view.Gravity
 import android.widget.FrameLayout
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.NowTimeLineView
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IChildLayout
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 
@@ -38,11 +40,10 @@ class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInte
     private var mNowTimeLineView: NowTimeLineView? = null
 
     init {
-        val lp = LayoutParams(data.mTimelineWidth - mData.mIntervalLeft, data.mInsideTotalHeight)
-        lp.gravity = Gravity.END
+        val lp = LayoutParams(data.mRectViewWidth, LayoutParams.MATCH_PARENT)
+        lp.leftMargin = mData.mIntervalLeft
         mIChildLayout.addRectView(lp, this, position)
-        val lp2 = LayoutParams(data.mTimelineWidth, data.mInsideTotalHeight)
-        lp2.leftMargin = 0
+        val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         mIChildLayout.addSeparatorLineView(lp2, this, position)
     }
 

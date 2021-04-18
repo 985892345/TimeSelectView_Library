@@ -37,11 +37,11 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
     }
 
     init {
-        mArrowsPaint = generatePaint(0x000000)
+        mArrowsPaint = generatePaint(0xFF000000.toInt(), 2, Paint.Style.STROKE)
         mInsidePaint = generatePaint(mData.mDefaultInsideColor)
         mBorderPaint = generatePaint(mData.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
         mTextPaint = generateTextPaint(mData.mTaskTextSize)
-        mDTimePaint = generateTextPaint(0.7F * mData.mTimeTextSize, Paint.Align.RIGHT)
+        mDTimePaint = generateTextPaint(0.75F * mData.mTimeTextSize, Paint.Align.RIGHT)
         mTBTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize, Paint.Align.LEFT)
         mStartTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize)
 
@@ -70,7 +70,7 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
 
     private fun generateTextPaint(textSize: Float, align: Paint.Align = Paint.Align.CENTER): Paint {
         val paint = Paint()
-        paint.color = 0x000000
+        paint.color = 0xFF000000.toInt()
         paint.textSize = textSize
         paint.textAlign = align
         paint.isAntiAlias = true
@@ -98,20 +98,23 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
             canvas.drawText(dTime, timeRight, rect.centerY() + mDTimeCenter, mDTimePaint)
             val horizontalInterval = BORDER_WIDTH
             val verticalInterval = BORDER_WIDTH * 2
-            val verticalCenter = rect.right - 24
-            val l = verticalCenter - horizontalInterval
+            val centerX = rect.right - 24
+            val l = centerX - horizontalInterval
             val t = rect.top + BORDER_WIDTH
-            val r = verticalCenter + horizontalInterval
+            val r = centerX + horizontalInterval
             val b = rect.bottom - BORDER_WIDTH
-            mArrowsPath.moveTo(verticalCenter.toFloat(), t.toFloat())
-            mArrowsPath.lineTo(verticalCenter.toFloat(), rect.centerY() - mDTimeHalfHeight)
-            mArrowsPath.moveTo(verticalCenter.toFloat(), rect.centerY() + mDTimeHalfHeight)
-            mArrowsPath.lineTo(verticalCenter.toFloat(), b.toFloat())
+            mArrowsPath.moveTo(centerX.toFloat(), t.toFloat())
+            mArrowsPath.lineTo(centerX.toFloat(), rect.centerY() - mDTimeHalfHeight)
+
+            mArrowsPath.moveTo(centerX.toFloat(), rect.centerY() + mDTimeHalfHeight)
+            mArrowsPath.lineTo(centerX.toFloat(), b.toFloat())
+
             mArrowsPath.moveTo(l.toFloat(), (t + verticalInterval).toFloat())
-            mArrowsPath.lineTo(verticalCenter.toFloat(), t.toFloat())
+            mArrowsPath.lineTo(centerX.toFloat(), t.toFloat())
             mArrowsPath.lineTo(r.toFloat(), (t + verticalInterval).toFloat())
+
             mArrowsPath.moveTo(l.toFloat(), (b - verticalInterval).toFloat())
-            mArrowsPath.lineTo(verticalCenter.toFloat(), b.toFloat())
+            mArrowsPath.lineTo(centerX.toFloat(), b.toFloat())
             mArrowsPath.lineTo(r.toFloat(), (b - verticalInterval).toFloat())
             canvas.drawPath(mArrowsPath, mArrowsPaint)
             mArrowsPath.rewind()

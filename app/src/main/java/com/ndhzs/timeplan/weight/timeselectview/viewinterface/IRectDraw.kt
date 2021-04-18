@@ -7,7 +7,7 @@ import android.graphics.Rect
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/4
- * @description
+ * @description [com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectDraw]
  */
 interface IRectDraw {
     fun getMinHeight(): Float
