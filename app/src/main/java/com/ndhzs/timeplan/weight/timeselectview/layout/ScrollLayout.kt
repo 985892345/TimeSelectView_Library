@@ -38,19 +38,18 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
     private val mIScrollLayout = iScrollLayout
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        if (ev.action == MotionEvent.ACTION_MOVE) {
-            when (mData.mCondition) {
-                INSIDE, INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
-                    mInitialX = ev.x.toInt()
-                    mInitialY = ev.y.toInt()
-                    val rect = mRectManger.getDeletedRect()
-                    val bean = mRectManger.getDeletedBean()
-                    val position = mIScrollLayout.getRectViewPosition(ev.rawX.toInt())
-                    mIScrollLayout.entireMoveStart(rect, bean, position!!)
-                    mIScrollLayout.notifyRectViewRedraw()
-                    return true
+        when (ev.action) {
+            MotionEvent.ACTION_DOWN -> {
+                mInitialX = ev.x.toInt()
+                mInitialY = ev.y.toInt()
+            }
+            MotionEvent.ACTION_MOVE -> {
+                when (mData.mCondition) {
+                    INSIDE, INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
+                        return true
+                    }
+                    else -> {}
                 }
-                else -> {}
             }
         }
         return super.onInterceptTouchEvent(ev)

@@ -2,9 +2,9 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
+import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.*
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView
@@ -19,13 +19,26 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.*
  * @date 2021/3/20
  * @description 所有View的管理工具
  */
-class TSViewObjectsManger(context: Context, data: TSViewInternalData, timeSelectView: TimeSelectView) {
+class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
     private val mContext = context
     private val mData = data
     private val mTime = TSViewTimeUtil(data)
     private val mRectDraw = RectDraw(data)
-    private val mRectManger = RectManger(data, mTime)
+    private val mRectManger = RectManger(data, mTime, { initialSideY, upperLimit, lowerLimit, position ->
+        mRectViews[position].clickEmptyStart(initialSideY, upperLimit, lowerLimit)
+
+    }, { rect, bean, position ->
+        mRectImgView.start(rect, bean, position)
+        mRectViews.forEach {
+            it.notifyAllRectRedraw()
+        }
+
+    }, { rect, bean, initialSideY, upperLimit, lowerLimit ->
+        mRectViews.forEach {
+            it.clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
+        }
+    })
 
     private val mChildLayouts = ArrayList<ChildLayout>()
     private val mRectViews = ArrayList<RectView>()
@@ -163,10 +176,6 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, timeSelect
 
         override fun getRectImgViewRawRect(): Rect {
             return mRectImgView.getRawRect()
-        }
-
-        override fun entireMoveStart(rect: Rect, bean: TSViewBean, position: Int) {
-            mRectImgView.start(rect, bean, position)
         }
 
         override fun slideRectImgView(dx: Int, dy: Int) {

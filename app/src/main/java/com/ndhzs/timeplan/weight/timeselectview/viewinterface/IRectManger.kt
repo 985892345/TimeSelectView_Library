@@ -10,8 +10,6 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
  * @description [com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectManger]
  */
 interface IRectManger {
-    fun getDeletedRect(): Rect
-    fun getDeletedBean(): TSViewBean
     fun getClickUpperLimit(): Int
     fun getClickLowerLimit(): Int
     fun getUpperLimit(insideY: Int, position: Int): Int

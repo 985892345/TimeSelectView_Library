@@ -47,7 +47,6 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
                 mDividerLines[i] = mIRectImgView.getRectViewToRectImgViewDistance(i) - mData.mIntervalLeft
             }
         }
-        Log.d("123", "[(RectImgView.kt:50)]\t--> $mRect")
         invalidate()
     }
 
@@ -62,12 +61,15 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
         val dLeft = mRect.left - insideFinalLeft
         val rectWidth = mRect.width()
         val rectHeight = mRect.height()
-        val animator = ValueAnimator.ofInt(mRect.top, insideFinalTop)
+        val totalDistance = sqrt((dTop * dTop + dLeft * dLeft).toFloat())
+        val animator = ValueAnimator.ofFloat(totalDistance, 0F)
         animator.addUpdateListener {
-            mRect.top = it.animatedValue as Int
-            mRect.left = ((mRect.top - insideFinalTop) / dTop.toFloat() * dLeft + insideFinalLeft).toInt()
-            mRect.bottom = mRect.top + rectHeight
+            val nowDistance = it.animatedValue as Float
+            mRect.left = (nowDistance / totalDistance * dLeft).toInt() + insideFinalLeft
+            mRect.top = (nowDistance / totalDistance * dTop).toInt() + insideFinalTop
             mRect.right = mRect.left + rectWidth
+            mRect.bottom = mRect.top + rectHeight
+            Log.d("123", "[(RectImgView.kt:72)]\t--> $mRect")
             invalidate()
         }
         animator.addListener(onEnd = {
@@ -75,8 +77,8 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             mRect.setEmpty()
             invalidate()
         })
-        animator.duration = sqrt((dTop * dTop + dLeft * dLeft) * 0.6).toLong()
-        animator.interpolator = OvershootInterpolator()
+        animator.duration = (totalDistance * 0.6).toLong()
+        animator.interpolator = OvershootInterpolator(0.9F)
         animator.start()
     }
 

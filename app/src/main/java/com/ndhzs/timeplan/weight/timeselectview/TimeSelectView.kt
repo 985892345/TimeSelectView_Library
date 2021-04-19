@@ -97,7 +97,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun getIsLongClick(): Boolean = mData.mIsLongClick
 
     private val mData = TSViewInternalData(context, attrs)
-    private val mUtil = TSViewObjectsManger(context, mData, this)
+    private val mUtil = TSViewObjectsManger(context, mData)
     private val mITSView: ITSView = mUtil.My1ITSView()
 
     init {

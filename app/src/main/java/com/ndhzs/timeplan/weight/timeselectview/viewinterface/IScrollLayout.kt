@@ -22,7 +22,6 @@ interface IScrollLayout {
      * @return 返回左右值为相对于屏幕坐标，上下值为内部坐标的Rect
      */
     fun getRectImgViewRawRect(): Rect
-    fun entireMoveStart(rect: Rect, bean: TSViewBean, position: Int)
     fun slideRectImgView(dx: Int, dy: Int)
     fun slideEndRectImgView(rawFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit? = {})
     fun deleteRectImgView(onEndListener: () -> Unit? = {})
