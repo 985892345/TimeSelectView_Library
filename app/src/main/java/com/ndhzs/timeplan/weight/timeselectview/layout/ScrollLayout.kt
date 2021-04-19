@@ -78,18 +78,18 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                 val isOverLeft = rawRect.right < mIScrollLayout.getChildLayoutLocation(0).left
                 val isOverRight = rawRect.left > mIScrollLayout.getChildLayoutLocation(mData.mTSViewAmount - 1).right
                 if (isOverLeft || isOverRight || mNowPosition == null) {
-                    mIScrollLayout.deleteRectImgView {
-                        mIScrollLayout.setIsCanLongClick(true)
-                    }
+                    mIScrollLayout.setIsCanLongClick(true)
+                    mIScrollLayout.deleteRectImgView()
                 }else {
                     val prePosition = mIScrollLayout.getPreRectViewPosition()
                     val rawLeftAndInsideTop = getRawLeftAndInsideTop(rawRect, prePosition, mNowPosition!!)
                     val rawFinalLeft = rawLeftAndInsideTop[0]
                     val insideFinalTop = rawLeftAndInsideTop[1]
+                    val position = rawLeftAndInsideTop[2]
                     mIScrollLayout.slideEndRectImgView(rawFinalLeft, insideFinalTop) {
                         mIScrollLayout.setIsCanLongClick(true)
                         val rect2 = Rect(0, insideFinalTop, rawRect.width(), insideFinalTop + rawRect.height())
-                        mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, mNowPosition!!)
+                        mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
                     }
                 }
             }
@@ -101,7 +101,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         if (prePosition == nowPosition) {
             val rawLeft = getRawLeft(prePosition)
             val insideTop = getInsideTop(rawRect, prePosition)
-            return intArrayOf(rawLeft, insideTop)
+            return intArrayOf(rawLeft, insideTop, prePosition)
         }else {
             val top = rawRect.top
             val bottom = rawRect.bottom
@@ -112,19 +112,19 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
             val nowPositionLeft = getRawLeft(nowPosition)
             return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
                 if (nowLowerLimit in top..bottom) { //1
-                    intArrayOf(nowPositionLeft, nowLowerLimit - rectHeight)
+                    intArrayOf(nowPositionLeft, nowLowerLimit - rectHeight, nowPosition)
                 }else if (nowUpperLimit in top..bottom) { //2
-                    intArrayOf(nowPositionLeft, nowUpperLimit)
+                    intArrayOf(nowPositionLeft, nowUpperLimit, nowPosition)
                 }else { //包括了3、4、5、6、7
                     val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
                     if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
-                        intArrayOf(nowPositionLeft, top)
+                        intArrayOf(nowPositionLeft, top, nowPosition)
                     }else { //4、5-2、6、7-2
-                        intArrayOf(prePositionLeft, top)
+                        intArrayOf(prePositionLeft, mIScrollLayout.getRectImgViewInitialRect().top, prePosition)
                     }
                 }
             }else { //包括 a 的所有情况
-                intArrayOf(prePositionLeft, top)
+                intArrayOf(prePositionLeft, mIScrollLayout.getRectImgViewInitialRect().top, prePosition)
             }
         }
     }

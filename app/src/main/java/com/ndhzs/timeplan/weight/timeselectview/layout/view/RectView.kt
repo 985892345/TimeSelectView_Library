@@ -11,6 +11,7 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectView
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import kotlin.math.max
 import kotlin.math.min
@@ -21,7 +22,10 @@ import kotlin.math.min
  * @description [com.ndhzs.timeplan.weight.timeselectview.layout.ChildLayout]之下
  */
 @SuppressLint("ViewConstructor")
-class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, draw: IRectDraw, iRectView: IRectView, position: Int) : View(context) {
+class RectView(context: Context, data: TSViewInternalData,
+               time: ITSViewTime, draw: IRectDraw,
+               iRectViewRectManger: IRectViewRectManger,
+               iRectView: IRectView, position: Int) : View(context) {
 
     /**
      * 用于在TimeScrollView滑动过程和自身MOVE事件中绘制矩形，此时长按已经确认，所以Rect的起始高度已经确定。
@@ -31,23 +35,21 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
      * @param rectInsideY Rect结束的高度
      */
     fun slideDrawRect(rectInsideY: Int) {
-        if (mIsTouchEvent) {
-            if (rectInsideY > mInitialSideY) {
-                mInitialRect.top = mInitialSideY
-                mInitialRect.bottom = min(rectInsideY, mLowerLimit)
-            }else {
-                mInitialRect.bottom = mInitialSideY
-                mInitialRect.top = max(rectInsideY, mUpperLimit)
-            }
-            invalidate()
+        if (rectInsideY > mInitialSideY) {
+            mInitialRect.top = mInitialSideY
+            mInitialRect.bottom = min(rectInsideY, mLowerLimit)
+        }else {
+            mInitialRect.bottom = mInitialSideY
+            mInitialRect.top = max(rectInsideY, mUpperLimit)
         }
+        invalidate()
     }
 
     /**
      * 通知RectView的所有矩形重新绘制，一般用于在设置任务显示的颜色、时间等属性时调用
      */
-    fun notifyAllRectRedraw() {
-        mRectWithBean = mIRectView.getRectWithBeanMap()
+    fun notifyRectRedraw() {
+        mRectWithBean = mIRectManger.getRectWithBeanMap()
         invalidate()
     }
 
@@ -55,27 +57,25 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
      * 让RectView增加一个之前被删除的矩形，但位置已经改变，用的原来的Bean
      */
     fun addRectFromDeleted(rect: Rect) {
-        mIRectView.addRectFromDeleted(rect)
-        notifyAllRectRedraw()
+        mIRectManger.addRectFromDeleted(rect)
+        notifyRectRedraw()
     }
 
     /**
      * 用于在长按后设置动态绘图的矩形和bean
      */
     fun clickTopAndBottomStart(initialRect: Rect, deletedBean: TSViewBean, initialSideY: Int, upperLimit: Int, lowerLimit: Int) {
-        if (mIsTouchEvent) {
-            mInitialSideY = initialSideY
-            mUpperLimit = upperLimit
-            mLowerLimit = lowerLimit
-            when (mData.mCondition) {
-                TOP, BOTTOM -> {
-                    mInitialRect.set(initialRect)
-                    mDeletedBean = deletedBean
-                }
-                else -> {}
+        mInitialSideY = initialSideY
+        mUpperLimit = upperLimit
+        mLowerLimit = lowerLimit
+        when (mData.mCondition) {
+            TOP, BOTTOM -> {
+                mInitialRect.set(initialRect)
+                mDeletedBean = deletedBean
             }
+            else -> {}
         }
-        notifyAllRectRedraw()
+        mIRectView.notifyAllRectViewRefresh()
     }
 
     /**
@@ -87,11 +87,10 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
         mLowerLimit = lowerLimit
     }
 
-
-
     private val mData = data
     private val mTime = time
     private val mDraw = draw
+    private val mIRectManger = iRectViewRectManger
     private val mIRectView = iRectView
     private val mPosition = position
     private val mInitialRect = Rect() //动态绘图的矩形
@@ -101,10 +100,8 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
     private var mDeletedBean: TSViewBean? = null
     private var mRectWithBean: HashMap<Rect, TSViewBean>
 
-    private var mIsTouchEvent = false
-
     init {
-        mRectWithBean = mIRectView.getRectWithBeanMap()
+        mRectWithBean = mIRectManger.getRectWithBeanMap()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -132,8 +129,7 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
                     mDraw.drawArrows(canvas, mInitialRect, diffTime)
                     mDraw.drawStartEndTime(canvas, mInitialRect, startTime, endTime)
                 }
-                else -> {
-                }
+                else -> {}
             }
         }
         mRectWithBean.forEach {
@@ -157,7 +153,6 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
         val y = event.y.toInt()
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                mIsTouchEvent = true
                 mInitialX = x
                 mInitialY = y
                 mInitialRect.right = mData.mRectViewWidth
@@ -178,13 +173,13 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
                             val bean = mDeletedBean!!
                             bean.startTime = mTime.getTime(rect.top, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
-                            mIRectView.addRectFromDeleted(rect)
+                            mIRectManger.addRectFromDeleted(rect)
                         }
                         BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
                             val bean = mDeletedBean!!
                             bean.endTime = mTime.getTime(rect.bottom, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
-                            mIRectView.addRectFromDeleted(rect)
+                            mIRectManger.addRectFromDeleted(rect)
                         }
                         EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                             val name = mData.mDefaultTaskName
@@ -194,16 +189,14 @@ class RectView(context: Context, data: TSViewInternalData, time: ITSViewTime, dr
                             val borderColor = mData.mDefaultBorderColor
                             val insideColor = mData.mDefaultInsideColor
                             val bean = TSViewBean(name, startTime, endTime, diffTime, borderColor, insideColor)
-                            mIRectView.addNewRect(rect, bean)
+                            mIRectManger.addNewRect(rect, bean)
                         }
                         else -> {}
                     }
                 }
                 mData.mCondition = NULL
                 mInitialRect.setEmpty()
-                mRectWithBean = mIRectView.getRectWithBeanMap()
-                invalidate()
-                mIsTouchEvent = false
+                mIRectView.notifyAllRectViewRefresh()
             }
         }
         return true

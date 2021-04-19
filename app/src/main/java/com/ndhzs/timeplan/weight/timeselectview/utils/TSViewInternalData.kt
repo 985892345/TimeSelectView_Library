@@ -77,8 +77,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 2)
         mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, -1F)
 
-        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, 40F)
-        mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, 40F)
+
 
         mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, 0xFFFF0000.toInt())
         mDefaultInsideColor = ty.getColor(R.styleable.TimeSelectView_defaultInsideColor, 0xFFDCCC48.toInt())
@@ -91,17 +90,20 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
         val amount = ty.getInt(R.styleable.TimeSelectView_amount, 1)
         mTSViewAmount = if (amount < 1) 1 else if (amount > 3) 3 else amount
-        mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth, 100F).toInt()
+        mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth, 360F).toInt()
         mTimelineInterval = ty.getDimension(R.styleable.TimeSelectView_timelineInterval, 20F).toInt()
         mAllTimelineWidth = mTSViewAmount * (mTimelineWidth + mTimelineInterval) - mTimelineInterval
 
         mTimelineRange = 24 / mTSViewAmount
 
-        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth / 5F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, mTimelineWidth / 2.5F).toInt()
+        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth / 4.6F).toInt()
+        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 210F).toInt()
         mExtraHeight = mIntervalHeight / 2
         mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
         mRectViewWidth = mTimelineWidth - mIntervalLeft - SeparatorLineView.INTERVAL_RIGHT_WIDTH
+
+        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, mIntervalLeft/2.8F)
+        mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, mTimeTextSize * 1.16F)
 
         mRectViewTop = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
         mRectViewBottom = mInsideTotalHeight - mExtraHeight

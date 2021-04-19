@@ -2,7 +2,6 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
-import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
@@ -31,13 +30,11 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
     }, { rect, bean, position ->
         mRectImgView.start(rect, bean, position)
         mRectViews.forEach {
-            it.notifyAllRectRedraw()
+            it.notifyRectRedraw()
         }
 
-    }, { rect, bean, initialSideY, upperLimit, lowerLimit ->
-        mRectViews.forEach {
-            it.clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
-        }
+    }, { rect, bean, initialSideY, upperLimit, lowerLimit, position ->
+        mRectViews[position].clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
     })
 
     private val mChildLayouts = ArrayList<ChildLayout>()
@@ -90,9 +87,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             }
         }
 
-        override fun notifyAllRectRedraw() {
+        override fun notifyAllRectRefresh() {
             mRectViews.forEach {
-                it.notifyAllRectRedraw()
+                it.notifyRectRedraw()
             }
         }
 
@@ -126,10 +123,8 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             v.addView(mScrollLayout, lp)
         }
 
-        override fun slideDrawRect(insideY: Int) {
-            mRectViews.forEach {
-                it.slideDrawRect(insideY)
-            }
+        override fun slideDrawRect(insideY: Int, position: Int) {
+            mRectViews[position].slideDrawRect(insideY)
         }
 
         override fun slideRectImgView(dx: Int, dy: Int) {
@@ -163,7 +158,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
         }
 
         override fun getPreRectViewPosition(): Int {
-            return mTimeScrollView.mClickPosition!!
+            return mTimeScrollView.mClickRectViewPosition!!
         }
 
         override fun getRectViewRawLocation(position: Int): Rect {
@@ -176,6 +171,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun getRectImgViewRawRect(): Rect {
             return mRectImgView.getRawRect()
+        }
+
+        override fun getRectImgViewInitialRect(): Rect {
+            return mRectImgView.getRawInitialRect()
         }
 
         override fun slideRectImgView(dx: Int, dy: Int) {
@@ -196,7 +195,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun notifyRectViewRedraw() {
             mRectViews.forEach {
-                it.notifyAllRectRedraw()
+                it.notifyRectRedraw()
             }
         }
 
@@ -222,11 +221,19 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             mRectImgView.getLocationInWindow(mRectImgViewLocation)
             return mRectViewLocation[0] - mRectImgViewLocation[0]
         }
+
+        override fun getRectViewInterval(): Int {
+            return if (mData.mTSViewAmount == 1) {
+                Int.MAX_VALUE
+            }else {
+                getRectViewRawLocation(1).left - getRectViewRawLocation(0).left
+            }
+        }
     }
 
     inner class My5IChildLayout : IChildLayout {
         override fun addRectView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val rectView = RectView(mContext, mData, mTime, mRectDraw, mRectManger.MyIRectView(), position)
+            val rectView = RectView(mContext, mData, mTime, mRectDraw, mRectManger.MyIRectViewRectManger(), My6IRectView(), position)
             mRectViews.add(rectView)
             v.addView(rectView, lp)
         }
@@ -235,6 +242,14 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             val separatorLineView = SeparatorLineView(mContext, mData, position)
             mSeparatorLineViews.add(separatorLineView)
             v.addView(separatorLineView, lp)
+        }
+    }
+
+    inner class My6IRectView : IRectView {
+        override fun notifyAllRectViewRefresh() {
+            mRectViews.forEach {
+                it.notifyRectRedraw()
+            }
         }
     }
 }

@@ -8,4 +8,5 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
  */
 interface IRectImgView {
     fun getRectViewToRectImgViewDistance(position: Int): Int
+    fun getRectViewInterval(): Int
 }

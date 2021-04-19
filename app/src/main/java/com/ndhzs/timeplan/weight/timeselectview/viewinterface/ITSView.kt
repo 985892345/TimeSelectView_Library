@@ -17,7 +17,7 @@ interface ITSView {
     fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup)
     fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup)
     fun showNowTimeLine()
-    fun notifyAllRectRedraw()
+    fun notifyAllRectRefresh()
     fun setOnClickListener(onClick: ((bean: TSViewBean) -> Unit))
     fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
     fun setLinkedViewPager2(viewPager2: ViewPager2)

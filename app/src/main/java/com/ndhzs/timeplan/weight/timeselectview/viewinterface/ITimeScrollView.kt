@@ -12,7 +12,7 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
  */
 interface ITimeScrollView {
     fun addScrollLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun slideDrawRect(insideY: Int)
+    fun slideDrawRect(insideY: Int, position: Int)
     fun slideRectImgView(dx: Int, dy: Int)
     fun getOuterTop(): Int
     fun getOuterBottom(): Int

@@ -33,6 +33,9 @@ class BackCardView(context: Context, private val data: TSViewInternalData) : Lin
          */
         const val topBottomMargin = 10
 
+        /**
+         * 为了显示CardView虚影的左右间隔值
+         */
         const val leftRightMargin = 3
     }
 
@@ -47,13 +50,11 @@ class BackCardView(context: Context, private val data: TSViewInternalData) : Lin
         cardView.radius = data.mCardCornerRadius
         addView(cardView, lp)
         val lp2 = LayoutParams(lp)
-        lp2.leftMargin += data.mTimelineInterval
+        lp2.leftMargin += data.mTimelineInterval - leftRightMargin * 2
         repeat(data.mTSViewAmount - 1) {
             val cardView2 = CardView(context)
             cardView2.radius = data.mCardCornerRadius
             addView(cardView2, lp2)
         }
     }
-
-
 }

@@ -2,7 +2,6 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
@@ -68,7 +67,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private var mOnLongClickEndListener: ((condition: TSViewLongClick) -> Unit)? = null
 
     private var mIsCanLongClick = true
-    var mClickPosition: Int? = null
+    var mClickRectViewPosition: Int? = null
 
     init {
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, data.mInsideTotalHeight)
@@ -127,8 +126,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         if (!mIsCanLongClick) {
             return true
         }
-        mClickPosition = mITimeScrollView.getRectViewPosition(rawX)
-        return if (mClickPosition == null) {
+        mClickRectViewPosition = mITimeScrollView.getRectViewPosition(rawX)
+        return if (mClickRectViewPosition == null) {
             true
         }else {
             //只对RectView的位置内的外部大小的RectView实际绘制区域不拦截
@@ -137,12 +136,12 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     override fun isInLongClickArea(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean {
-        return mClickPosition != null
+        return mClickRectViewPosition != null
     }
 
     override fun onClick(insideX: Int, insideY: Int) {
-        if (mClickPosition != null) {
-            val bean = mRectManger.getBean(insideY, mClickPosition!!)
+        if (mClickRectViewPosition != null) {
+            val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
                 mOnClickListener?.invoke(bean)
             }
@@ -151,7 +150,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     override fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {
         mData.mIsLongClick = true
-        mRectManger.longClickConditionJudge(insideY, mClickPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
+        mRectManger.longClickConditionJudge(insideY, mClickRectViewPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
         mUpperLimit = mRectManger.getClickUpperLimit()
         mLowerLimit = mRectManger.getClickLowerLimit()
         mForbidSlideCenter = insideY - scrollY
@@ -181,7 +180,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN,
                 EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                     //要是不手动调用，在手指不移动却又在自动滑动的情况下RctView不会自动更新
-                    iTimeScrollView.slideDrawRect(scrollY + mPreOuterY)
+                    iTimeScrollView.slideDrawRect(scrollY + mPreOuterY, mClickRectViewPosition!!)
                 }
                 INSIDE_SLIDE_UP, INSIDE_SLIDE_DOWN -> {
                     iTimeScrollView.slideRectImgView(mOuterX - mInitialX, mOuterY - mInitialY + scrollY - mInitialScrollY)
@@ -265,7 +264,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val top = mITimeScrollView.getOuterTop()
                 val bottom = mITimeScrollView.getOuterBottom()
                 val isTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
-                val isBottomSlide = bottom - scrollY > height - AUTO_MOVE_THRESHOLD * 0.4F
+                val isBottomSlide = bottom > height - AUTO_MOVE_THRESHOLD * 0.4F
                 val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 50)..(mForbidSlideCenter + 50)
                 if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit) {
                     removeCallbacks(mSlideRunnable)

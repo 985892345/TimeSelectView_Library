@@ -31,6 +31,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
      */
     fun start(rect: Rect, bean: TSViewBean, position: Int) {
         mPosition = position
+        mRectViewInterval = mIRectImgView.getRectViewInterval()
         val distance = mIRectImgView.getRectViewToRectImgViewDistance(position)
         mRect.left = rect.left + distance
         mRect.top = rect.top
@@ -69,7 +70,6 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             mRect.top = (nowDistance / totalDistance * dTop).toInt() + insideFinalTop
             mRect.right = mRect.left + rectWidth
             mRect.bottom = mRect.top + rectHeight
-            Log.d("123", "[(RectImgView.kt:72)]\t--> $mRect")
             invalidate()
         }
         animator.addListener(onEnd = {
@@ -77,7 +77,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             mRect.setEmpty()
             invalidate()
         })
-        animator.duration = (totalDistance * 0.6).toLong()
+        animator.duration = (sqrt(totalDistance) * 10).toLong()
         animator.interpolator = OvershootInterpolator(0.9F)
         animator.start()
     }
@@ -86,14 +86,18 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
      * 整体移动到删除区域时调用，会有一个删除动画
      */
     fun delete(onEndListener : () -> Unit?) {
-        val animator = ValueAnimator.ofInt(mRect.width(), 0)
+        val rectWidth = mRect.width()
+        val rectHeight = mRect.height()
+        val rectCenterX = mRect.centerX()
+        val rectCenterY = mRect.centerY()
+        val animator = ValueAnimator.ofInt(rectWidth, 0)
         animator.addUpdateListener {
-            val dWidth = it.animatedValue as Int
-            val dHeight = (dWidth / mRect.width().toFloat() * mRect.height()).toInt()
-            mRect.left += dWidth/2
-            mRect.right -= dWidth/2
-            mRect.top += dHeight/2
-            mRect.bottom -= dHeight/2
+            val width = it.animatedValue as Int
+            val height = (width / rectWidth.toFloat() * rectHeight).toInt()
+            mRect.left = rectCenterX - width/2
+            mRect.top = rectCenterY - height/2
+            mRect.right = rectCenterX + width/2
+            mRect.bottom = rectCenterY + height/2
             invalidate()
         }
         animator.addListener(onEnd = {
@@ -123,7 +127,9 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     }
 
     /**
-     * 返回left、right为相对于屏幕的值，top、bottom为insideY值的Rect
+     * 返回变化的矩形
+     *
+     * left、right为相对于屏幕的值，top、bottom为insideY值的Rect
      * @return Rect的left、right值是相对于屏幕的值，top、bottom为内部值
      */
     fun getRawRect(): Rect {
@@ -133,14 +139,27 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     }
 
     /**
+     * 返回移动前的矩形
+     *
+     * left、right为相对于屏幕的值，top、bottom为insideY值的Rect
+     * @return Rect的left、right值是相对于屏幕的值，top、bottom为内部值
+     */
+    fun getRawInitialRect(): Rect {
+        val location = IntArray(2)
+        getLocationInWindow(location)
+        return Rect(mInitialRect.left + location[0], mInitialRect.top, mInitialRect.right + location[0], mInitialRect.bottom)
+    }
+
+    /**
      * 整体滑动时调用
      * @param dx 与初始位置的差值，大于0向右移动
      * @param dy 与初始位置的差值，大于0向右移动
      */
     fun slideRectImgView(dx: Int, dy: Int) {
-        mRect.left = dx + mInitialRect.left
+        val dx1 = getCorrectDx(dx, mPosition)
+        mRect.left = dx1 + mInitialRect.left
         mRect.top = dy + mInitialRect.top
-        mRect.right = dx + mInitialRect.right
+        mRect.right = dx1 + mInitialRect.right
         mRect.bottom = dy + mInitialRect.bottom
         invalidate()
     }
@@ -154,9 +173,10 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     private var mPosition = 0
     private lateinit var mBean: TSViewBean
     private val mDividerLines = IntArray(data.mTSViewAmount + 1)
+    private var mRectViewInterval = 0
 
     companion object {
-        private const val X_KEEP_THRESHOLD = 30
+        private const val X_KEEP_THRESHOLD = 17
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -172,6 +192,35 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             if (mData.mIsShowDiffTime) {
                 mDraw.drawArrows(canvas, mRect, mBean.diffTime)
             }
+        }
+    }
+
+
+    private fun getCorrectDx(dx: Int, position: Int): Int {
+        if (dx == 0) {
+            return 0
+        }
+        if (dx > 0) {
+            if (dx < X_KEEP_THRESHOLD) { //先判断自身
+                return 0
+            }else { //再判断右边相邻的一个
+                return if (position < mData.mTSViewAmount - 1) {
+                    if (dx - X_KEEP_THRESHOLD >= mRectViewInterval && dx - 3 * X_KEEP_THRESHOLD <= mRectViewInterval) {
+                        mRectViewInterval
+                    }else if (dx - X_KEEP_THRESHOLD < mRectViewInterval) {
+                        dx - X_KEEP_THRESHOLD
+                    }else if (dx - 3 * X_KEEP_THRESHOLD <= 2 * mRectViewInterval) {
+                        dx - 3 * X_KEEP_THRESHOLD
+                    }else {
+                        mRectViewInterval +
+                                getCorrectDx(dx - 3 * X_KEEP_THRESHOLD - mRectViewInterval + X_KEEP_THRESHOLD, position + 1)
+                    }
+                }else {
+                    dx - X_KEEP_THRESHOLD
+                }
+            }
+        }else {
+            return -getCorrectDx(-dx, mData.mTSViewAmount - 1 - position)
         }
     }
 }

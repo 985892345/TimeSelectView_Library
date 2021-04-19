@@ -45,7 +45,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun setIsShowDiffTime(boolean: Boolean) {
         if (mData.mIsShowDiffTime != boolean) {
             mData.mIsShowDiffTime = boolean
-            mITSView.notifyAllRectRedraw()
+            mITSView.notifyAllRectRefresh()
         }
     }
 
@@ -55,7 +55,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun setIsShowTopBottomTime(boolean: Boolean) {
         if (mData.mIsShowStartEndTime != boolean) {
             mData.mIsShowStartEndTime = boolean
-            mITSView.notifyAllRectRedraw()
+            mITSView.notifyAllRectRefresh()
         }
     }
 
@@ -64,7 +64,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 由于invalidate(Rect)已被官方废弃，官方推荐invalidate()刷新全部，所以就没有实现单独刷新某一个的方法
      */
     fun notifyAllTaskRefresh() {
-        mITSView.notifyAllRectRedraw()
+        mITSView.notifyAllRectRefresh()
     }
 
     /**
