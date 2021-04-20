@@ -109,7 +109,7 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
 
     override fun getMinuteTopHeight(minute: Int): Int {
         if (minute == 60) {
-            return 0
+            return getMinuteTopHeight(0)
         }
         //ceil为取大于等于它的最小整数，如：12.5则取13
         return ceil(mEveryMinuteHeight[minute]).toInt()
@@ -133,10 +133,17 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
      * 根据时间间隔数来返回正确的高度
      */
     override fun getCorrectTopHeight(insideY: Int, upperLimit: Int, position: Int): Int {
-        val hour = getHour(insideY, position)
+        val h = getHour(insideY, position)
         val m = getMinute(insideY)
-        val minute = m - m % mTimeInterval //间隔数为15，分钟数为16时，则取15
-        return max(upperLimit, getCorrectHeight(hour, minute, position) + 1)
+        return max(if (m % mTimeInterval >= mTimeInterval - mTimeInterval / 3F) {
+            val minute = (m / mTimeInterval + 1) * mTimeInterval
+            val hour = if (minute == 60) h + 1 else h
+            getCorrectHeight(hour, minute, position) + 1
+        }else {
+            val minute = m - m % mTimeInterval //间隔数为15，分钟数为16时，则取15
+            getCorrectHeight(h, minute, position) + 1
+        }, upperLimit)
+
     }
 
     override fun getCorrectTopHeight(time: String): Int {
@@ -149,13 +156,14 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     override fun getCorrectBottomHeight(insideY: Int, lowerLimit: Int, position: Int): Int {
-        val hour = getHour(insideY, position)
+        val h = getHour(insideY, position)
         val m = getMinute(insideY)
         return min(if (m % mTimeInterval <= mTimeInterval / 3F) {
             val minute = m - m % mTimeInterval
-            getCorrectHeight(hour, minute, position)
-        } else {
+            getCorrectHeight(h, minute, position)
+        }else {
             val minute = (m / mTimeInterval + 1) * mTimeInterval
+            val hour = if (minute == 60) h + 1 else h
             getCorrectHeight(hour, minute, position)
         }, lowerLimit)
     }

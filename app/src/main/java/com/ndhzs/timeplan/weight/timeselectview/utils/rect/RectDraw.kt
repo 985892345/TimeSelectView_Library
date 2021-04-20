@@ -34,6 +34,9 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
     companion object {
         private const val BORDER_WIDTH = 4 //圆角矩形边框厚度
         private const val BORDER_RADIUS = 8F //圆角矩形的圆角半径
+        private const val DIFF_TIME_MULTIPLE = 0.75F //右侧时间差的文字相对于TimeTextSize的倍数
+        private const val START_END_TIME_MULTIPLE = 0.8F //开始结束时间的文字相对于TimeTextSize的倍数
+        private const val START_TIME_MULTIPLY = 0.8F //开始时间的文字相对于TimeTextSize的倍数
     }
 
     init {
@@ -41,9 +44,9 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         mInsidePaint = generatePaint(mData.mDefaultInsideColor)
         mBorderPaint = generatePaint(mData.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
         mTextPaint = generateTextPaint(mData.mTaskTextSize)
-        mDTimePaint = generateTextPaint(0.75F * mData.mTimeTextSize, Paint.Align.RIGHT)
-        mTBTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize, Paint.Align.LEFT)
-        mStartTimePaint = generateTextPaint(0.8F * mData.mTimeTextSize)
+        mDTimePaint = generateTextPaint(DIFF_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.RIGHT)
+        mTBTimePaint = generateTextPaint(START_END_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.LEFT)
+        mStartTimePaint = generateTextPaint(START_TIME_MULTIPLY * mData.mTimeTextSize)
 
         var fontMetrics = mTextPaint.fontMetrics
         mTextCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
@@ -77,7 +80,9 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         return paint
     }
 
-    override fun getMinHeight(): Float = mRectMinHeight
+    override fun getMinHeight(): Float {
+        return mRectMinHeight
+    }
 
     override fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int) {
         mBorderPaint.color = borderColor
@@ -89,7 +94,15 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         mRectF.set(l, t, r, b)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mInsidePaint)
         canvas.drawRoundRect(mRectF, BORDER_RADIUS, BORDER_RADIUS, mBorderPaint)
-        canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
+        if (rect.height() > mRectMinHeight) {
+            canvas.drawText(name, mRectF.centerX(), mRectF.centerY() + mTextCenter, mTextPaint)
+        }
+    }
+
+    override fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int, nameSize: Float) {
+        mTextPaint.textSize = nameSize
+        drawRect(canvas, rect, name, borderColor, insideColor)
+        mTextPaint.textSize = mData.mTaskTextSize
     }
 
     override fun drawArrows(canvas: Canvas, rect: Rect, dTime: String) {
@@ -121,9 +134,17 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         }
     }
 
+    override fun drawArrows(canvas: Canvas, rect: Rect, dTime: String, timeSize: Float) {
+        mDTimePaint.textSize = timeSize * DIFF_TIME_MULTIPLE
+        drawArrows(canvas, rect, dTime)
+        mDTimePaint.textSize = mData.mTimeTextSize * DIFF_TIME_MULTIPLE
+    }
+
     override fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String) {
-        val t = rect.top + BORDER_WIDTH / 2F
-        canvas.drawText(sTime, mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
+        if (rect.height() > mRectShowStartTimeHeight) {
+            val t = rect.top + BORDER_WIDTH / 2F
+            canvas.drawText(sTime, mRectF.centerX(), t - mTBTimeAscent, mStartTimePaint)
+        }
     }
 
     override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
@@ -134,5 +155,11 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
             canvas.drawText(sTime, l, t, mTBTimePaint)
             canvas.drawText(eTime, l, b, mTBTimePaint)
         }
+    }
+
+    override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String, timeSize: Float) {
+        mTBTimePaint.textSize = timeSize * START_END_TIME_MULTIPLE
+        drawStartEndTime(canvas, rect, sTime, eTime)
+        mTBTimePaint.textSize = mData.mTimeTextSize * START_END_TIME_MULTIPLE
     }
 }

@@ -87,11 +87,12 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                     val insideFinalTop = rawLeftAndInsideTop[1]
                     val position = rawLeftAndInsideTop[2]
                     mIScrollLayout.slideEndRectImgView(rawFinalLeft, insideFinalTop) {
-                        mIScrollLayout.setIsCanLongClick(true)
                         val rect2 = Rect(0, insideFinalTop, rawRect.width(), insideFinalTop + rawRect.height())
                         mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
+                        mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：位置必须在通知RectView后调用
                     }
                 }
+                mData.mCondition = NULL
             }
         }
         return true

@@ -98,11 +98,15 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             mRect.top = rectCenterY - height/2
             mRect.right = rectCenterX + width/2
             mRect.bottom = rectCenterY + height/2
+            mTimeSize = width / rectWidth.toFloat() * mData.mTimeTextSize
+            mTaskNameSize = width / rectWidth.toFloat() * mData.mTaskTextSize
             invalidate()
         }
         animator.addListener(onEnd = {
             onEndListener.invoke()
             mRect.setEmpty()
+            mTimeSize = mData.mTimeTextSize
+            mTaskNameSize = mData.mTaskTextSize
             invalidate()
         })
         animator.duration = 350
@@ -175,22 +179,25 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     private val mDividerLines = IntArray(data.mTSViewAmount + 1)
     private var mRectViewInterval = 0
 
+    private var mTimeSize = mData.mTimeTextSize
+    private var mTaskNameSize = mData.mTaskTextSize
+
     companion object {
         private const val X_KEEP_THRESHOLD = 17
     }
 
     override fun onDraw(canvas: Canvas) {
         if (!mRect.isEmpty) {
-            mDraw.drawRect(canvas, mRect, mBean.name, mBean.borderColor, mBean.insideColor)
+            mDraw.drawRect(canvas, mRect, mBean.name, mBean.borderColor, mBean.insideColor, mTaskNameSize)
             val top = mRect.top
             val bottom = mRect.bottom
             for (i in 0 until mDividerLines.size - 1) {
                 if (mRect.left in mDividerLines[i]..mDividerLines[i + 1]) {
-                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom, i))
+                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom, i), mTimeSize)
                 }
             }
             if (mData.mIsShowDiffTime) {
-                mDraw.drawArrows(canvas, mRect, mBean.diffTime)
+                mDraw.drawArrows(canvas, mRect, mBean.diffTime, mTimeSize)
             }
         }
     }

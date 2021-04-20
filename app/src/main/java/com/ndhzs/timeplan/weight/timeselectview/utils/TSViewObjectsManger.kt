@@ -251,5 +251,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
                 it.notifyRectRedraw()
             }
         }
+
+        override fun setIsCanLongClick(boolean: Boolean) {
+            mTimeScrollView.setIsCanLongClick(boolean)
+        }
     }
 }

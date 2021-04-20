@@ -45,10 +45,14 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
-     * 设置能否长按
+     * 设置能否长按，如果设置为了false，手指又触摸了屏幕，则会停止长按的判断，此时如果仍符合长按的条件，可以设置true后重启长按
      */
     fun setIsCanLongClick(boolean: Boolean) {
         mIsCanLongClick = boolean
+        if (boolean && mIsCloseLongClickJudge) {
+            mIsCloseLongClickJudge = false
+            restartLongClickJudge(0)
+        }
     }
 
     companion object {
@@ -100,31 +104,59 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private val mBackCurrentTimeRun = Runnable {
         slowlyMoveTo(if (mData.mCenterTime == -1F) {
             mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
-        }else {
+        } else {
             mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
         })
     }
 
 
 
-    override fun dispatchTouchEventDown() {
+    override fun dispatchTouchEventDown(outerX: Int, outerY: Int) {
         removeCallbacks(mBackCurrentTimeRun)
     }
 
-    override fun dispatchTouchEventUp() {
+    override fun dispatchTouchEventUp(outerX: Int, outerY: Int) {
         postDelayed(mBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
-        removeCallbacks(mSlideRunnable)
+        if (mStartRun) {
+            mStartRun = false
+            removeCallbacks(mSlideRunnable)
+            var dy = 0
+            when (mData.mCondition) {
+                TOP_SLIDE_DOWN, TOP_SLIDE_UP,
+                BOTTOM_SLIDE_DOWN, BOTTOM_SLIDE_UP,
+                EMPTY_SLIDE_DOWN, EMPTY_SLIDE_UP -> {
+                    if (mVelocity > 0) { //时间轴向上滑
+                        dy = outerY - (height - AUTO_MOVE_THRESHOLD) + 10
+                    }else if (mVelocity < 0) { //时间轴向下滑
+                        dy = outerY - AUTO_MOVE_THRESHOLD - 10
+                    }
+                }
+                INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
+                    if (mVelocity > 0) { //时间轴向上滑
+                        val bottom = mITimeScrollView.getOuterBottom()
+                        dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
+                    }else if (mVelocity < 0){ //时间轴向下滑
+                        val top = mITimeScrollView.getOuterTop()
+                        dy = top - AUTO_MOVE_THRESHOLD - 10
+                    }
+                }
+                else -> {}
+            }
+            slowlyMoveBy(dy)
+        }
     }
 
     private var mInitialX = 0
     private var mInitialY = 0
     private var mInitialScrollY = 0
+    private var mIsCloseLongClickJudge = false
     override fun onInterceptTouchEventDown(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean {
         mInitialX = outerX
         mInitialY = outerY
         mInitialScrollY = scrollY
         if (!mIsCanLongClick) {
-            return true
+            mIsCloseLongClickJudge = true
+            closeLongClickJudge()
         }
         mClickRectViewPosition = mITimeScrollView.getRectViewPosition(rawX)
         return if (mClickRectViewPosition == null) {
@@ -215,12 +247,14 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                         EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                             mData.mCondition = EMPTY_AREA
                         }
-                        else -> {}
+                        else -> {
+                        }
                     }
                 }else {
                     if (!mStartRun) {
                         mStartRun = true
                         mData.mStartAutoSlide = true
+                        mPreOuterY = outerY
                         post(mSlideRunnable)
                     }
                     if (isTopSlide) { //时间轴往下滑
@@ -238,7 +272,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             EMPTY_AREA -> {
                                 mData.mCondition = EMPTY_SLIDE_UP
                             }
-                            else -> {}
+                            else -> {
+                            }
                         }
                     }else { //时间轴往上滑
                         mVelocity = ((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
@@ -255,7 +290,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             EMPTY_AREA -> {
                                 mData.mCondition = EMPTY_SLIDE_DOWN
                             }
-                            else -> {}
+                            else -> {
+                            }
                         }
                     }
                 }
@@ -275,7 +311,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     if (!mStartRun) {
                         mStartRun = true
                         mData.mStartAutoSlide = true
-                        mForbidSlideCenter = height/2
+                        mPreOuterY = outerY
+                        mForbidSlideCenter = height / 2
                         post(mSlideRunnable)
                     }
                     if (isTopSlide) { //时间轴往下滑
