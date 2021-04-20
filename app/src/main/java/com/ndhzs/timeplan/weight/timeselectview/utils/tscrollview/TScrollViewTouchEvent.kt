@@ -33,7 +33,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             }
             it.addListener(onEnd = { mAnimator = null })
             val duration = (sqrt(abs(scrollY - y).toFloat()) * 35).toLong()
-            it.duration = if (duration < 400) 400 else duration
+            it.duration = if (duration < 500) 500 else duration
             it.interpolator = OvershootInterpolator(1.2F)
             it.start()
         }

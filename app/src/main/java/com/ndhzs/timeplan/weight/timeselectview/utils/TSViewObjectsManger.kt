@@ -44,7 +44,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
     private val mParentLayout = ParentLayout(context, My4IParentLayout(), data)
     private val mRectImgView = RectImgView(context, My4IRectImgView(), data, mTime, mRectDraw)
 
-    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data, mRectManger)
+    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data, mTime, mRectManger)
     private val mBackCardView = BackCardView(context, data)
 
     private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), data, mTime, mRectManger)

@@ -77,7 +77,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             mRect.setEmpty()
             invalidate()
         })
-        animator.duration = (sqrt(totalDistance) * 10).toLong()
+        animator.duration = 500
         animator.interpolator = OvershootInterpolator(0.9F)
         animator.start()
     }

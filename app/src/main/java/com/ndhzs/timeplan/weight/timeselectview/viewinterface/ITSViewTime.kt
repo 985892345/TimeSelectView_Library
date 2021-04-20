@@ -15,8 +15,16 @@ interface ITSViewTime {
     fun getMinute(InsideY: Int): Int
     fun getMinuteTopHeight(minute: Int): Int
     fun getMinuteBottomHeight(minute: Int): Int
-    fun getCorrectTopHeight(insideY: Int, upperLimit: Int, position: Int): Int
-    fun getCorrectTopHeight(time: String): Int
-    fun getCorrectBottomHeight(insideY: Int, lowerLimit: Int, position: Int): Int
-    fun getCorrectBottomHeight(time: String): Int
+    fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, position: Int): Int
+    fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, lowerLimit: Int, position: Int, dTime: String): IntArray
+    fun getCorrectTopHeight(startTime: String, upperLimit: Int, position: Int): Int
+    fun getCorrectTopHeight(startTime: String, upperLimit: Int, position: Int, timeInterval: Int): Int
+    fun getCorrectBottomHeight(insideBottomY: Int, lowerLimit: Int, position: Int): Int
+    fun getCorrectBottomHeight(insideBottomY: Int, upperLimit: Int, lowerLimit: Int, position: Int, dTime: String): IntArray
+    fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int): Int
+    fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int, timeInterval: Int): Int
+    fun getStartTime(insideBottomY: Int, dTime: String, position: Int): String
+    fun getStartTime(endTime: String, dTime: String): String
+    fun getEndTime(insideTopY: Int, dTime: String, position: Int): String
+    fun getEndTime(startTime: String, dTime: String): String
 }

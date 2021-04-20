@@ -15,6 +15,7 @@ interface IRectManger {
     fun getUpperLimit(insideY: Int, position: Int): Int
     fun getLowerLimit(insideY: Int, position: Int): Int
     fun getBean(insideY: Int, position: Int): TSViewBean?
+    fun getDeletedBean(): TSViewBean
 
     /**
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean

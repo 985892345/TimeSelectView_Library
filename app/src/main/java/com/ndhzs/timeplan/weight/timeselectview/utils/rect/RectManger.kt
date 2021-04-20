@@ -47,9 +47,9 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
     fun initializeBean(beans: List<TSViewBean>) {
         beans.forEach {
             val rect = Rect(0,
-                    mTime.getCorrectTopHeight(it.startTime),
+                    mTime.getCorrectTopHeight(it.startTime, 0, 0),
                     mData.mRectViewWidth,
-                    mTime.getCorrectBottomHeight(it.endTime))
+                    mTime.getCorrectBottomHeight(it.endTime, Int.MAX_VALUE, 0))
             mAllRectWithBean[rect] = it
         }
     }
@@ -89,6 +89,10 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
 
     override fun getBean(insideY: Int, position: Int): TSViewBean? {
         return mMyIRectViews[position].getBean(insideY)
+    }
+
+    override fun getDeletedBean(): TSViewBean {
+        return mDeletedBean
     }
 
     /**

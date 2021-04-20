@@ -97,8 +97,11 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         }
     }
 
-    private val mBackNowTimeRun = Runnable {
-        slowlyMoveTo(mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2)
+    private val mBackNowTimeRun = object : Runnable {
+        override fun run() {
+            slowlyMoveTo(mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2)
+            postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
+        }
     }
 
     private val mBackCurrentTimeRun = Runnable {
@@ -121,24 +124,21 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             mStartRun = false
             removeCallbacks(mSlideRunnable)
             var dy = 0
+            //以下为自动滑到适当位置的判断
             when (mData.mCondition) {
-                TOP_SLIDE_DOWN, TOP_SLIDE_UP,
-                BOTTOM_SLIDE_DOWN, BOTTOM_SLIDE_UP,
-                EMPTY_SLIDE_DOWN, EMPTY_SLIDE_UP -> {
-                    if (mVelocity > 0) { //时间轴向上滑
-                        dy = outerY - (height - AUTO_MOVE_THRESHOLD) + 10
-                    }else if (mVelocity < 0) { //时间轴向下滑
-                        dy = outerY - AUTO_MOVE_THRESHOLD - 10
-                    }
+                TOP_SLIDE_DOWN, BOTTOM_SLIDE_DOWN, EMPTY_SLIDE_DOWN -> { //时间轴向上滑
+                    dy = outerY - (height - AUTO_MOVE_THRESHOLD) + 10
                 }
-                INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
-                    if (mVelocity > 0) { //时间轴向上滑
-                        val bottom = mITimeScrollView.getOuterBottom()
-                        dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
-                    }else if (mVelocity < 0){ //时间轴向下滑
-                        val top = mITimeScrollView.getOuterTop()
-                        dy = top - AUTO_MOVE_THRESHOLD - 10
-                    }
+                TOP_SLIDE_UP, BOTTOM_SLIDE_UP, EMPTY_SLIDE_UP -> { //时间轴向下滑
+                    dy = outerY - AUTO_MOVE_THRESHOLD - 10
+                }
+                INSIDE_SLIDE_DOWN -> { //时间轴向上滑
+                    val bottom = mITimeScrollView.getOuterBottom()
+                    dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
+                }
+                INSIDE_SLIDE_UP -> { //时间轴向下滑
+                    val top = mITimeScrollView.getOuterTop()
+                    dy = top - AUTO_MOVE_THRESHOLD - 10
                 }
                 else -> {}
             }
