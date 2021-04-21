@@ -5,10 +5,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.core.animation.addListener
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
@@ -21,7 +19,6 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sqrt
 
 /**
  * @author 985892345
@@ -108,6 +105,10 @@ class RectView(context: Context, data: TSViewInternalData,
         mLowerLimit = lowerLimit
     }
 
+    companion object {
+        private const val ANIMATOR_DEVIATION = 10
+    }
+
     private val mData = data
     private val mTime = time
     private val mDraw = draw
@@ -187,37 +188,25 @@ class RectView(context: Context, data: TSViewInternalData,
                 }
             }
             MotionEvent.ACTION_UP -> {
-                when (mData.mCondition) {
-                    TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN -> {
-                        mIRectView.setIsCanLongClick(false)
-                        val rect = getCorrectTopHeight(mInitialRect) {
-                            rectChangeEnd()
-                        }
-                        if (rect != null) {
+                mIRectView.setIsCanLongClick(false)
+                val rect = getCorrectRect(y, mInitialRect) {
+                    rectChangeEnd()
+                }
+                if (rect != null) {
+                    when (mData.mCondition) {
+                        TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN -> {
                             val bean = mDeletedBean!!
                             bean.startTime = mTime.getTime(rect.top, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
                         }
-                    }
-                    BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
-                        mIRectView.setIsCanLongClick(false)
-                        val rect = getCorrectBottomHeight(mInitialRect) {
-                            rectChangeEnd()
-                        }
-                        if (rect != null) {
+                        BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
                             val bean = mDeletedBean!!
                             bean.endTime = mTime.getTime(rect.bottom, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
                         }
-                    }
-                    EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
-                        mIRectView.setIsCanLongClick(false)
-                        val rect = getCorrectEmptyRect(y, mInitialRect) {
-                            rectChangeEnd()
-                        }
-                        if (rect != null) {
+                        EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                             val name = mData.mDefaultTaskName
                             val startTime = mTime.getTime(rect.top, mPosition)
                             val endTime = mTime.getTime(rect.bottom, mPosition)
@@ -227,8 +216,9 @@ class RectView(context: Context, data: TSViewInternalData,
                             val bean = TSViewBean(name, startTime, endTime, diffTime, borderColor, insideColor)
                             mIRectManger.addNewRect(rect, bean)
                         }
+                        else -> {
+                        }
                     }
-                    else -> {}
                 }
             }
         }
@@ -243,12 +233,20 @@ class RectView(context: Context, data: TSViewInternalData,
         mIRectView.setIsCanLongClick(true)
     }
 
-    private var mIsInRectChangeAnimator = false
-    private fun getCorrectTopHeight(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
+    private fun getCorrectRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         if (rect.isEmpty) {
             rectChangeEndCallbacks.invoke()
             return null
         }
+        return if (insideUpY < mInitialSideY) { //在上方滑动，只用计算Top值，因为另一边的值是正确的高度值
+            getCorrectTopHeight(rect, rectChangeEndCallbacks)
+        }else { //在下方滑动，只用计算Bottom值，因为另一边的值是正确的高度值
+            getCorrectBottomHeight(rect, rectChangeEndCallbacks)
+        }
+    }
+
+    private var mIsInRectChangeAnimator = false
+    private fun getCorrectTopHeight(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         val newRect = Rect()
         newRect.left = rect.left
         newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition)
@@ -256,8 +254,8 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.bottom = rect.bottom
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val animator = ValueAnimator.ofInt(rect.top, newRect.top)
-            animator.addUpdateListener {
+            val animator = ValueAnimator.ofInt(rect.top, newRect.top - ANIMATOR_DEVIATION, newRect.top)
+                    animator.addUpdateListener {
                 val top = it.animatedValue as Int
                 mInitialRect.top = top
                 invalidate()
@@ -284,7 +282,7 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition)
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom)
+            val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom + ANIMATOR_DEVIATION, newRect.bottom)
             animator.addUpdateListener {
                 val bottom = it.animatedValue as Int
                 mInitialRect.bottom = bottom
@@ -302,14 +300,6 @@ class RectView(context: Context, data: TSViewInternalData,
             return null
         }
         return newRect
-    }
-
-    private fun getCorrectEmptyRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
-        return if (insideUpY < mInitialY) { //因为另一边的值是正确的高度值
-            getCorrectTopHeight(rect, rectChangeEndCallbacks)
-        }else {
-            getCorrectBottomHeight(rect, rectChangeEndCallbacks)
-        }
     }
 
     /**

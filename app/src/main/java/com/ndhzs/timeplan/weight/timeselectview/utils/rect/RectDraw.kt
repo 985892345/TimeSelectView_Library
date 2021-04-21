@@ -17,7 +17,7 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
     private val mInsidePaint: Paint //圆角矩形内部画笔
     private val mBorderPaint: Paint //圆角矩形边框画笔
     private val mArrowsPaint: Paint //时间差的箭头线画笔
-    private val mTBTimePaint: Paint //上下线时间画笔
+    private val mStartEndTimePaint: Paint //上下线时间画笔
     private val mStartTimePaint: Paint //开始时间画笔
     private val mArrowsPath = Path() //箭头的路径
     private val mRectF = RectF()
@@ -25,7 +25,7 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
     private val mTBTimeAscent: Float
     private val mTBTimeDescent: Float
     private val mRectMinHeight: Float //能生成任务的最小高度
-    private val mRectShowTBTimeHeight: Float //显示顶部和底部的最小高度
+    private val mRectShowStartEndTimeHeight: Float //显示顶部和底部的最小高度
     private val mRectShowStartTimeHeight: Float //显示开始时间的最小高度
     private val mTextCenter: Float //任务名称的水平线
     private var mDTimeCenter: Float //时间差值的水平线
@@ -45,16 +45,16 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         mBorderPaint = generatePaint(mData.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
         mTextPaint = generateTextPaint(mData.mTaskTextSize)
         mDTimePaint = generateTextPaint(DIFF_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.RIGHT)
-        mTBTimePaint = generateTextPaint(START_END_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.LEFT)
+        mStartEndTimePaint = generateTextPaint(START_END_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.LEFT)
         mStartTimePaint = generateTextPaint(START_TIME_MULTIPLY * mData.mTimeTextSize)
 
         var fontMetrics = mTextPaint.fontMetrics
         mTextCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
         mRectMinHeight = fontMetrics.descent - fontMetrics.ascent
-        fontMetrics = mTBTimePaint.fontMetrics
+        fontMetrics = mStartEndTimePaint.fontMetrics
         mTBTimeAscent = fontMetrics.ascent
         mTBTimeDescent = fontMetrics.descent
-        mRectShowTBTimeHeight = (mTBTimeDescent - mTBTimeAscent) * 2
+        mRectShowStartEndTimeHeight = (mTBTimeDescent - mTBTimeAscent) * 2
         fontMetrics = mStartTimePaint.fontMetrics
         mRectShowStartTimeHeight = fontMetrics.descent - fontMetrics.ascent
         fontMetrics = mDTimePaint.fontMetrics
@@ -148,18 +148,18 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
     }
 
     override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
-        if (rect.height() > mRectShowTBTimeHeight) {
+        if (rect.height() > mRectShowStartEndTimeHeight) {
             val l = rect.left + BORDER_WIDTH + 1F
             val t = rect.top - mTBTimeAscent
             val b = rect.bottom - mTBTimeDescent
-            canvas.drawText(sTime, l, t, mTBTimePaint)
-            canvas.drawText(eTime, l, b, mTBTimePaint)
+            canvas.drawText(sTime, l, t, mStartEndTimePaint)
+            canvas.drawText(eTime, l, b, mStartEndTimePaint)
         }
     }
 
     override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String, timeSize: Float) {
-        mTBTimePaint.textSize = timeSize * START_END_TIME_MULTIPLE
+        mStartEndTimePaint.textSize = timeSize * START_END_TIME_MULTIPLE
         drawStartEndTime(canvas, rect, sTime, eTime)
-        mTBTimePaint.textSize = mData.mTimeTextSize * START_END_TIME_MULTIPLE
+        mStartEndTimePaint.textSize = mData.mTimeTextSize * START_END_TIME_MULTIPLE
     }
 }

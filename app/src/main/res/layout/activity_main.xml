@@ -8,19 +8,30 @@
     tools:context=".MainActivity">
 
     <com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
-        android:id="@+id/vp_item_time_left"
+        android:id="@+id/time_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp"
         app:amount="2"
         app:cardCornerRadius="8dp"
         app:centerTime="8"
-        app:timelineWidth="160dp"
-        app:startHour="2"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:isShowDiffTime="true"
+        app:layout_constraintBottom_toTopOf="@+id/button_debug"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:startHour="2"
+        app:timelineWidth="160dp" />
+
+    <Button
+        android:id="@+id/button_debug"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#FFDCCC48"
+        android:text="清除按钮"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

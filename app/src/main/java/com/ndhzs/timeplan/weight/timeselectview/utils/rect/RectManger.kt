@@ -152,7 +152,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             val bottoms = ArrayList<Int>()
             rectWithBean.forEach {
                 val bottom = it.key.bottom
-                if (bottom < insideY) {
+                if (bottom <= insideY) {
                     bottoms.add(bottom + SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }
@@ -171,7 +171,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             val tops = ArrayList<Int>()
             rectWithBean.forEach {
                 val top = it.key.top
-                if (top > insideY) {
+                if (top >= insideY) {
                     tops.add(top - SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }

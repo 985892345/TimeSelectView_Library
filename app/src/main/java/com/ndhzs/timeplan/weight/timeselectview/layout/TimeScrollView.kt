@@ -220,7 +220,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 else -> {}
             }
             mPreOuterY = mOuterY
-            postDelayed(this, 20)
+            postDelayed(this, 15)
         }
     }
     override fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int) {
@@ -233,7 +233,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val isTopSlide = outerY < AUTO_MOVE_THRESHOLD
                 val isBottomSlide = outerY > height - AUTO_MOVE_THRESHOLD
                 val isInCanSlideLimit = insideY in mUpperLimit..mLowerLimit
-                if (!isTopSlide && !isBottomSlide || !isInCanSlideLimit) {
+                if (!isTopSlide && !isBottomSlide || !isInCanSlideLimit ||
+                        scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
                     mStartRun = false
                     mData.mStartAutoSlide = false
@@ -259,7 +260,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     }
                     if (isTopSlide) { //时间轴往下滑
                         mVelocity = -((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE).toInt()
-                        if (outerY > mPreOuterY + 5 || scrollY == 0) {
+                        if (outerY > mPreOuterY + 5) {
                             mVelocity = 0
                         }
                         when (mData.mCondition) {
@@ -277,7 +278,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                         }
                     }else { //时间轴往上滑
                         mVelocity = ((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (outerY < mPreOuterY - 5 || scrollY + height == mData.mInsideTotalHeight) {
+                        if (outerY < mPreOuterY - 5) {
                             mVelocity = 0
                         }
                         when (mData.mCondition) {
@@ -302,7 +303,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val isTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
                 val isBottomSlide = bottom > height - AUTO_MOVE_THRESHOLD * 0.4F
                 val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 50)..(mForbidSlideCenter + 50)
-                if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit) {
+                if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit ||
+                        scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
                     mStartRun = false
                     mData.mStartAutoSlide = false
@@ -317,13 +319,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     }
                     if (isTopSlide) { //时间轴往下滑
                         mVelocity = -((AUTO_MOVE_THRESHOLD - top) * MULTIPLE).toInt()
-                        if (outerY > mPreOuterY + 5 || scrollY == 0) {
+                        if (outerY > mPreOuterY + 5) {
                             mVelocity = 0
                         }
                         mData.mCondition = INSIDE_SLIDE_UP
                     }else { //时间轴往上滑
                         mVelocity = ((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (outerY < mPreOuterY - 5 || scrollY + height == mData.mInsideTotalHeight) {
+                        if (outerY < mPreOuterY - 5) {
                             mVelocity = 0
                         }
                         mData.mCondition = INSIDE_SLIDE_DOWN

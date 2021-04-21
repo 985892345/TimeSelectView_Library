@@ -94,7 +94,16 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 得到当前的TimeSelectView是否处于长按状态，
      * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用TSViewLongClick.sIsLongClick
      */
-    fun getIsLongClick(): Boolean = mData.mIsLongClick
+    fun getIsLongClick(): Boolean {
+        return mData.mIsLongClick
+    }
+
+    /**
+     * 初始化数据，传入TSViewBean的数组
+     */
+    fun initializeBean(beans: List<TSViewBean>) {
+        mITSView.initializeBean(beans)
+    }
 
     private val mData = TSViewInternalData(context, attrs)
     private val mUtil = TSViewObjectsManger(context, mData)

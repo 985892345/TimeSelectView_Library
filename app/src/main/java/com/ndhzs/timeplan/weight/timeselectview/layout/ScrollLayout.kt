@@ -89,7 +89,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                     val insideFinalTop = rawLeftAndInsideTop[1]
                     val position = rawLeftAndInsideTop[2]
                     mIScrollLayout.slideEndRectImgView(rawFinalLeft, insideFinalTop) {
-                        val topBottom = if (y < mInitialY) { //说明矩形向上移动
+                        val topBottom = if (y <= mInitialY) { //说明矩形向上移动
                             mTime.getCorrectTopHeight(insideFinalTop,
                                     insideFinalTop,
                                     mRectManger.getLowerLimit(insideFinalTop, position),

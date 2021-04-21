@@ -247,6 +247,9 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
             startHour--
             startMinute += 60
         }
+        if (startHour < 0) {
+            startHour += 24
+        }
         return timeToString(startHour, startMinute)
     }
 
