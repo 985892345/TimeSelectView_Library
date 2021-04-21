@@ -131,9 +131,8 @@ class RectView(context: Context, data: TSViewInternalData,
                     val diffTime = mTime.getDiffTime(mInitialRect.top, mInitialRect.bottom)
                     mDraw.drawRect(canvas, mInitialRect, mData.mDefaultTaskName, mData.mDefaultBorderColor, mData.mDefaultInsideColor)
                     mDraw.drawStartEndTime(canvas, mInitialRect, startTime, endTime)
-                    if (!mIsInRectChangeAnimator) {
+                    if (!mIsInRectChangeAnimator || mData.mIsShowDiffTime) {
                         mDraw.drawArrows(canvas, mInitialRect, diffTime)
-                        mDraw.drawStartTime(canvas, mInitialRect, startTime)
                     }
                 }
                 TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN,
@@ -147,7 +146,7 @@ class RectView(context: Context, data: TSViewInternalData,
                     val diffTime = mTime.getDiffTime(mInitialRect.top, mInitialRect.bottom)
                     mDraw.drawRect(canvas, mInitialRect, name, borderColor, insideColor)
                     mDraw.drawStartEndTime(canvas, mInitialRect, startTime, endTime)
-                    if (!mIsInRectChangeAnimator) {
+                    if (!mIsInRectChangeAnimator || mData.mIsShowDiffTime) {
                         mDraw.drawArrows(canvas, mInitialRect, diffTime)
                     }
                 }
@@ -199,12 +198,14 @@ class RectView(context: Context, data: TSViewInternalData,
                             bean.startTime = mTime.getTime(rect.top, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
+                            mData.mDataChangeListener?.onDataAlter(bean)
                         }
                         BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
                             val bean = mDeletedBean!!
                             bean.endTime = mTime.getTime(rect.bottom, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
+                            mData.mDataChangeListener?.onDataAlter(bean)
                         }
                         EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                             val name = mData.mDefaultTaskName
@@ -215,6 +216,7 @@ class RectView(context: Context, data: TSViewInternalData,
                             val insideColor = mData.mDefaultInsideColor
                             val bean = TSViewBean(name, startTime, endTime, diffTime, borderColor, insideColor)
                             mIRectManger.addNewRect(rect, bean)
+                            mData.mDataChangeListener?.onDataAdd(bean)
                         }
                         else -> {
                         }
@@ -236,6 +238,7 @@ class RectView(context: Context, data: TSViewInternalData,
     private fun getCorrectRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         if (rect.isEmpty) {
             rectChangeEndCallbacks.invoke()
+            mData.mDataChangeListener?.onDataDelete(mDeletedBean!!)
             return null
         }
         return if (insideUpY < mInitialSideY) { //在上方滑动，只用计算Top值，因为另一边的值是正确的高度值
@@ -320,5 +323,6 @@ class RectView(context: Context, data: TSViewInternalData,
         })
         animator.duration = 4 * rect.height().toLong()
         animator.start()
+        mData.mDataChangeListener?.onDataDelete(mDeletedBean!!)
     }
 }

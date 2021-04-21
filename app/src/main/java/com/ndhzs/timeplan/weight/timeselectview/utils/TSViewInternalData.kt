@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 import android.content.Context
 import android.util.AttributeSet
 import com.ndhzs.timeplan.R
+import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 
 /**
@@ -45,6 +46,8 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
 
+    var mDataChangeListener: TimeSelectView.OnDataChangeListener? = null
+
     var mIsLongClick = false //是否处于长按状态
         set(value) {
             if (value) {
@@ -74,10 +77,8 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
     init {
         val ty = context.obtainStyledAttributes(attrs, R.styleable.TimeSelectView)
-        mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 2)
-        mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, -1F)
-
-
+        mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 1)
+        mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, TSViewTimeUtil.CENTER_TIME_CENTER)
 
         mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, 0xFFFF0000.toInt())
         mDefaultInsideColor = ty.getColor(R.styleable.TimeSelectView_defaultInsideColor, 0xFFDCCC48.toInt())
@@ -89,7 +90,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         if (60 % mTimeInterval != 0) mTimeInterval = 15
 
         val amount = ty.getInt(R.styleable.TimeSelectView_amount, 1)
-        mTSViewAmount = if (amount < 1) 1 else if (amount > 3) 3 else amount
+        mTSViewAmount = if (amount < 1) 1 else amount
         mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth, 360F).toInt()
         mTimelineInterval = ty.getDimension(R.styleable.TimeSelectView_timelineInterval, 20F).toInt()
         mAllTimelineWidth = mTSViewAmount * (mTimelineWidth + mTimelineInterval) - mTimelineInterval
@@ -97,7 +98,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mTimelineRange = 24 / mTSViewAmount
 
         mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth / 4.6F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 210F).toInt()
+        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 200F).toInt()
         mExtraHeight = mIntervalHeight / 2
         mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
         mRectViewWidth = mTimelineWidth - mIntervalLeft - SeparatorLineView.INTERVAL_RIGHT_WIDTH

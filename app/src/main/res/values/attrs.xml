@@ -8,7 +8,9 @@
 
         <!--时间轴起始时间-->
         <attr name="startHour" format="integer"/>
-        <!--当前时间线的时间(支持小数)-->
+        <!--当前时间线的时间(支持小数)，
+        输入-1为以中心值为中线
+        输入-2为以当前时间值为中线-->
         <attr name="centerTime" format="float"/>
 
         <!--默认任务边框颜色-->

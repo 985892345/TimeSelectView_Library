@@ -80,15 +80,19 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             onLongClickEnd(it)
         }
         moveToCenterTime()
-        isVerticalScrollBarEnabled = false
-        overScrollMode = OVER_SCROLL_NEVER
+        isVerticalScrollBarEnabled = false //取消滚动条
+        overScrollMode = OVER_SCROLL_NEVER //取消滑到边界的上下虚影
     }
 
     private fun moveToCenterTime() {
-        if (mData.mCenterTime == -1F) { //以当前时间线为中线
+        if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
             post {
                 scrollY = mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
                 postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
+            }
+        }else if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_CENTER) { //以中心值为中线
+            post {
+                scrollY = mData.mInsideTotalHeight / 2 - height / 2
             }
         }else { //以mCenterTime为中线，不随时间移动
             post {
@@ -105,10 +109,16 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     private val mBackCurrentTimeRun = Runnable {
-        slowlyMoveTo(if (mData.mCenterTime == -1F) {
-            mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - width / 2
-        } else {
-            mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+        slowlyMoveTo(when (mData.mCenterTime) {
+            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+                mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+            }
+            TSViewTimeUtil.CENTER_TIME_CENTER -> {
+                mData.mInsideTotalHeight / 2 - height / 2
+            }
+            else -> {
+                mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+            }
         })
     }
 

@@ -36,6 +36,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun setTimeInterval(timeInterval: Int) {
         if (60 % timeInterval == 0) {
             mData.mTimeInterval = timeInterval
+        }else {
+            mData.mTimeInterval = 15
         }
     }
 
@@ -98,6 +100,10 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         return mData.mIsLongClick
     }
 
+    fun setOnDataListener(l: OnDataChangeListener) {
+        mData.mDataChangeListener = l
+    }
+
     /**
      * 初始化数据，传入TSViewBean的数组
      */
@@ -141,9 +147,16 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
             MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
                 newHeightMS = MeasureSpec.makeMeasureSpec(mITSView.getOuterMinHeight(), MeasureSpec.EXACTLY)
             }
-            MeasureSpec.EXACTLY -> {}
+            MeasureSpec.EXACTLY -> {
+            }
         }
 
         super.onMeasure(newWidthMS, newHeightMS)
+    }
+
+    interface OnDataChangeListener {
+        fun onDataAdd(newData: TSViewBean)
+        fun onDataDelete(deletedData: TSViewBean)
+        fun onDataAlter(alterData: TSViewBean)
     }
 }

@@ -180,6 +180,17 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             return mRectImgView.getRawInitialRect()
         }
 
+        override fun getDeleteBean(): TSViewBean {
+            return mRectManger.getDeletedBean()
+        }
+
+        override fun getStartEndDTime(top: Int, bottom: Int, position: Int): Array<String> {
+            val startTime = mTime.getTime(top, position)
+            val endTime = mTime.getTime(bottom, position)
+            val dTime = mTime.getDiffTime(top, bottom)
+            return arrayOf(startTime, endTime, dTime)
+        }
+
         override fun slideRectImgView(dx: Int, dy: Int) {
             mRectImgView.slideRectImgView(dx, dy)
         }

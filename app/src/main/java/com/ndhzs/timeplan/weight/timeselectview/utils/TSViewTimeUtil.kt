@@ -32,6 +32,16 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
         const val SCROLLVIEW_HEIGHT = -1
 
         /**
+         * 回到中心值的mCenterTime值
+         */
+        const val CENTER_TIME_CENTER = -1F
+
+        /**
+         * 回到当前时间的mCenterTime值
+         */
+        const val CENTER_TIME_NOW_TIME = -2F
+
+        /**
          * String时间文字的小时与分钟的分隔符
          */
         private const val TIME_STRING_SPLIT_SYMBOL = ":"

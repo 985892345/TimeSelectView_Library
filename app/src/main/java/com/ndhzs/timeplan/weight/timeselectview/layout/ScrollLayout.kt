@@ -82,6 +82,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                 if (isOverLeft || isOverRight || mNowPosition == null) {
                     mIScrollLayout.setIsCanLongClick(true)
                     mIScrollLayout.deleteRectImgView()
+                    mData.mDataChangeListener?.onDataDelete(mIScrollLayout.getDeleteBean())
                 }else {
                     val prePosition = mIScrollLayout.getPreRectViewPosition()
                     val rawLeftAndInsideTop = getRawLeftAndInsideTop(rawRect, prePosition, mNowPosition!!, y)
@@ -104,6 +105,12 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                                     position,
                                     mRectManger.getDeletedBean().diffTime)
                         }
+                        val times = mIScrollLayout.getStartEndDTime(topBottom[0], topBottom[1], position)
+                        val bean = mIScrollLayout.getDeleteBean()
+                        bean.startTime = times[0]
+                        bean.endTime = times[1]
+                        bean.diffTime = times[2]
+                        mData.mDataChangeListener?.onDataAlter(bean)
                         val rect2 = Rect(0, topBottom[0], rawRect.width(), topBottom[1])
                         mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
                         mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：位置必须在通知RectView后调用

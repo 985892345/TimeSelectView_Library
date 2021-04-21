@@ -15,7 +15,6 @@ interface IRectDraw {
     fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int, nameSize: Float)
     fun drawArrows(canvas: Canvas, rect: Rect, dTime: String)
     fun drawArrows(canvas: Canvas, rect: Rect, dTime: String, timeSize: Float)
-    fun drawStartTime(canvas: Canvas, rect: Rect, sTime: String)
     fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String)
     fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String, timeSize: Float)
 }

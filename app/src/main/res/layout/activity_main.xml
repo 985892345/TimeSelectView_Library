@@ -14,13 +14,13 @@
         android:layout_marginTop="32dp"
         app:amount="2"
         app:cardCornerRadius="8dp"
-        app:centerTime="8"
+        app:centerTime="-1"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toTopOf="@+id/button_debug"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:startHour="2"
+        app:startHour="1"
         app:timelineWidth="160dp" />
 
     <Button
