@@ -3,7 +3,6 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
-import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.FrameLayout
@@ -93,14 +92,14 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                         val topBottom = if (y < mInitialY) { //说明矩形向上移动
                             mTime.getCorrectTopHeight(insideFinalTop,
                                     insideFinalTop,
-                                    mRectManger.getLowerLimit(mInitialY, position),
+                                    mRectManger.getLowerLimit(insideFinalTop, position),
                                     position,
                                     mRectManger.getDeletedBean().diffTime)
                         }else { //说明矩形向下移动
                             //因为是向下滑动的，所以之前计算的是正确的bottom值
                             val correctBottom = insideFinalTop + rawRect.height()
                             mTime.getCorrectBottomHeight(correctBottom,
-                                    mRectManger.getUpperLimit(mInitialY, position),
+                                    mRectManger.getUpperLimit(correctBottom, position),
                                     correctBottom,
                                     position,
                                     mRectManger.getDeletedBean().diffTime)
@@ -126,6 +125,9 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
             val top = rawRect.top
             val bottom = rawRect.bottom
             val rectHeight = rawRect.height()
+            val initialRect = mIScrollLayout.getRectImgViewInitialRect()
+            val preUpperLimit = mRectManger.getClickUpperLimit()
+            val preLowerLimit = mRectManger.getClickLowerLimit()
             val nowUpperLimit = mRectManger.getUpperLimit(bottom, nowPosition)
             val nowLowerLimit = mRectManger.getLowerLimit(top, nowPosition)
             val prePositionLeft = getRawLeft(prePosition)
@@ -138,17 +140,15 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                 }else { //包括了3、4、5、6、7
                     val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
                     if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
-                        val correctTop = mTime.getCorrectTopHeight(top, nowUpperLimit, nowPosition)
+                        val correctTop = getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
                         intArrayOf(nowPositionLeft, correctTop, nowPosition)
                     }else { //4、5-2、6、7-2
-                        val initialTop = mIScrollLayout.getRectImgViewInitialRect().top
-                        val correctTop = mTime.getCorrectTopHeight(initialTop, mRectManger.getClickUpperLimit(), prePosition)
+                        val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                         intArrayOf(prePositionLeft, correctTop, prePosition)
                     }
                 }
             }else { //包括 a 的所有情况
-                val initialTop = mIScrollLayout.getRectImgViewInitialRect().top
-                val correctTop = mTime.getCorrectTopHeight(initialTop, mRectManger.getClickUpperLimit(), prePosition)
+                val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                 intArrayOf(prePositionLeft, correctTop, prePosition)
             }
         }
@@ -172,6 +172,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         val top = rawRect.top
         val bottom = rawRect.bottom
         val rectHeight = rawRect.height()
+        val initialRect = mIScrollLayout.getRectImgViewInitialRect()
         val preUpperLimit = mRectManger.getClickUpperLimit()
         val preLowerLimit = mRectManger.getClickLowerLimit()
         val nowUpperLimit = mRectManger.getUpperLimit(bottom, position)
@@ -182,76 +183,25 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                 nowLowerLimit - rectHeight
             }else if (nowUpperLimit in top..bottom) { //2
                 nowUpperLimit
-            }else if (nowUpperLimit == preUpperLimit && nowLowerLimit == preLowerLimit) { //3
-                if (bottom <= mData.mRectViewTop) { //整体移动到mRectViewTop以上
-                    preUpperLimit
-                }else if (top >= mData.mRectViewBottom) { //整体移动到mRectViewBottom以下
-                    preLowerLimit - rectHeight
-                }else {
-                    //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-                    if (insideUpY < mInitialY) { //说明矩形向上移动了
-                        mTime.getCorrectTopHeight(top, preUpperLimit, position)
-                    }else { //说明矩形向下移动了
-                        mTime.getCorrectBottomHeight(bottom, preLowerLimit, position) - rectHeight
-                    }
-                }
-            }else if (nowUpperLimit == preUpperLimit) { //4
-                preLowerLimit - rectHeight
-            }else if (nowUpperLimit > preUpperLimit) { //5
+            }else { //包括了3、4、5、6、7
                 val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, position)
-                if (lowerLimit == nowLowerLimit) { //5-1
-                    //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-                    if (insideUpY < mInitialY) { //说明矩形向上移动了
-                        mTime.getCorrectTopHeight(top, preUpperLimit, position)
-                    }else { //说明矩形向下移动了
-                        mTime.getCorrectBottomHeight(bottom, preLowerLimit, position) - rectHeight
-                    }
-                }else { //5-2
-                    if (rectHeight <= lowerLimit - nowUpperLimit) {
-                        lowerLimit - rectHeight
-                    }else preLowerLimit - rectHeight
-                }
-            }else if (nowLowerLimit == preLowerLimit) { //6
-                preUpperLimit
-            }else if (nowLowerLimit < preLowerLimit) { //7
-                val upperLimit = mRectManger.getUpperLimit(nowLowerLimit, position)
-                if (upperLimit == nowUpperLimit) { //7-1
-                    //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-                    if (insideUpY < mInitialY) { //说明矩形向上移动了
-                        mTime.getCorrectTopHeight(top, preUpperLimit, position)
-                    }else { //说明矩形向下移动了
-                        mTime.getCorrectBottomHeight(bottom, preLowerLimit, position) - rectHeight
-                    }
-                }else { //7-2
-                    if (rectHeight <= nowLowerLimit - upperLimit) {
-                        upperLimit
-                    }else preUpperLimit
-                }
-            }else { //按理是不会走这一步
-                //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-                if (insideUpY < mInitialY) { //说明矩形向上移动了
-                    mTime.getCorrectTopHeight(top, preUpperLimit, position)
-                }else { //说明矩形向下移动了
-                    mTime.getCorrectBottomHeight(bottom, preLowerLimit, position) - rectHeight
+                if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
+                    getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, position, insideUpY)
+                }else { //4、5-2、6、7-2
+                    getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
                 }
             }
-        }else {
-            if (nowLowerLimit == preLowerLimit) { //a-1
-                preLowerLimit - rectHeight
-            }else if (nowUpperLimit == preUpperLimit) { //a-2
-                preUpperLimit
-            }else if (nowLowerLimit > preLowerLimit) { //a-3
-                preLowerLimit - rectHeight
-            }else if (nowUpperLimit < preUpperLimit) { //a-4
-                preUpperLimit
-            }else { //按理是不会走这一步
-                //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-                if (insideUpY < mInitialY) { //说明矩形向上移动了
-                    mTime.getCorrectTopHeight(top, preUpperLimit, position)
-                }else { //说明矩形向下移动了
-                    mTime.getCorrectBottomHeight(bottom, preLowerLimit, position) - rectHeight
-                }
-            }
+        }else { //包括 a 的所有情况
+            getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
+        }
+    }
+
+    private fun getCorrectTopHeight(rect: Rect, upperLimit: Int, lowerLimit: Int, position: Int, insideUpY: Int): Int {
+        //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
+        return if (insideUpY < mInitialY) { //说明矩形向上移动了
+            mTime.getCorrectTopHeight(rect.top, upperLimit, position)
+        }else { //说明矩形向下移动了
+            mTime.getCorrectBottomHeight(rect.bottom, lowerLimit, position) - rect.height()
         }
     }
 }

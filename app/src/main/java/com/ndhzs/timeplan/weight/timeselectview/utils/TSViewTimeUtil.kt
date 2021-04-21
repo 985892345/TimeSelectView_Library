@@ -24,7 +24,7 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
         /**
          * 回到当前时间高度的间隔时间
          */
-        const val DELAY_BACK_CURRENT_TIME = 1000L
+        const val DELAY_BACK_CURRENT_TIME = 10000L
 
         /**
          * 用于[getTimeHeight]中，代表返回ScrollView应滑到的高度
