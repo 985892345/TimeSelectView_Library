@@ -115,6 +115,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun initializeBean(beans: List<TSViewBean>) {
             mRectManger.initializeBean(beans)
+            mTimeScrollView.post {
+                notifyAllRectRefresh()
+            }
         }
     }
 

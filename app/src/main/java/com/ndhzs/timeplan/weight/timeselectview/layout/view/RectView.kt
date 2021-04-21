@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.core.animation.addListener
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
@@ -41,11 +42,25 @@ class RectView(context: Context, data: TSViewInternalData,
      */
     fun slideDrawRect(rectInsideY: Int) {
         if (rectInsideY > mInitialSideY) {
+            when (mData.mCondition) {
+                TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN -> { //点击上部区域却向下划过了底部高度
+                    //这个mInitialSideY是之前矩形的底部值
+                    mInitialRect.top = mInitialSideY + 1 // 加1是CorrectTopHeight与CorrectBottomHeight的差值
+                }
+                else -> mInitialRect.top = mInitialSideY
+            }
             mInitialRect.top = mInitialSideY
             mInitialRect.bottom = min(rectInsideY, mLowerLimit)
         }else {
             mInitialRect.top = max(rectInsideY, mUpperLimit)
-            mInitialRect.bottom = mInitialSideY - 1 // 减1是CorrectTopHeight与CorrectBottomHeight的差值
+            when (mData.mCondition) {
+                BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN,
+                EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> { //点击下部区域或点击空白区域却向上划过了顶部高度
+                    //这个mInitialSideY是之前矩形的顶部值
+                    mInitialRect.bottom = mInitialSideY - 1 // 减1是CorrectTopHeight与CorrectBottomHeight的差值
+                }
+                else -> mInitialRect.bottom = mInitialSideY
+            }
         }
         invalidate()
     }
@@ -198,7 +213,7 @@ class RectView(context: Context, data: TSViewInternalData,
                     }
                     EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
                         mIRectView.setIsCanLongClick(false)
-                        val rect = getCorrectEmptyRect(mInitialRect) {
+                        val rect = getCorrectEmptyRect(y, mInitialRect) {
                             rectChangeEnd()
                         }
                         if (rect != null) {
@@ -234,8 +249,8 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition)
         newRect.right = rect.right
         newRect.bottom = rect.bottom
+        mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            mIsInRectChangeAnimator = true
             val animator = ValueAnimator.ofInt(rect.top, newRect.top)
             animator.addUpdateListener {
                 val top = it.animatedValue as Int
@@ -249,11 +264,11 @@ class RectView(context: Context, data: TSViewInternalData,
             animator.duration = 500
             animator.interpolator = OvershootInterpolator()
             animator.start()
+            return newRect
         }else {
-            rectChangeEndCallbacks.invoke()
+            deleteRect(rect, rectChangeEndCallbacks)
             return null
         }
-        return newRect
     }
 
     private fun getCorrectBottomHeight(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
@@ -262,8 +277,8 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.top = rect.top
         newRect.right = rect.right
         newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition)
+        mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            mIsInRectChangeAnimator = true
             val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom)
             animator.addUpdateListener {
                 val bottom = it.animatedValue as Int
@@ -278,41 +293,37 @@ class RectView(context: Context, data: TSViewInternalData,
             animator.interpolator = OvershootInterpolator()
             animator.start()
         }else {
-            rectChangeEndCallbacks.invoke()
+            deleteRect(rect, rectChangeEndCallbacks)
             return null
         }
         return newRect
     }
 
-    private fun getCorrectEmptyRect(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
-        val newRect = Rect()
-        newRect.left = rect.left
-        newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition)
-        newRect.right = rect.right
-        newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition)
-        if (newRect.height() > mDraw.getMinHeight()) {
-            mIsInRectChangeAnimator = true
-            val dTop = rect.top - newRect.top
-            val dBottom = rect.bottom - newRect.bottom
-            val totalDistance = sqrt((dTop * dTop + dBottom * dBottom).toFloat())
-            val animator = ValueAnimator.ofFloat(totalDistance, 0F)
-            animator.addUpdateListener {
-                val nowDistance = it.animatedValue as Float
-                mInitialRect.top = (nowDistance / totalDistance * dTop).toInt() + newRect.top
-                mInitialRect.bottom = (nowDistance / totalDistance * dBottom).toInt() + newRect.bottom
-                invalidate()
-            }
-            animator.addListener(onEnd = {
-                mIsInRectChangeAnimator = false
-                rectChangeEndCallbacks.invoke()
-            })
-            animator.duration = 500
-            animator.interpolator = OvershootInterpolator()
-            animator.start()
+    private fun getCorrectEmptyRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
+        return if (insideUpY < mInitialY) { //因为另一边的值是正确的高度值
+            getCorrectTopHeight(rect, rectChangeEndCallbacks)
         }else {
-            rectChangeEndCallbacks.invoke()
-            return null
+            getCorrectBottomHeight(rect, rectChangeEndCallbacks)
         }
-        return newRect
+    }
+
+    /**
+     * 当矩形的高度小于能生成最小矩形的高度时调用，用于产生一个矩形被删除的动画
+     */
+    private fun deleteRect(rect: Rect, rectChangeEndCallbacks: () -> Unit) {
+        val centerY = rect.centerY()
+        val animator = ValueAnimator.ofInt(rect.height()/2, 6)
+        animator.addUpdateListener {
+            val d = it.animatedValue as Int
+            mInitialRect.top = centerY - d
+            mInitialRect.bottom = centerY + d
+            invalidate()
+        }
+        animator.addListener(onEnd = {
+            mIsInRectChangeAnimator = false
+            rectChangeEndCallbacks.invoke()
+        })
+        animator.duration = 4 * rect.height().toLong()
+        animator.start()
     }
 }

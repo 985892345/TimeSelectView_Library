@@ -8,6 +8,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import kotlin.math.abs
 
 /**
  * @author 985892345
@@ -45,6 +46,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
      * 初始化Bean
      */
     fun initializeBean(beans: List<TSViewBean>) {
+        mAllRectWithBean.clear()
         beans.forEach {
             val rect = Rect(0,
                     mTime.getCorrectTopHeight(it.startTime, 0, 0),
@@ -55,7 +57,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
     }
 
     companion object {
-        private const val TOP_BOTTOM_WIDTH = 20 //长按响应顶部和底部的宽度
+        private const val TOP_BOTTOM_WIDTH = 27 //长按响应顶部和底部的宽度
     }
 
     private val mData = data
@@ -99,8 +101,6 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean
      */
     override fun longClickConditionJudge(insideY: Int, position: Int) {
-        mClickUpperLimit = getUpperLimit(insideY, position)
-        mClickLowerLimit = getLowerLimit(insideY, position)
         mMyIRectViews[position].deleteRect(insideY)
     }
 
@@ -148,11 +148,11 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             return rectWithBean
         }
 
-        fun getUpperLimit(insideY: Int): Int {
+        fun getUpperLimit(insideY: Int, rectWithBean: HashMap<Rect, TSViewBean> = getRectWithBeanMap()): Int {
             val bottoms = ArrayList<Int>()
-            getRectWithBeanMap().forEach {
+            rectWithBean.forEach {
                 val bottom = it.key.bottom
-                if (bottom <= insideY) {
+                if (bottom < insideY) {
                     bottoms.add(bottom + SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }
@@ -167,11 +167,11 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             }
         }
 
-        fun getLowerLimit(insideY: Int): Int {
+        fun getLowerLimit(insideY: Int, rectWithBean: HashMap<Rect, TSViewBean> = getRectWithBeanMap()): Int {
             val tops = ArrayList<Int>()
-            getRectWithBeanMap().forEach {
+            rectWithBean.forEach {
                 val top = it.key.top
-                if (top >= insideY) {
+                if (top > insideY) {
                     tops.add(top - SeparatorLineView.HORIZONTAL_LINE_WIDTH)
                 }
             }
@@ -197,11 +197,31 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
         }
 
         fun deleteRect(insideY: Int) {
-            getRectWithBeanMap().forEach {
+            val rectWithBean = getRectWithBeanMap()
+            mClickUpperLimit = getUpperLimit(insideY, rectWithBean)
+            mClickLowerLimit = getLowerLimit(insideY, rectWithBean)
+            for (it in rectWithBean) {
                 val rect = it.key
-                if (insideY >= rect.top && insideY <= rect.bottom) {
+                if (insideY >= rect.top - TOP_BOTTOM_WIDTH/3 && insideY <= rect.bottom + TOP_BOTTOM_WIDTH/3) {
+                    if (insideY < getUpperLimit(rect.top, rectWithBean)) {
+                        //有两个十分相邻或就是相邻的矩形
+                        //此时你点击的区域是下矩形的上方额外区域，但这里刚好属于上矩形内部，此时按用户的想法是控制上矩形，所以，跳过此次循环
+                        continue
+                    }
+                    if (insideY > getLowerLimit(rect.bottom, rectWithBean)) {
+                        //有两个十分相邻或就是相邻的矩形
+                        //此时你点击的区域是上矩形的下方额外区域，但这里刚好属于下矩形内部，此时按用户的想法是控制下矩形，所以，跳过此次循环
+                        continue
+                    }
+                    if (mClickLowerLimit + SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.top) { //此时你点击的区域在矩形上方，得到的下限值不对
+                        mClickLowerLimit = getLowerLimit(rect.bottom, rectWithBean)
+                    }
+                    if (mClickUpperLimit - SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.bottom) { //此时你点击的区域在矩形下方，得到的上限值不对
+                        mClickUpperLimit = getUpperLimit(rect.top, rectWithBean)
+                    }
                     mDeletedRect.set(rect)
                     mDeletedBean = it.value
+                    //先在mAllRectWithBean中移去点击的矩形
                     if (mData.mTSViewAmount == 1) {
                         mAllRectWithBean.remove(rect)
                     }else {
@@ -212,11 +232,11 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
                             }
                         }
                     }
-                    if (insideY - rect.top < TOP_BOTTOM_WIDTH) {
+                    if (insideY - (rect.top - TOP_BOTTOM_WIDTH/3) < TOP_BOTTOM_WIDTH) {
                         mData.mCondition = TSViewLongClick.TOP
                         mClickTopBottomCallbacks.invoke(mDeletedRect, mDeletedBean,
                                 rect.bottom, mClickUpperLimit, mClickLowerLimit, mPosition)
-                    }else if (rect.bottom - insideY < TOP_BOTTOM_WIDTH) {
+                    }else if ((rect.bottom + TOP_BOTTOM_WIDTH/3 - insideY) < TOP_BOTTOM_WIDTH) {
                         mData.mCondition = TSViewLongClick.BOTTOM
                         mClickTopBottomCallbacks.invoke(mDeletedRect, mDeletedBean,
                                 rect.top, mClickUpperLimit, mClickLowerLimit, mPosition)
@@ -224,7 +244,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
                         mData.mCondition = TSViewLongClick.INSIDE
                         mClickInsideCallBacks.invoke(mDeletedRect, mDeletedBean, mPosition)
                     }
-                    return@deleteRect
+                    return
                 }
             }
             mData.mCondition = TSViewLongClick.EMPTY_AREA

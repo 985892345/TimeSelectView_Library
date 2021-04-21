@@ -44,7 +44,7 @@ class SeparatorLineView(context: Context, data: TSViewInternalData, position: In
         mVLinePaint.strokeWidth = VERTICAL_LINE_WIDTH.toFloat()
 
         //Horizontal Line 水平线画笔
-        mHLinePaint.color = 0xFF9C9C9C.toInt()
+        mHLinePaint.color = 0x809C9C9C.toInt()
         mHLinePaint.strokeWidth = HORIZONTAL_LINE_WIDTH.toFloat()
 
         //左侧时间画笔
