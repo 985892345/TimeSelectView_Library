@@ -18,6 +18,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectView
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
@@ -244,6 +245,10 @@ class RectView(context: Context, data: TSViewInternalData,
 
     private var mIsInRectChangeAnimator = false
     private fun getCorrectTopHeight(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
+        if (rect.isEmpty) {
+            rectChangeEndCallbacks.invoke()
+            return null
+        }
         val newRect = Rect()
         newRect.left = rect.left
         newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition)
