@@ -12,6 +12,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.tscrollview.TScrollViewTou
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITimeScrollView
+import kotlin.math.min
 
 /**
  * @author 985892345
@@ -57,8 +58,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     companion object {
         private const val AUTO_MOVE_THRESHOLD = 150 //自动滑动的阈值
-        private const val MAX_AUTO_SLIDE_VELOCITY = 7 //最大滑动速度的平方
-        private const val MULTIPLE = MAX_AUTO_SLIDE_VELOCITY / AUTO_MOVE_THRESHOLD.toFloat()
+        private const val MAX_AUTO_SLIDE_VELOCITY = 7F //最大滑动速度
+        private const val MULTIPLE = MAX_AUTO_SLIDE_VELOCITY / AUTO_MOVE_THRESHOLD
     }
 
     private val mData = data
@@ -262,17 +263,12 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                         }
                     }
                 }else {
-                    if (!mStartRun) {
-                        mStartRun = true
-                        mData.mStartAutoSlide = true
-                        mPreOuterY = outerY
-                        post(mSlideRunnable)
-                    }
                     if (isTopSlide) { //时间轴往下滑
-                        mVelocity = -((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE).toInt()
-                        if (outerY > mPreOuterY + 5) {
-                            mVelocity /= 2
+                        if (outerY > mPreOuterY) {
+                            mPreOuterY = outerY
+                            return
                         }
+                        mVelocity = -min((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
                         when (mData.mCondition) {
                             TOP -> {
                                 mData.mCondition = TOP_SLIDE_UP
@@ -287,10 +283,11 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             }
                         }
                     }else { //时间轴往上滑
-                        mVelocity = ((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (outerY < mPreOuterY - 5) {
-                            mVelocity /= 2
+                        if (outerY < mPreOuterY) {
+                            mPreOuterY = outerY
+                            return
                         }
+                        mVelocity = min((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
                         when (mData.mCondition) {
                             TOP -> {
                                 mData.mCondition = TOP_SLIDE_DOWN
@@ -305,6 +302,12 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             }
                         }
                     }
+                    if (!mStartRun) {
+                        mStartRun = true
+                        mData.mStartAutoSlide = true
+                        mPreOuterY = outerY
+                        post(mSlideRunnable)
+                    }
                 }
             }
             INSIDE, INSIDE_SLIDE_UP, INSIDE_SLIDE_DOWN -> {
@@ -312,7 +315,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val bottom = mITimeScrollView.getOuterBottom()
                 val isTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
                 val isBottomSlide = bottom > height - AUTO_MOVE_THRESHOLD * 0.4F
-                val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 50)..(mForbidSlideCenter + 50)
+                val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 100)..(mForbidSlideCenter + 100)
                 if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit ||
                         scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
@@ -320,25 +323,29 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     mData.mStartAutoSlide = false
                     mData.mCondition = INSIDE
                 }else {
+                    if (isTopSlide) { //时间轴往下滑
+                        if (outerY > mPreOuterY) {
+                            mPreOuterY = outerY
+                            mForbidSlideCenter = insideY - scrollY
+                            return
+                        }
+                        mVelocity = -min((AUTO_MOVE_THRESHOLD - top) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
+                        mData.mCondition = INSIDE_SLIDE_UP
+                    }else { //时间轴往上滑
+                        if (outerY < mPreOuterY) {
+                            mPreOuterY = outerY
+                            mForbidSlideCenter = insideY - scrollY
+                            return
+                        }
+                        mVelocity = min((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
+                        mData.mCondition = INSIDE_SLIDE_DOWN
+                    }
                     if (!mStartRun) {
                         mStartRun = true
                         mData.mStartAutoSlide = true
                         mPreOuterY = outerY
                         mForbidSlideCenter = height / 2
                         post(mSlideRunnable)
-                    }
-                    if (isTopSlide) { //时间轴往下滑
-                        mVelocity = -((AUTO_MOVE_THRESHOLD - top) * MULTIPLE).toInt()
-                        if (outerY > mPreOuterY + 5) {
-                            mVelocity /= 2
-                        }
-                        mData.mCondition = INSIDE_SLIDE_UP
-                    }else { //时间轴往上滑
-                        mVelocity = ((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
-                        if (outerY < mPreOuterY - 5) {
-                            mVelocity /= 2
-                        }
-                        mData.mCondition = INSIDE_SLIDE_DOWN
                     }
                 }
             }

@@ -145,13 +145,18 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                 }else if (nowUpperLimit in top..bottom) { //2
                     intArrayOf(nowPositionLeft, nowUpperLimit, nowPosition)
                 }else { //包括了3、4、5、6、7
-                    val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
-                    if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
-                        val correctTop = getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
-                        intArrayOf(nowPositionLeft, correctTop, nowPosition)
-                    }else { //4、5-2、6、7-2
+                    if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
                         val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                         intArrayOf(prePositionLeft, correctTop, prePosition)
+                    }else {
+                        val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
+                        if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
+                            val correctTop = getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
+                            intArrayOf(nowPositionLeft, correctTop, nowPosition)
+                        } else { //4、5-2、6、7-2
+                            val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
+                            intArrayOf(prePositionLeft, correctTop, prePosition)
+                        }
                     }
                 }
             }else { //包括 a 的所有情况
@@ -191,11 +196,15 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
             }else if (nowUpperLimit in top..bottom) { //2
                 nowUpperLimit
             }else { //包括了3、4、5、6、7
-                val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, position)
-                if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
-                    getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, position, insideUpY)
-                }else { //4、5-2、6、7-2
+                if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
                     getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
+                }else {
+                    val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, position)
+                    if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
+                        getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, position, insideUpY)
+                    } else { //4、5-2、6、7-2
+                        getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
+                    }
                 }
             }
         }else { //包括 a 的所有情况
