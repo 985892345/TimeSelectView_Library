@@ -1,7 +1,5 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils
 
-import android.util.Log
-import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import java.util.*
 import kotlin.math.ceil
@@ -27,11 +25,6 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
         const val DELAY_BACK_CURRENT_TIME = 10000L
 
         /**
-         * 用于[getTimeHeight]中，代表返回ScrollView应滑到的高度
-         */
-        const val SCROLLVIEW_HEIGHT = -1
-
-        /**
          * 回到中心值的mCenterTime值
          */
         const val CENTER_TIME_CENTER = -1F
@@ -48,10 +41,7 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     private val mData = data
-    private val mStartHour = data.mStartHour
     private var mTimeInterval = data.mTimeInterval
-    private val mTimelineRange = data.mTimelineRange
-    private val mHLineWidth = SeparatorLineView.HORIZONTAL_LINE_WIDTH //水平线厚度
     private val mExtraHeight = data.mExtraHeight //上方或下方其中一方多余的高度
     private val mIntervalHeight = data.mIntervalHeight //一个小时的间隔高度
     private val mEveryMinuteHeight = FloatArray(61)
@@ -64,27 +54,16 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
         mEveryMinuteHeight[60] = mIntervalHeight.toFloat()
     }
 
-    override fun getNowTimeHeight(position: Int): Int {
-        return getTimeHeight(getNowTime(), position)
+    override fun getNowTimeHeight(): Int {
+        return getTimeHeight(getNowTime())
     }
 
-    override fun getTimeHeight(time: Float, position: Int): Int {
+    override fun getTimeHeight(time: Float): Int {
         var t = time
-        if (t < mStartHour) {
-            t += 24
+        if (t !in mData.mTimeRangeArray[0][0].toFloat()..mData.mTimeRangeArray[0][1].toFloat()) {
+            t = (mData.mTimeRangeArray[0][1] - mData.mTimeRangeArray[0][0]).toFloat()
         }
-        t -= mStartHour
-        return when (position) {
-            SCROLLVIEW_HEIGHT -> {
-                while (t > mTimelineRange) {
-                    t -= mTimelineRange
-                }
-                (mExtraHeight + t * mIntervalHeight).toInt()
-            }
-            else -> {
-                (mExtraHeight + (t - mTimelineRange * position) * mIntervalHeight).toInt()
-            }
-        }
+        return mExtraHeight + ((t - mData.mTimeRangeArray[0][0]) * mIntervalHeight).toInt()
     }
 
     override fun getTime(insideY: Int, position: Int): String {
@@ -113,9 +92,9 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
      */
     override fun getHour(insideY: Int, position: Int): Int {
         return if (insideY >= mExtraHeight) {
-            (insideY - mExtraHeight) / mIntervalHeight + mStartHour + position * mTimelineRange
+            (insideY - mExtraHeight) / mIntervalHeight + mData.mTimeRangeArray[position][0]
         }else {
-            mStartHour + position * mTimelineRange - ((mExtraHeight - insideY) / mIntervalHeight + 1)
+            mData.mTimeRangeArray[position][0] - ((mExtraHeight - insideY) / mIntervalHeight + 1)
         }
     }
 
@@ -146,7 +125,8 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     private fun getCorrectHeight(hour: Int, minute: Int, position: Int): Int {
-        return getMinuteTopHeight(minute) + (hour - position * mTimelineRange - mStartHour) * mIntervalHeight + mExtraHeight
+        val h = if (hour < mData.mTimeRangeArray[position][0]) hour + 24 else hour
+        return getMinuteTopHeight(minute) + (h - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mExtraHeight
     }
 
     /**
@@ -178,10 +158,9 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
 
     override fun getCorrectTopHeight(startTime: String, upperLimit: Int, position: Int): Int {
         val times = startTime.split(TIME_STRING_SPLIT_SYMBOL)
-        val h = times[0].toInt()
-        val hour = if (h < mStartHour) h + 24 else h
+        val hour = times[0].toInt()
         val minute = times[1].toInt()
-        val height = mExtraHeight + (hour - mStartHour - mTimelineRange * position) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
+        val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
         return getCorrectTopHeight(height, upperLimit, position)
     }
 
@@ -222,9 +201,9 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     override fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int): Int {
         val times = endTime.split(TIME_STRING_SPLIT_SYMBOL)
         val h = times[0].toInt()
-        val hour = if (h < mStartHour) h + 24 else h
+        val hour = if (h < mData.mTimeRangeArray[position][0]) h + 24 else h
         val minute = times[1].toInt()
-        val height = mExtraHeight + (hour - mStartHour - mTimelineRange * position) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
+        val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
         return getCorrectBottomHeight(height, lowerLimit, position)
     }
 
@@ -240,13 +219,13 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     override fun getStartTime(insideBottomY: Int, dTime: String, position: Int): String {
-        return getStartTime(getTime(insideBottomY, position), dTime)
+        return getStartTime(getTime(insideBottomY, position), dTime, position)
     }
 
-    override fun getStartTime(endTime: String, dTime: String): String {
+    override fun getStartTime(endTime: String, dTime: String, position: Int): String {
         val endTimes = endTime.split(TIME_STRING_SPLIT_SYMBOL)
         val endH = endTimes[0].toInt()
-        val endHour = if (endH < mStartHour) endH + 24 else endH
+        val endHour = if (endH < mData.mTimeRangeArray[position][0]) endH + 24 else endH
         val endMinute = endTimes[1].toInt()
         val dTimes = dTime.split(TIME_STRING_SPLIT_SYMBOL)
         val dHour = dTimes[0].toInt()
@@ -296,7 +275,9 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     private fun timeToString(hour: Int, minute: Int): String {
-        val stH = if (hour < 10) {
+        val stH =if (hour < 0) {
+            return timeToString(hour + 24, minute)
+        }else if (hour < 10) {
             "0$hour"
         }else if (hour < 24) {
             hour.toString()

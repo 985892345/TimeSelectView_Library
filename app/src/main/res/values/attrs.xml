@@ -6,11 +6,15 @@
         <!--时间轴背景的圆角度数-->
         <attr name="cardCornerRadius" format="dimension"/>
 
-        <!--时间轴起始时间-->
-        <attr name="startHour" format="integer"/>
-        <!--当前时间线的时间(支持小数)，
-        输入-1为以中心值为中线
-        输入-2为以当前时间值为中线-->
+        <!--时间范围数组。格式为"2-18,12-4"(逗号后没有空格)，
+        注意：
+        第一个的开始时间必须大于0；
+        允许出现重复时间段；
+        每个时间段的差值必须相等-->
+        <attr name="timeRangeArray" format="string"/>
+        <!--以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)。
+        输入-1为以中心值为中心线，
+        输入-2为以当前时间值为中心线-->
         <attr name="centerTime" format="float"/>
 
         <!--默认任务边框颜色-->

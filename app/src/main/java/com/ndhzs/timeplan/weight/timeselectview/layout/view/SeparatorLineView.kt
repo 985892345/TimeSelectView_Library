@@ -57,13 +57,13 @@ class SeparatorLineView(context: Context, data: TSViewInternalData, position: In
     }
 
     override fun onDraw(canvas: Canvas) {
-        val startHour = mData.mTimelineRange * mPosition + mData.mStartHour
+        val startHour = mData.mTimeRangeArray[mPosition][0]
         val extraHeight = mData.mExtraHeight
         val intervalLeft = mData.mIntervalLeft
         val intervalHeight = mData.mIntervalHeight
         val vLineX = (intervalLeft - VERTICAL_LINE_WIDTH/2).toFloat()
         canvas.drawLine(vLineX, 0F, vLineX, mData.mInsideTotalHeight.toFloat(), mVLinePaint)
-        for (i in startHour..(startHour + mData.mTimelineRange)) {
+        for (i in mData.mTimeRangeArray[mPosition][0]..mData.mTimeRangeArray[mPosition][1]) {
             val hour = when {
                 i < 10 -> {
                     "0$i:00"

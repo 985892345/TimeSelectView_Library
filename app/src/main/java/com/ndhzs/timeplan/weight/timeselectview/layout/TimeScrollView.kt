@@ -87,7 +87,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private fun moveToCenterTime() {
         if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
             post {
-                scrollY = mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+                scrollY = mTime.getNowTimeHeight() - height / 2
                 postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
             }
         }else if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_CENTER) { //以中心值为中线
@@ -96,14 +96,14 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             }
         }else { //以mCenterTime为中线，不随时间移动
             post {
-                scrollY = mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+                scrollY = mTime.getTimeHeight(mData.mCenterTime) - height / 2
             }
         }
     }
 
     private val mBackNowTimeRun = object : Runnable {
         override fun run() {
-            slowlyMoveTo(mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2)
+            slowlyMoveTo(mTime.getNowTimeHeight() - height / 2)
             postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
         }
     }
@@ -111,13 +111,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private val mBackCurrentTimeRun = Runnable {
         slowlyMoveTo(when (mData.mCenterTime) {
             TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
-                mTime.getNowTimeHeight(TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+                mTime.getNowTimeHeight() - height / 2
             }
             TSViewTimeUtil.CENTER_TIME_CENTER -> {
                 mData.mInsideTotalHeight / 2 - height / 2
             }
             else -> {
-                mTime.getTimeHeight(mData.mCenterTime, TSViewTimeUtil.SCROLLVIEW_HEIGHT) - height / 2
+                mTime.getTimeHeight(mData.mCenterTime) - height / 2
             }
         })
     }
@@ -271,7 +271,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     if (isTopSlide) { //时间轴往下滑
                         mVelocity = -((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE).toInt()
                         if (outerY > mPreOuterY + 5) {
-                            mVelocity = 0
+                            mVelocity /= 2
                         }
                         when (mData.mCondition) {
                             TOP -> {
@@ -289,7 +289,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     }else { //时间轴往上滑
                         mVelocity = ((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
                         if (outerY < mPreOuterY - 5) {
-                            mVelocity = 0
+                            mVelocity /= 2
                         }
                         when (mData.mCondition) {
                             TOP -> {
@@ -330,13 +330,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     if (isTopSlide) { //时间轴往下滑
                         mVelocity = -((AUTO_MOVE_THRESHOLD - top) * MULTIPLE).toInt()
                         if (outerY > mPreOuterY + 5) {
-                            mVelocity = 0
+                            mVelocity /= 2
                         }
                         mData.mCondition = INSIDE_SLIDE_UP
                     }else { //时间轴往上滑
                         mVelocity = ((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE).toInt()
                         if (outerY < mPreOuterY - 5) {
-                            mVelocity = 0
+                            mVelocity /= 2
                         }
                         mData.mCondition = INSIDE_SLIDE_DOWN
                     }

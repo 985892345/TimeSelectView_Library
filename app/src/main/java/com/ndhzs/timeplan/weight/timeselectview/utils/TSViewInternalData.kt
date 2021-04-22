@@ -2,9 +2,11 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.util.AttributeSet
+import android.util.Log
 import com.ndhzs.timeplan.R
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
+import java.io.PrintWriter
 
 /**
  * @author 985892345
@@ -14,7 +16,6 @@ import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
  */
 class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
-    val mStartHour:Int  //起始时间
     val mCenterTime: Float //当前时间线，支持小数
 
     val mTimeTextSize: Float //时间字体大小
@@ -25,7 +26,9 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     val mDefaultTaskName: String //默认任务名称
 
     var mTimeInterval: Int //时间间隔数
-    val mTimelineRange: Int //单个时间轴的时长
+    private var mTimelineRange: Int //单个时间轴的时长，不允许其他得到这个值，为防止出现高度问题，请用mTimeRangeArray计算得到
+    var mTimeRangeArray = Array(2) { intArrayOf(0) } //时间轴的时间范围值
+        private set
 
     val mCardCornerRadius: Float //时间轴背景的圆角度数
 
@@ -77,7 +80,6 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
     init {
         val ty = context.obtainStyledAttributes(attrs, R.styleable.TimeSelectView)
-        mStartHour = ty.getInteger(R.styleable.TimeSelectView_startHour, 1)
         mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, TSViewTimeUtil.CENTER_TIME_CENTER)
 
         mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, 0xFFFF0000.toInt())
@@ -91,19 +93,24 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
         val amount = ty.getInt(R.styleable.TimeSelectView_amount, 1)
         mTSViewAmount = if (amount < 1) 1 else amount
-        mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth, 360F).toInt()
+        mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth, 300F).toInt()
         mTimelineInterval = ty.getDimension(R.styleable.TimeSelectView_timelineInterval, 20F).toInt()
         mAllTimelineWidth = mTSViewAmount * (mTimelineWidth + mTimelineInterval) - mTimelineInterval
 
-        mTimelineRange = 24 / mTSViewAmount
+
+        val timeRangeArray = ty.getString(R.styleable.TimeSelectView_timeRangeArray)
+        mTimelineRange = 24 / mTSViewAmount //下一步设置mTimeRangeArray会重新赋值
+        mTimeRangeArray = getTimeRangeArray(timeRangeArray)
+
+
 
         mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, mTimelineWidth / 4.6F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 200F).toInt()
+        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 360F).toInt()
         mExtraHeight = mIntervalHeight / 2
         mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
         mRectViewWidth = mTimelineWidth - mIntervalLeft - SeparatorLineView.INTERVAL_RIGHT_WIDTH
 
-        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, mIntervalLeft/2.8F)
+        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, mIntervalLeft / 2.8F)
         mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, mTimeTextSize * 1.16F)
 
         mRectViewTop = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
@@ -112,5 +119,41 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mIsShowDiffTime = ty.getBoolean(R.styleable.TimeSelectView_isShowDiffTime, false)
         mIsShowStartEndTime = ty.getBoolean(R.styleable.TimeSelectView_isShowTopBottomTime, true)
         ty.recycle()
+    }
+
+    @Throws(java.lang.Exception::class)
+    private fun getTimeRangeArray(timeRange: String?): Array<IntArray> {
+        var timeRangeArray = Array(2) { intArrayOf(0) }
+        try {
+            val times = timeRange?.split(",")
+            timeRangeArray = Array(mTSViewAmount) {
+                if (times == null) {
+                    intArrayOf(it * mTimelineRange, (it + 1) * mTimelineRange)
+                }else {
+                    val hours = times[it].split("-")
+                    val startHour = hours[0].toInt()
+                    var endHour = hours[1].toInt()
+                    if (startHour > 24 || endHour > 24) {
+                        Log.e("TimeSelectView", "**********************************************************************************")
+                        Log.e("TimeSelectView", "****  Your TimeSelectView of timeRangeArray's startHour or endHour is wrong!  ****")
+                        Log.e("TimeSelectView", "**********************************************************************************")
+                        val e = Exception()
+                        e.printStackTrace(PrintWriter("****  Your TimeSelectView of timeRangeArray's startHour or endHour is wrong!  ****"))
+                        throw Exception()
+                    }
+                    if (endHour < startHour) {
+                        endHour += 24
+                    }
+                    mTimelineRange = endHour - startHour
+                    intArrayOf(startHour, endHour)
+                }
+            }
+        }catch (e: Exception) {
+            Log.e("TimeSelectView", "************************************************************")
+            Log.e("TimeSelectView", "****  Your TimeSelectView of timeRangeArray is wrong!   ****")
+            Log.e("TimeSelectView", "************************************************************")
+            e.printStackTrace(PrintWriter("******Your TimeSelectView of timeRangeArray is wrong! ******"))
+        }
+        return timeRangeArray
     }
 }

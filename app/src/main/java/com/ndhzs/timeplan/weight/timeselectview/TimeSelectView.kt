@@ -136,8 +136,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
             }
             MeasureSpec.EXACTLY -> {
                 if (MeasureSpec.getSize(widthMeasureSpec) < minWidth) {
-                    Log.e("123", "Your layout_width of TimeSelectView is too small to include timeline!!!!!")
-                    Log.e("123", "Please enlarge the layout_width or shrink the timelineWidth of attrs.")
+                    Log.e("TimeSelectView", "Your layout_width of TimeSelectView is too small to include timeline!!!!!")
+                    Log.e("TimeSelectView", "Please enlarge the layout_width or shrink the timelineWidth of attrs.")
                 }
                 newWidthMS = widthMeasureSpec
             }

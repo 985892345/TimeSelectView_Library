@@ -7,8 +7,8 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
  * @description [com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil]
  */
 interface ITSViewTime {
-    fun getNowTimeHeight(position: Int): Int
-    fun getTimeHeight(time: Float, position: Int): Int
+    fun getNowTimeHeight(): Int
+    fun getTimeHeight(time: Float): Int
     fun getTime(insideY: Int, position: Int): String
     fun getDiffTime(top: Int, bottom: Int): String
     fun getHour(insideY: Int, position: Int): Int
@@ -24,7 +24,7 @@ interface ITSViewTime {
     fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int): Int
     fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int, timeInterval: Int): Int
     fun getStartTime(insideBottomY: Int, dTime: String, position: Int): String
-    fun getStartTime(endTime: String, dTime: String): String
+    fun getStartTime(endTime: String, dTime: String, position: Int): String
     fun getEndTime(insideTopY: Int, dTime: String, position: Int): String
     fun getEndTime(startTime: String, dTime: String): String
 }

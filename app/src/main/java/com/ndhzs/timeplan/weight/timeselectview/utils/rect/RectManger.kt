@@ -116,17 +116,17 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
 
         override fun addNewRect(rect: Rect, bean: TSViewBean) {
             val newRect = Rect(rect.left,
-                    rect.top + mPosition * mData.mTimelineRange * mData.mIntervalHeight,
+                    rect.top + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
                     rect.right,
-                    rect.bottom + mPosition * mData.mTimelineRange * mData.mIntervalHeight)
+                    rect.bottom + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
             mAllRectWithBean[newRect] = bean
         }
 
         override fun addRectFromDeleted(rect: Rect) {
             val newRect = Rect(rect.left,
-                    rect.top + mPosition * mData.mTimelineRange * mData.mIntervalHeight,
+                    rect.top + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
                     rect.right,
-                    rect.bottom + mPosition * mData.mTimelineRange * mData.mIntervalHeight)
+                    rect.bottom +(mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
             mDeletedBean.startTime = mTime.getTime(rect.top, mPosition)
             mDeletedBean.endTime = mTime.getTime(rect.bottom, mPosition)
             mAllRectWithBean[newRect] = mDeletedBean
@@ -140,9 +140,9 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             mAllRectWithBean.forEach {
                 val rect = it.key
                 val newRect = Rect(rect.left,
-                        rect.top - mPosition * mData.mTimelineRange * mData.mIntervalHeight,
+                        rect.top - (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
                         rect.right,
-                        rect.bottom - mPosition * mData.mTimelineRange * mData.mIntervalHeight)
+                        rect.bottom - (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
                 rectWithBean[newRect] = it.value
             }
             return rectWithBean

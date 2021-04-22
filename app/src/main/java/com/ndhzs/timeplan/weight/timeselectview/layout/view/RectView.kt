@@ -72,11 +72,11 @@ class RectView(context: Context, data: TSViewInternalData,
     }
 
     /**
-     * 让RectView增加一个之前被删除的矩形，但位置已经改变，用的原来的Bean
+     * 让RectView增加一个之前被删除的矩形，虽位置已经改变，但Bean没变
      */
     fun addRectFromDeleted(rect: Rect) {
         mIRectManger.addRectFromDeleted(rect)
-        notifyRectRedraw()
+        mIRectView.notifyAllRectViewRefresh()
     }
 
     /**

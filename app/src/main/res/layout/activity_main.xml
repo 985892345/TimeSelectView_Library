@@ -11,17 +11,19 @@
         android:id="@+id/time_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginBottom="80dp"
         app:amount="2"
         app:cardCornerRadius="8dp"
         app:centerTime="-1"
         app:isShowDiffTime="true"
-        app:layout_constraintBottom_toTopOf="@+id/button_debug"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:startHour="1"
-        app:timelineWidth="160dp" />
+        app:timeRangeArray="0-18,6-0"
+        app:timelineWidth="160dp"
+        app:intervalHeight="110dp"/>
 
     <Button
         android:id="@+id/button_debug"
@@ -32,6 +34,7 @@
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time_view" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
