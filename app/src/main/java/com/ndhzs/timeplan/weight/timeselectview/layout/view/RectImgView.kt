@@ -193,7 +193,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             val bottom = mRect.bottom
             for (i in 0 until mDividerLines.size - 1) {
                 if (mRect.left in mDividerLines[i]..mDividerLines[i + 1]) {
-                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom, i), mTimeSize)
+                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom + 1, i), mTimeSize)
                 }
             }
             if (mData.mIsShowDiffTime) {

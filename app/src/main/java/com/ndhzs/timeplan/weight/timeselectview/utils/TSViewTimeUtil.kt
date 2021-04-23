@@ -41,7 +41,6 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     }
 
     private val mData = data
-    private var mTimeInterval = data.mTimeInterval
     private val mExtraHeight = data.mExtraHeight //上方或下方其中一方多余的高度
     private val mIntervalHeight = data.mIntervalHeight //一个小时的间隔高度
     private val mEveryMinuteHeight = FloatArray(61)
@@ -132,89 +131,75 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
     /**
      * 根据时间间隔数来返回正确的高度
      */
-    override fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, position: Int): Int {
+    override fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, position: Int, timeInterval: Int): Int {
         if (insideTopY == upperLimit) {
             return insideTopY
         }
         val h = getHour(insideTopY, position)
         val m = getMinute(insideTopY)
-        return max(if (m % mTimeInterval >= mTimeInterval - mTimeInterval / 3F) {
-            val minute = (m / mTimeInterval + 1) * mTimeInterval
+        return max(if (m % timeInterval >= timeInterval - timeInterval / 3F) {
+            val minute = (m / timeInterval + 1) * timeInterval
             val hour = if (minute == 60) h + 1 else h
             getCorrectHeight(hour, minute, position) + 1
         }else {
-            val minute = m - m % mTimeInterval //间隔数为15，分钟数为16时，则取15
+            val minute = m - m % timeInterval //间隔数为15，分钟数为16时，则取15
             getCorrectHeight(h, minute, position) + 1
         }, upperLimit)
 
     }
 
     override fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, lowerLimit: Int, position: Int, dTime: String): IntArray {
-        val correctTopHeight = getCorrectTopHeight(insideTopY, upperLimit, position)
+        val correctTopHeight = getCorrectTopHeight(insideTopY, upperLimit, position, mData.mTimeInterval)
         val endTime = getEndTime(correctTopHeight, dTime, position)
-        val correctBottomHeight = getCorrectBottomHeight(endTime, lowerLimit, position)
+        val correctBottomHeight = getCorrectBottomHeight(endTime, lowerLimit, position, 1)
         return intArrayOf(correctTopHeight, correctBottomHeight)
-    }
-
-    override fun getCorrectTopHeight(startTime: String, upperLimit: Int, position: Int): Int {
-        val times = startTime.split(TIME_STRING_SPLIT_SYMBOL)
-        val hour = times[0].toInt()
-        val minute = times[1].toInt()
-        val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
-        return getCorrectTopHeight(height, upperLimit, position)
     }
 
     override fun getCorrectTopHeight(startTime: String, upperLimit: Int, position: Int, timeInterval: Int): Int {
         return if (60 % timeInterval != 0) {
-            getCorrectTopHeight(startTime, upperLimit, position)
+            getCorrectTopHeight(startTime, upperLimit, position, mData.mTimeInterval)
         }else {
-            mTimeInterval = timeInterval
-            val correctTopHeight = getCorrectTopHeight(startTime, upperLimit, position)
-            mTimeInterval = mData.mTimeInterval
-            correctTopHeight
+            val times = startTime.split(TIME_STRING_SPLIT_SYMBOL)
+            val hour = times[0].toInt()
+            val minute = times[1].toInt()
+            val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
+            getCorrectTopHeight(height, upperLimit, position, timeInterval)
         }
     }
 
-    override fun getCorrectBottomHeight(insideBottomY: Int, lowerLimit: Int, position: Int): Int {
+    override fun getCorrectBottomHeight(insideBottomY: Int, lowerLimit: Int, position: Int, timeInterval: Int): Int {
         if (insideBottomY == lowerLimit) {
             return insideBottomY
         }
         val h = getHour(insideBottomY, position)
         val m = getMinute(insideBottomY)
-        return min(if (m % mTimeInterval <= mTimeInterval / 3F) {
-            val minute = m - m % mTimeInterval
+        return min(if (m % timeInterval <= timeInterval / 3F) {
+            val minute = m - m % timeInterval
             getCorrectHeight(h, minute, position)
         }else {
-            val minute = (m / mTimeInterval + 1) * mTimeInterval
+            val minute = (m / timeInterval + 1) * timeInterval
             val hour = if (minute == 60) h + 1 else h
             getCorrectHeight(hour, minute, position)
         }, lowerLimit)
     }
 
     override fun getCorrectBottomHeight(insideBottomY: Int, upperLimit: Int, lowerLimit: Int, position: Int, dTime: String): IntArray {
-        val correctBottomHeight = getCorrectBottomHeight(insideBottomY, lowerLimit, position)
+        val correctBottomHeight = getCorrectBottomHeight(insideBottomY, lowerLimit, position, mData.mTimeInterval)
         val startTime = getStartTime(correctBottomHeight, dTime, position)
-        val correctTopHeight = getCorrectTopHeight(startTime, upperLimit, position)
+        val correctTopHeight = getCorrectTopHeight(startTime, upperLimit, position, 1)
         return intArrayOf(correctTopHeight, correctBottomHeight)
-    }
-
-    override fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int): Int {
-        val times = endTime.split(TIME_STRING_SPLIT_SYMBOL)
-        val h = times[0].toInt()
-        val hour = if (h < mData.mTimeRangeArray[position][0]) h + 24 else h
-        val minute = times[1].toInt()
-        val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
-        return getCorrectBottomHeight(height, lowerLimit, position)
     }
 
     override fun getCorrectBottomHeight(endTime: String, lowerLimit: Int, position: Int, timeInterval: Int): Int {
         return if (60 % timeInterval != 0) {
-            getCorrectBottomHeight(endTime, lowerLimit, position)
+            getCorrectBottomHeight(endTime, lowerLimit, position, mData.mTimeInterval)
         }else {
-            mTimeInterval = timeInterval
-            val correctBottomHeight = getCorrectBottomHeight(endTime, lowerLimit, position)
-            mTimeInterval = mData.mTimeInterval
-            correctBottomHeight
+            val times = endTime.split(TIME_STRING_SPLIT_SYMBOL)
+            val h = times[0].toInt()
+            val hour = if (h < mData.mTimeRangeArray[position][0]) h + 24 else h
+            val minute = times[1].toInt()
+            val height = mExtraHeight + (hour - mData.mTimeRangeArray[position][0]) * mIntervalHeight + mEveryMinuteHeight[minute].toInt() + 1
+            return getCorrectBottomHeight(height, lowerLimit, position, timeInterval)
         }
     }
 

@@ -207,11 +207,11 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
                     it.isUserInputEnabled = false
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    if (scrollY == 0 && y > mInitialY) {
+                    if (scrollY == 0 && ev.y > mInitialY) {
                         it.isUserInputEnabled = true
                         return false
                     }
-                    if (scrollY + height == getChildAt(0).height && y < mInitialY) {
+                    if (scrollY + height == getChildAt(0).height && ev.y < mInitialY) {
                         it.isUserInputEnabled = true
                         return false
                     }

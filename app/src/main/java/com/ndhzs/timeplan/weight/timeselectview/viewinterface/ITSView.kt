@@ -21,6 +21,7 @@ interface ITSView {
     fun setOnClickListener(onClick: ((bean: TSViewBean) -> Unit))
     fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
     fun setLinkedViewPager2(viewPager2: ViewPager2)
+    fun setTimeInterval(timeInterval: Int)
     fun getOuterMinWidth(): Int
     fun getOuterMinHeight(): Int
     fun initializeBean(beans: List<TSViewBean>)

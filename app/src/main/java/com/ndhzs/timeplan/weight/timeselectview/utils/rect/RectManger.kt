@@ -49,9 +49,9 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
         mAllRectWithBean.clear()
         beans.forEach {
             val rect = Rect(0,
-                    mTime.getCorrectTopHeight(it.startTime, 0, 0),
+                    mTime.getCorrectTopHeight(it.startTime, 0, 0, 1),
                     mData.mRectViewWidth,
-                    mTime.getCorrectBottomHeight(it.endTime, Int.MAX_VALUE, 0))
+                    mTime.getCorrectBottomHeight(it.endTime, Int.MAX_VALUE, 0, 1))
             mAllRectWithBean[rect] = it
         }
     }

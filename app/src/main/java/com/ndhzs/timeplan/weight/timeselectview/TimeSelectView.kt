@@ -34,11 +34,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * @param timeInterval 必须为60的因数，若不是，将以15为间隔数
      */
     fun setTimeInterval(timeInterval: Int) {
-        if (60 % timeInterval == 0) {
-            mData.mTimeInterval = timeInterval
-        }else {
-            mData.mTimeInterval = 15
-        }
+        mITSView.setTimeInterval(timeInterval)
     }
 
     /**
@@ -100,6 +96,9 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         return mData.mIsLongClick
     }
 
+    /**
+     * 设置数据改变监听
+     */
     fun setOnDataListener(l: OnDataChangeListener) {
         mData.mDataChangeListener = l
     }

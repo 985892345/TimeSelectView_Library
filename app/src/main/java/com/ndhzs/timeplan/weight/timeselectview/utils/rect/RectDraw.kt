@@ -51,7 +51,7 @@ class RectDraw(data: TSViewInternalData) : IRectDraw {
         fontMetrics = mStartEndTimePaint.fontMetrics
         mTBTimeAscent = fontMetrics.ascent
         mTBTimeDescent = fontMetrics.descent
-        mRectShowStartEndTimeHeight = (mTBTimeDescent - mTBTimeAscent) * 2
+        mRectShowStartEndTimeHeight = (mTBTimeDescent - mTBTimeAscent) * 1.8F
 
         fontMetrics = mDTimePaint.fontMetrics
         mDTimeHalfHeight = (fontMetrics.bottom - fontMetrics.top) / 2

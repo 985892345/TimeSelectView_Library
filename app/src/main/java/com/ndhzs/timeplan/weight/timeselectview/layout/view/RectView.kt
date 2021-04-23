@@ -19,6 +19,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sqrt
 
 /**
  * @author 985892345
@@ -100,14 +101,20 @@ class RectView(context: Context, data: TSViewInternalData,
      * 设置开始点击的Rect的某一边的高度值和上下限值
      */
     fun clickEmptyStart(initialSideY: Int, upperLimit: Int, lowerLimit: Int) {
-        mInitialSideY = mTime.getCorrectTopHeight(initialSideY, upperLimit, mPosition)
+        mInitialSideY = mTime.getCorrectTopHeight(initialSideY, upperLimit, mPosition, mData.mTimeInterval)
         mUpperLimit = upperLimit
         mLowerLimit = lowerLimit
     }
 
+
     companion object {
-        private const val ANIMATOR_DEVIATION = 10
+        var UNCONSTRAINED_DISTANCE = 50
     }
+
+    init {
+        UNCONSTRAINED_DISTANCE = time.getMinuteBottomHeight(10)
+    }
+
 
     private val mData = data
     private val mTime = time
@@ -241,10 +248,28 @@ class RectView(context: Context, data: TSViewInternalData,
             mData.mDataChangeListener?.onDataDelete(mDeletedBean!!)
             return null
         }
-        return if (insideUpY < mInitialSideY) { //在上方滑动，只用计算Top值，因为另一边的值是正确的高度值
-            getCorrectTopHeight(rect, rectChangeEndCallbacks)
-        }else { //在下方滑动，只用计算Bottom值，因为另一边的值是正确的高度值
-            getCorrectBottomHeight(rect, rectChangeEndCallbacks)
+        return if (abs(insideUpY - mInitialY) < UNCONSTRAINED_DISTANCE) { //抬起时的高度与按下去的起始高度的距离差在一定的范围内就
+            if (rect.height() > mDraw.getMinHeight()) {
+                postDelayed({
+                    rectChangeEndCallbacks.invoke()
+                }, 50)
+                if (insideUpY < mInitialSideY) {
+                    rect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition, 1)
+                    rect
+                }else {
+                    rect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition, 1)
+                    rect
+                }
+            }else {
+                deleteRect(rect, rectChangeEndCallbacks)
+                null
+            }
+        }else {
+            if (insideUpY < mInitialSideY) { //在上方滑动，只用计算Top值，因为另一边的值是正确的高度值
+                getCorrectTopHeight(rect, rectChangeEndCallbacks)
+            }else { //在下方滑动，只用计算Bottom值，因为另一边的值是正确的高度值
+                getCorrectBottomHeight(rect, rectChangeEndCallbacks)
+            }
         }
     }
 
@@ -252,12 +277,13 @@ class RectView(context: Context, data: TSViewInternalData,
     private fun getCorrectTopHeight(rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         val newRect = Rect()
         newRect.left = rect.left
-        newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition)
+        newRect.top = mTime.getCorrectTopHeight(rect.top, mUpperLimit, mPosition, mData.mTimeInterval)
         newRect.right = rect.right
         newRect.bottom = rect.bottom
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val animator = ValueAnimator.ofInt(rect.top, newRect.top - ANIMATOR_DEVIATION, newRect.top)
+            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt()
+            val animator = ValueAnimator.ofInt(rect.top, newRect.top - bounce, newRect.top)
                     animator.addUpdateListener {
                 val top = it.animatedValue as Int
                 mInitialRect.top = top
@@ -282,10 +308,11 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.left = rect.left
         newRect.top = rect.top
         newRect.right = rect.right
-        newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition)
+        newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition, mData.mTimeInterval)
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom + ANIMATOR_DEVIATION, newRect.bottom)
+            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt()
+            val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom + bounce, newRect.bottom)
             animator.addUpdateListener {
                 val bottom = it.animatedValue as Int
                 mInitialRect.bottom = bottom

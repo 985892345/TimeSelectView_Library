@@ -13,15 +13,37 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
  */
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var mTimeView: TimeSelectView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val mDebugButton = findViewById<Button>(R.id.button_debug)
-        val mTimeView = findViewById<TimeSelectView>(R.id.time_view)
-        mDebugButton.setOnClickListener {
+        mTimeView = findViewById(R.id.time_view)
+
+        findViewById<Button>(R.id.button_clear).setOnClickListener {
             val beans = ArrayList<TSViewBean>()
             mTimeView.initializeBean(beans)
+        }
+
+        findViewById<Button>(R.id.button_1).setOnClickListener {
+            mTimeView.setTimeInterval(1)
+        }
+
+        findViewById<Button>(R.id.button_5).setOnClickListener {
+            mTimeView.setTimeInterval(5)
+        }
+
+        findViewById<Button>(R.id.button_10).setOnClickListener {
+            mTimeView.setTimeInterval(10)
+        }
+
+        findViewById<Button>(R.id.button_15).setOnClickListener {
+            mTimeView.setTimeInterval(15)
+        }
+
+        findViewById<Button>(R.id.button_20).setOnClickListener {
+            mTimeView.setTimeInterval(20)
         }
     }
 }

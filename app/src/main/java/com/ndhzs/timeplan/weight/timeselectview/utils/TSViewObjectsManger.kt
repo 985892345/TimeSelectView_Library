@@ -2,6 +2,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
+import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
@@ -103,6 +104,14 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun setLinkedViewPager2(viewPager2: ViewPager2) {
             mTimeScrollView.setLinkedViewPager2(viewPager2)
+        }
+
+        override fun setTimeInterval(timeInterval: Int) {
+            if (60 % timeInterval == 0) {
+                mData.mTimeInterval = timeInterval
+            }else {
+                mData.mTimeInterval = 15
+            }
         }
 
         override fun getOuterMinWidth(): Int {

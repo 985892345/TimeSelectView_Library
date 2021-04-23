@@ -121,7 +121,6 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         ty.recycle()
     }
 
-    @Throws(java.lang.Exception::class)
     private fun getTimeRangeArray(timeRange: String?): Array<IntArray> {
         var timeRangeArray = Array(2) { intArrayOf(0) }
         try {
