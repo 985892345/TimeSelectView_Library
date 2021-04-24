@@ -19,15 +19,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        val beans = ArrayList<ArrayList<TSViewBean>>()
+        repeat(20) {
+            beans.add(ArrayList())
+        }
         mTimeView = findViewById(R.id.time_view)
+        mTimeView.initializeBean(beans)
 
         findViewById<Button>(R.id.button_clear).setOnClickListener {
-            val beans = ArrayList<TSViewBean>()
-            mTimeView.initializeBean(beans)
+            mTimeView.notifyItemRefresh()
         }
 
         findViewById<Button>(R.id.button_1).setOnClickListener {
             mTimeView.setTimeInterval(1)
+            mTimeView.setIsShowDiffTime(false)
         }
 
         findViewById<Button>(R.id.button_5).setOnClickListener {

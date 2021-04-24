@@ -13,16 +13,10 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
  * @date 2021/4/4
  * @description [com.ndhzs.timeplan.weight.timeselectview.TimeSelectView]
  */
-interface ITSView {
+interface IVpLayout {
     fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup)
+    fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?)
     fun showNowTimeLine()
     fun notifyAllRectRefresh()
-    fun setOnClickListener(onClick: ((bean: TSViewBean) -> Unit))
-    fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
-    fun setLinkedViewPager2(viewPager2: ViewPager2)
-    fun setTimeInterval(timeInterval: Int)
-    fun getOuterMinWidth(): Int
-    fun getOuterMinHeight(): Int
-    fun initializeBean(beans: List<TSViewBean>)
+    fun initializeBean(beans: MutableList<TSViewBean>)
 }

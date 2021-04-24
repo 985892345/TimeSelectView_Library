@@ -15,42 +15,30 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 @SuppressLint("ViewConstructor")
 class BackCardView(context: Context, private val data: TSViewInternalData) : LinearLayout(context) {
 
-    /**
-     * 得到TimeSelectView的最小宽度，用于在wrap_content中。
-     *
-     * 其中先“ / 2 * 2 ”是lp.leftMargin和lp.rightMargin是Int类型，会有精度损失
-     */
-    fun getMinWidth(): Int = data.mAllTimelineWidth + data.mTimelineInterval / 2 * 2
-
-    /**
-     * 得到TimeSElectView的外部最小高度
-     */
-    fun getMinOuterHeight(): Int = 500
-
     companion object {
         /**
          * 为了显示CardView虚影的上下间隔值
          */
-        const val topBottomMargin = 10
+        const val TOP_BOTTOM_MARGIN = 10
 
         /**
          * 为了显示CardView虚影的左右间隔值
          */
-        const val leftRightMargin = 3
+        const val LEFT_RIGHT_MARGIN = 3
     }
 
     init {
         orientation = HORIZONTAL
         val cardView = CardView(context)
         val lp = LayoutParams(data.mTimelineWidth, LayoutParams.MATCH_PARENT)
-        lp.topMargin = topBottomMargin
-        lp.bottomMargin = topBottomMargin
-        lp.leftMargin = leftRightMargin
-        lp.rightMargin = leftRightMargin
+        lp.topMargin = TOP_BOTTOM_MARGIN
+        lp.bottomMargin = TOP_BOTTOM_MARGIN
+        lp.leftMargin = LEFT_RIGHT_MARGIN
+        lp.rightMargin = LEFT_RIGHT_MARGIN
         cardView.radius = data.mCardCornerRadius
         addView(cardView, lp)
         val lp2 = LayoutParams(lp)
-        lp2.leftMargin += data.mTimelineInterval - leftRightMargin * 2
+        lp2.leftMargin += data.mTimelineInterval - LEFT_RIGHT_MARGIN * 2
         repeat(data.mTSViewAmount - 1) {
             val cardView2 = CardView(context)
             cardView2.radius = data.mCardCornerRadius

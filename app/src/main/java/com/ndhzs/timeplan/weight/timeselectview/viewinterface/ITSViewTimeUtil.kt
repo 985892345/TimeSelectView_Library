@@ -6,7 +6,7 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
  * @date 2021/4/4
  * @description [com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil]
  */
-interface ITSViewTime {
+interface ITSViewTimeUtil {
     fun getNowTimeHeight(): Int
     fun getTimeHeight(time: Float): Int
     fun getTime(insideY: Int, position: Int): String

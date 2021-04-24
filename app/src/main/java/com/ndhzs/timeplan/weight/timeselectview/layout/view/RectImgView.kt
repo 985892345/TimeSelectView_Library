@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -14,7 +13,7 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectImgView
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 import kotlin.math.sqrt
 
 /**
@@ -23,7 +22,7 @@ import kotlin.math.sqrt
  * @description [com.ndhzs.timeplan.weight.timeselectview.layout.ScrollLayout]之下
  */
 @SuppressLint("ViewConstructor")
-class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInternalData, time: ITSViewTime, draw: IRectDraw) : View(context) {
+class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInternalData, time: ITSViewTimeUtil, draw: IRectDraw) : View(context) {
 
     /**
      * 整体移动开始时调用

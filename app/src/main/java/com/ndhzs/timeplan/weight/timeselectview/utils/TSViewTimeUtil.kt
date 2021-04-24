@@ -1,6 +1,6 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils
 
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
@@ -11,7 +11,7 @@ import kotlin.math.min
  * @date 2021/3/20
  * @description 用来进行时间与高度转换的类
  */
-class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTime {
+class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
 
     companion object {
         /**

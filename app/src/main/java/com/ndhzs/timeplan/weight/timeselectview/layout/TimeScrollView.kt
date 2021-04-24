@@ -10,7 +10,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeplan.weight.timeselectview.utils.tscrollview.TScrollViewTouchEvent
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITimeScrollView
 import kotlin.math.min
 
@@ -20,22 +20,7 @@ import kotlin.math.min
  * @description [com.ndhzs.timeplan.weight.timeselectview.TimeSelectView]之下，[ScrollLayout]之上
  */
 @SuppressLint("ViewConstructor")
-class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: TSViewInternalData, time: ITSViewTime, rectManger: IRectManger) : TScrollViewTouchEvent(context) {
-
-    /**
-     * 点击当前任务的监听
-     */
-    fun setOnClickListener(onClick: ((bean: TSViewBean) -> Unit)) {
-        mOnClickListener = onClick
-    }
-
-    /**
-     * 设置长按监听接口
-     */
-    fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit)) {
-        mOnLongClickStartListener = onStart
-        mOnLongClickEndListener = onEnd
-    }
+class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: TSViewInternalData, time: ITSViewTimeUtil, rectManger: IRectManger) : TScrollViewTouchEvent(context) {
 
     /**
      * 解决与ViewPager2的同向滑动冲突
@@ -67,9 +52,6 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private val mRectManger = rectManger
     private val mITimeScrollView = iTimeScrollView
     private var mLinkedViewPager2: ViewPager2? = null
-    private var mOnClickListener: ((bean: TSViewBean) -> Unit)? = null
-    private var mOnLongClickStartListener: ((condition: TSViewLongClick) -> Unit)? = null
-    private var mOnLongClickEndListener: ((condition: TSViewLongClick) -> Unit)? = null
 
     private var mIsCanLongClick = true
     var mClickRectViewPosition: Int? = null
@@ -186,7 +168,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         if (mClickRectViewPosition != null) {
             val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
-                mOnClickListener?.invoke(bean)
+                mData.mOnClickListener?.invoke(bean)
             }
         }
     }
@@ -197,12 +179,12 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mUpperLimit = mRectManger.getClickUpperLimit()
         mLowerLimit = mRectManger.getClickLowerLimit()
         mForbidSlideCenter = insideY - scrollY
-        mOnLongClickStartListener?.invoke(mData.mCondition)
+        mData.mOnLongClickStartListener?.invoke(mData.mCondition)
     }
 
     private fun onLongClickEnd(condition: TSViewLongClick) {
         mData.mIsLongClick = false
-        mOnLongClickEndListener?.invoke(condition)
+        mData.mOnLongClickEndListener?.invoke(condition)
     }
 
     override fun setLinkedViewPager2(): ViewPager2? = mLinkedViewPager2

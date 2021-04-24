@@ -2,14 +2,11 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.view.Gravity
 import android.widget.FrameLayout
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.NowTimeLineView
-import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
-import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IChildLayout
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
  * @author 985892345
@@ -17,7 +14,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
  * @description [ParentLayout]之下，[com.ndhzs.timeplan.weight.timeselectview.layout.view.RectView]之上
  */
 @SuppressLint("ViewConstructor")
-class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInternalData, time: ITSViewTime, position: Int) : FrameLayout(context) {
+class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInternalData, time: ITSViewTimeUtil, position: Int) : FrameLayout(context) {
 
     /**
      * 设置是否显示当前时间线

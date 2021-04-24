@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.util.Log
 import com.ndhzs.timeplan.R
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import java.io.PrintWriter
 
@@ -70,6 +71,10 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
             field = value
         }
     private var onConditionEndListener: ((condition: TSViewLongClick) -> Unit)? = null //长按结束的回调
+
+    var mOnClickListener: ((bean: TSViewBean) -> Unit)? = null
+    var mOnLongClickStartListener: ((condition: TSViewLongClick) -> Unit)? = null
+    var mOnLongClickEndListener: ((condition: TSViewLongClick) -> Unit)? = null
 
     /**
      * 设置长按结束的监听

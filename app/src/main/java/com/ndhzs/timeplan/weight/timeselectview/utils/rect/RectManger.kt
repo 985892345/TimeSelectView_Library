@@ -7,15 +7,14 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
-import kotlin.math.abs
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
  * @author 985892345
  * @date 2021/3/22
  * @description 用来专门管理与Rect相关的计算，比如求上下其他的Rect的边界
  */
-class RectManger(data: TSViewInternalData, time: ITSViewTime,
+class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
                  /**
                   * 第一个Int为开始点击的Rect的高度值，第二个Int为RectView的position值
                   * @param initialSideY 开始点击的Rect的高度值
@@ -45,7 +44,8 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
     /**
      * 初始化Bean
      */
-    fun initializeBean(beans: List<TSViewBean>) {
+    fun initializeBean(beans: MutableList<TSViewBean>) {
+        mBeans = beans
         mAllRectWithBean.clear()
         beans.forEach {
             val rect = Rect(0,
@@ -67,6 +67,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
     private val mClickTopBottomCallbacks = clickTopBottomCallbacks
     private var mClickUpperLimit = mData.mRectViewTop
     private var mClickLowerLimit = mData.mRectViewBottom
+    private lateinit var mBeans: MutableList<TSViewBean>
     private val mAllRectWithBean = HashMap<Rect, TSViewBean>()
     private var mDeletedRect = Rect()
     private lateinit var mDeletedBean: TSViewBean
@@ -97,6 +98,18 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
         return mDeletedBean
     }
 
+    override fun addBean(bean: TSViewBean) {
+        mBeans.add(bean)
+        mData.mDataChangeListener?.onDataAdd(bean)
+    }
+
+
+    override fun deleteBean(bean: TSViewBean) {
+        mBeans.remove(bean)
+        mData.mDataChangeListener?.onDataDelete(mDeletedBean)
+    }
+
+
     /**
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean
      */
@@ -120,6 +133,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
                     rect.right,
                     rect.bottom + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
             mAllRectWithBean[newRect] = bean
+            addBean(bean)
         }
 
         override fun addRectFromDeleted(rect: Rect) {
@@ -132,7 +146,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             mAllRectWithBean[newRect] = mDeletedBean
         }
 
-        override fun getRectWithBeanMap(): HashMap<Rect, TSViewBean> {
+        override fun getRectWithBeanMap(): Map<Rect, TSViewBean> {
             if (mData.mTSViewAmount == 1) {
                 return mAllRectWithBean
             }
@@ -148,7 +162,11 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             return rectWithBean
         }
 
-        fun getUpperLimit(insideY: Int, rectWithBean: HashMap<Rect, TSViewBean> = getRectWithBeanMap()): Int {
+        override fun deleteRect(bean: TSViewBean) {
+            this@RectManger.deleteBean(bean)
+        }
+
+        fun getUpperLimit(insideY: Int, rectWithBean: Map<Rect, TSViewBean> = getRectWithBeanMap()): Int {
             val bottoms = ArrayList<Int>()
             rectWithBean.forEach {
                 val bottom = it.key.bottom
@@ -167,7 +185,7 @@ class RectManger(data: TSViewInternalData, time: ITSViewTime,
             }
         }
 
-        fun getLowerLimit(insideY: Int, rectWithBean: HashMap<Rect, TSViewBean> = getRectWithBeanMap()): Int {
+        fun getLowerLimit(insideY: Int, rectWithBean: Map<Rect, TSViewBean> = getRectWithBeanMap()): Int {
             val tops = ArrayList<Int>()
             rectWithBean.forEach {
                 val top = it.key.top

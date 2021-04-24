@@ -2,7 +2,6 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
-import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
@@ -20,6 +19,8 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.*
  * @description 所有View的管理工具
  */
 class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
+
+    var mVpPosition = 0
 
     private val mContext = context
     private val mData = data
@@ -73,13 +74,16 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
     }
 
 
-    inner class My1ITSView : ITSView {
+    inner class My1IVpLayout : IVpLayout {
         override fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
             v.addView(mBackCardView, lp)
         }
 
-        override fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
+        override fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?) {
             v.addView(mTimeScrollView, lp)
+            if (viewPager2 != null) {
+                mTimeScrollView.setLinkedViewPager2(viewPager2)
+            }
         }
 
         override fun showNowTimeLine() {
@@ -94,39 +98,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             }
         }
 
-        override fun setOnClickListener(onClick: (bean: TSViewBean) -> Unit) {
-            mTimeScrollView.setOnClickListener(onClick)
-        }
-
-        override fun setOnTSVLongClickListener(onStart: (condition: TSViewLongClick) -> Unit, onEnd: (condition: TSViewLongClick) -> Unit) {
-            mTimeScrollView.setOnTSVLongClickListener(onStart, onEnd)
-        }
-
-        override fun setLinkedViewPager2(viewPager2: ViewPager2) {
-            mTimeScrollView.setLinkedViewPager2(viewPager2)
-        }
-
-        override fun setTimeInterval(timeInterval: Int) {
-            if (60 % timeInterval == 0) {
-                mData.mTimeInterval = timeInterval
-            }else {
-                mData.mTimeInterval = 15
-            }
-        }
-
-        override fun getOuterMinWidth(): Int {
-            return mBackCardView.getMinWidth()
-        }
-
-        override fun getOuterMinHeight(): Int {
-            return mBackCardView.getMinOuterHeight()
-        }
-
-        override fun initializeBean(beans: List<TSViewBean>) {
+        override fun initializeBean(beans: MutableList<TSViewBean>) {
             mRectManger.initializeBean(beans)
-            mTimeScrollView.post {
-                notifyAllRectRefresh()
-            }
+            notifyAllRectRefresh()
         }
     }
 

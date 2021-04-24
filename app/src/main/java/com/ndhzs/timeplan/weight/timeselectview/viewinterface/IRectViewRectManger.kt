@@ -12,5 +12,6 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 interface IRectViewRectManger {
     fun addNewRect(rect: Rect, bean: TSViewBean)
     fun addRectFromDeleted(rect: Rect)
-    fun getRectWithBeanMap(): HashMap<Rect, TSViewBean>
+    fun getRectWithBeanMap(): Map<Rect, TSViewBean>
+    fun deleteRect(bean: TSViewBean)
 }

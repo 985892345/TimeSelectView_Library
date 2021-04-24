@@ -11,8 +11,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IScrollLayout
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
-import kotlin.math.max
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
  * @author 985892345
@@ -23,7 +22,7 @@ import kotlin.math.max
  * [ParentLayout]、[com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView]之上
  */
 @SuppressLint("ViewConstructor")
-class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewInternalData, time: ITSViewTime, rectManger: IRectManger) : FrameLayout(context) {
+class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewInternalData, time: ITSViewTimeUtil, rectManger: IRectManger) : FrameLayout(context) {
 
     init {
         val lp1 = LayoutParams(data.mAllTimelineWidth, LayoutParams.MATCH_PARENT)

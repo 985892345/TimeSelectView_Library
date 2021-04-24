@@ -3,15 +3,14 @@ package com.ndhzs.timeplan.weight.timeselectview
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
-import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
+import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
+import com.ndhzs.timeplan.weight.timeselectview.adapter.TSViewVpAdapter
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.BackCardView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewObjectsManger
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSView
 
 /**
  * @author 985892345
@@ -25,8 +24,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 设置是否显示当前时间线
      */
-    fun showNowTimeLine() {
-        mITSView.showNowTimeLine()
+    fun showNowTimeLine(position: Int = mViewPager2.currentItem) {
+        mVpAdapter.showNowTimeLine(position)
     }
 
     /**
@@ -34,7 +33,11 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * @param timeInterval 必须为60的因数，若不是，将以15为间隔数
      */
     fun setTimeInterval(timeInterval: Int) {
-        mITSView.setTimeInterval(timeInterval)
+        if (60 % timeInterval == 0) {
+            mData.mTimeInterval = timeInterval
+        }else {
+            mData.mTimeInterval = 15
+        }
     }
 
     /**
@@ -43,7 +46,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun setIsShowDiffTime(boolean: Boolean) {
         if (mData.mIsShowDiffTime != boolean) {
             mData.mIsShowDiffTime = boolean
-            mITSView.notifyAllRectRefresh()
+            notifyAllItemRefresh()
         }
     }
 
@@ -53,16 +56,27 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     fun setIsShowTopBottomTime(boolean: Boolean) {
         if (mData.mIsShowStartEndTime != boolean) {
             mData.mIsShowStartEndTime = boolean
-            mITSView.notifyAllRectRefresh()
+            notifyAllItemRefresh()
         }
     }
 
     /**
-     * 通知所有的任务刷新
-     * 由于invalidate(Rect)已被官方废弃，官方推荐invalidate()刷新全部，所以就没有实现单独刷新某一个的方法
+     * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
      */
-    fun notifyAllTaskRefresh() {
-        mITSView.notifyAllRectRefresh()
+    fun notifyItemRefresh(position: Int = mViewPager2.currentItem) {
+        mVpAdapter.notifyItemChanged(position)
+    }
+
+    /**
+     * 通知所有item刷新
+     */
+    fun notifyAllItemRefresh() {
+        mVpAdapter.notifyDataSetChanged()
+    }
+
+    fun notifyNowItemClear(position: Int = mViewPager2.currentItem) {
+        mBeans[position].clear()
+        notifyItemRefresh(position)
     }
 
     /**
@@ -70,22 +84,15 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 注意：修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
      */
     fun setOnTSVClickListener(onClick: (bean: TSViewBean) -> Unit) {
-        mITSView.setOnClickListener(onClick)
+        mData.mOnClickListener = onClick
     }
 
     /**
      * 设置长按监听接口
      */
     fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit)) {
-        mITSView.setOnTSVLongClickListener(onStart, onEnd)
-    }
-
-    /**
-     * 解决与ViewPager2的同向滑动冲突
-     * @param viewPager2 传入ViewPager2，不是ViewPager
-     */
-    fun setLinkedViewPager2(viewPager2: ViewPager2) {
-        mITSView.setLinkedViewPager2(viewPager2)
+        mData.mOnLongClickStartListener = onStart
+        mData.mOnLongClickEndListener = onEnd
     }
 
     /**
@@ -104,29 +111,45 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 初始化数据，传入TSViewBean的数组
+     * 初始化数据，传入TSViewBean的数组。
+     *
+     * 以beans的一维长度为ViewPager2的长度。
+     *
+     * @param currentItem 默认值为1
+     * @param smoothScroll 默认值为false，是快速地滑动到currentItem
      */
-    fun initializeBean(beans: List<TSViewBean>) {
-        mITSView.initializeBean(beans)
+    fun initializeBean(beans: ArrayList<ArrayList<TSViewBean>>, currentItem: Int = 1, smoothScroll: Boolean = false) {
+        if (childCount == 0) {
+            mBeans = beans
+            mVpAdapter = TSViewVpAdapter(mBeans, mData, mViewPager2)
+            mViewPager2.adapter = mVpAdapter
+            mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
+            setCurrentItem(currentItem, smoothScroll)
+            addView(mViewPager2)
+        }
+    }
+
+    /**
+     * 设置ViewPager2的OnPageChangeCallback
+     */
+    fun registerOnPageChangeCallback(callback: OnPageChangeCallback) {
+        mViewPager2.registerOnPageChangeCallback(callback)
+    }
+
+    /**
+     * 设置当前ViewPager2的页数位置
+     */
+    fun setCurrentItem(item: Int, smoothScroll: Boolean = true) {
+        mViewPager2.setCurrentItem(item, smoothScroll)
     }
 
     private val mData = TSViewInternalData(context, attrs)
-    private val mUtil = TSViewObjectsManger(context, mData)
-    private val mITSView: ITSView = mUtil.My1ITSView()
-
-    init {
-        val lp1 = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
-        lp1.gravity = Gravity.CENTER
-        mITSView.addBackCardView(lp1, this)
-
-        val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        lp2.topMargin = BackCardView.topBottomMargin
-        lp2.bottomMargin = BackCardView.topBottomMargin
-        mITSView.addTimeScrollView(lp2, this)
-    }
+    private lateinit var mBeans: ArrayList<ArrayList<TSViewBean>>
+    private val mViewPager2 = ViewPager2(context)
+    private lateinit var mVpAdapter: TSViewVpAdapter
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val minWidth = mITSView.getOuterMinWidth()
+        val minWidth = mData.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2
         var newWidthMS = widthMeasureSpec
         var newHeightMS = heightMeasureSpec
         when (MeasureSpec.getMode(widthMeasureSpec)) {
@@ -144,7 +167,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
         when (MeasureSpec.getMode(heightMeasureSpec)) {
             MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
-                newHeightMS = MeasureSpec.makeMeasureSpec(mITSView.getOuterMinHeight(), MeasureSpec.EXACTLY)
+                newHeightMS = MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY)
             }
             MeasureSpec.EXACTLY -> {
             }

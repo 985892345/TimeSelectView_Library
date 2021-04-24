@@ -15,7 +15,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectView
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
-import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTime
+import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -28,7 +28,7 @@ import kotlin.math.sqrt
  */
 @SuppressLint("ViewConstructor")
 class RectView(context: Context, data: TSViewInternalData,
-               time: ITSViewTime, draw: IRectDraw,
+               time: ITSViewTimeUtil, draw: IRectDraw,
                iRectViewRectManger: IRectViewRectManger,
                iRectView: IRectView, position: Int) : View(context) {
 
@@ -127,7 +127,7 @@ class RectView(context: Context, data: TSViewInternalData,
     private var mUpperLimit = 0
     private var mLowerLimit = 0
     private var mDeletedBean: TSViewBean? = null
-    private var mRectWithBean: HashMap<Rect, TSViewBean>? = null
+    private var mRectWithBean: Map<Rect, TSViewBean>? = null
 
     override fun onDraw(canvas: Canvas) {
         if (!mInitialRect.isEmpty) {
@@ -223,7 +223,6 @@ class RectView(context: Context, data: TSViewInternalData,
                             val insideColor = mData.mDefaultInsideColor
                             val bean = TSViewBean(name, startTime, endTime, diffTime, borderColor, insideColor)
                             mIRectManger.addNewRect(rect, bean)
-                            mData.mDataChangeListener?.onDataAdd(bean)
                         }
                         else -> {
                         }
@@ -245,7 +244,7 @@ class RectView(context: Context, data: TSViewInternalData,
     private fun getCorrectRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         if (rect.isEmpty) {
             rectChangeEndCallbacks.invoke()
-            mData.mDataChangeListener?.onDataDelete(mDeletedBean!!)
+            mIRectManger.deleteRect(mDeletedBean!!)
             return null
         }
         return if (abs(insideUpY - mInitialY) < UNCONSTRAINED_DISTANCE) { //抬起时的高度与按下去的起始高度的距离差在一定的范围内就
@@ -350,6 +349,6 @@ class RectView(context: Context, data: TSViewInternalData,
         })
         animator.duration = 4 * rect.height().toLong()
         animator.start()
-        mData.mDataChangeListener?.onDataDelete(mDeletedBean!!)
+        mIRectManger.deleteRect(mDeletedBean!!)
     }
 }
