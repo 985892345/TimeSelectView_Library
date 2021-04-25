@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Rect
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.*
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectView
@@ -12,6 +12,8 @@ import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectDraw
 import com.ndhzs.timeplan.weight.timeselectview.utils.rect.RectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.*
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * @author 985892345
@@ -21,6 +23,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.*
 class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
     var mVpPosition = 0
+    lateinit var mFirstDate: String
 
     private val mContext = context
     private val mData = data
@@ -98,9 +101,21 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             }
         }
 
-        override fun initializeBean(beans: MutableList<TSViewBean>) {
-            mRectManger.initializeBean(beans)
+        override fun initializeBean(taskBeans: MutableList<TSViewTaskBean>) {
+            mRectManger.initializeBean(taskBeans)
             notifyAllRectRefresh()
+        }
+
+        override fun backCurrentTime() {
+            mTimeScrollView.backCurrentTime()
+        }
+
+        override fun moveTo(scrollY: Int) {
+            mTimeScrollView.scrollY = scrollY
+        }
+
+        override fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit)) {
+            mTimeScrollView.setOnScrollListener(l)
         }
     }
 
@@ -127,6 +142,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun getRectViewPosition(rowX: Int): Int? {
             return this@TSViewObjectsManger.getRectViewPosition(rowX)
+        }
+
+        override fun getVpPosition(): Int {
+            return mVpPosition
         }
     }
 
@@ -163,7 +182,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             return mRectImgView.getRawInitialRect()
         }
 
-        override fun getDeleteBean(): TSViewBean {
+        override fun getDeleteBean(): TSViewTaskBean {
             return mRectManger.getDeletedBean()
         }
 
@@ -251,6 +270,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun setIsCanLongClick(boolean: Boolean) {
             mTimeScrollView.setIsCanLongClick(boolean)
+        }
+
+        override fun getDay(): String {
+            return TSViewTimeUtil.getDay(mFirstDate, mVpPosition)
         }
     }
 }

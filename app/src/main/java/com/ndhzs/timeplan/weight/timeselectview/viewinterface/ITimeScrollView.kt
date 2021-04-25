@@ -1,8 +1,6 @@
 package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
-import android.graphics.Rect
 import android.view.ViewGroup
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 
 /**
  * @author 985892345
@@ -17,4 +15,5 @@ interface ITimeScrollView {
     fun getOuterTop(): Int
     fun getOuterBottom(): Int
     fun getRectViewPosition(rowX: Int): Int?
+    fun getVpPosition(): Int
 }

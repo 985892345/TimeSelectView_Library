@@ -5,20 +5,35 @@ import android.content.Context
 import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewObjectsManger
+import java.util.*
 
 @SuppressLint("ViewConstructor")
 class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager2) : FrameLayout(context) {
 
-    fun initialize(beans: MutableList<TSViewBean>, vpPosition: Int) {
-        mIVpLayout.initializeBean(beans)
+    fun initialize(dayBeans: TSViewDayBean, vpPosition: Int, firstDate: String) {
+        mIVpLayout.initializeBean(dayBeans.taskBeans)
         mObjectManger.mVpPosition = vpPosition
+        mObjectManger.mFirstDate = firstDate
+    }
+
+    fun setOnScrollListener(l: (scrollY: Int, vpPosition: Int) -> Unit) {
+        mIVpLayout.setOnScrollListener(l)
     }
 
     fun showNowTimeLine() {
         mIVpLayout.showNowTimeLine()
+    }
+
+    fun backCurrentTime() {
+        mIVpLayout.backCurrentTime()
+    }
+
+    fun moveTo(scrollY: Int) {
+        mIVpLayout.moveTo(scrollY)
     }
 
     private val mObjectManger = TSViewObjectsManger(context, data)

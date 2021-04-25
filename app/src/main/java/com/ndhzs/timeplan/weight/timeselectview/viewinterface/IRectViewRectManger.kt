@@ -1,7 +1,7 @@
 package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
 import android.graphics.Rect
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 
 /**
  * @author 985892345
@@ -10,8 +10,8 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
  * @description
  */
 interface IRectViewRectManger {
-    fun addNewRect(rect: Rect, bean: TSViewBean)
+    fun addNewRect(rect: Rect, taskBean: TSViewTaskBean)
     fun addRectFromDeleted(rect: Rect)
-    fun getRectWithBeanMap(): Map<Rect, TSViewBean>
-    fun deleteRect(bean: TSViewBean)
+    fun getRectWithBeanMap(): Map<Rect, TSViewTaskBean>
+    fun deleteRect(taskBean: TSViewTaskBean)
 }

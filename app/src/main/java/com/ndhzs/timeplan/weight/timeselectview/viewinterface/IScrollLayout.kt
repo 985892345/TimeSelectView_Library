@@ -2,7 +2,7 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
 import android.graphics.Rect
 import android.view.ViewGroup
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 
 /**
  * @author 985892345
@@ -23,7 +23,7 @@ interface IScrollLayout {
      */
     fun getRectImgViewRawRect(): Rect
     fun getRectImgViewInitialRect(): Rect
-    fun getDeleteBean(): TSViewBean
+    fun getDeleteBean(): TSViewTaskBean
     fun getStartEndDTime(top: Int, bottom: Int, position: Int): Array<String>
     fun slideRectImgView(dx: Int, dy: Int)
     fun slideEndRectImgView(rawFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit? = {})

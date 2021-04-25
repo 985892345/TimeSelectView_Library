@@ -9,7 +9,7 @@ import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.core.animation.addListener
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectImgView
@@ -28,7 +28,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
      * 整体移动开始时调用
      * @param rect RectView内部坐标值的Rect
      */
-    fun start(rect: Rect, bean: TSViewBean, position: Int) {
+    fun start(rect: Rect, taskBean: TSViewTaskBean, position: Int) {
         mPosition = position
         mRectViewInterval = mIRectImgView.getRectViewInterval()
         val distance = mIRectImgView.getRectViewToRectImgViewDistance(position)
@@ -37,7 +37,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
         mRect.right = rect.right + distance
         mRect.bottom = rect.bottom
         mInitialRect.set(mRect)
-        mBean = bean
+        mTaskBean = taskBean
         for (i in mDividerLines.indices) {
             if (i == 0) {
                 mDividerLines[i] = Int.MIN_VALUE
@@ -174,7 +174,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     private val mRect = Rect()
     private val mInitialRect = Rect()
     private var mPosition = 0
-    private lateinit var mBean: TSViewBean
+    private lateinit var mTaskBean: TSViewTaskBean
     private val mDividerLines = IntArray(data.mTSViewAmount + 1)
     private var mRectViewInterval = 0
 
@@ -187,7 +187,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
 
     override fun onDraw(canvas: Canvas) {
         if (!mRect.isEmpty) {
-            mDraw.drawRect(canvas, mRect, mBean.name, mBean.borderColor, mBean.insideColor, mTaskNameSize)
+            mDraw.drawRect(canvas, mRect, mTaskBean.name, mTaskBean.borderColor, mTaskBean.insideColor, mTaskNameSize)
             val top = mRect.top
             val bottom = mRect.bottom
             for (i in 0 until mDividerLines.size - 1) {
@@ -196,7 +196,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
                 }
             }
             if (mData.mIsShowDiffTime) {
-                mDraw.drawArrows(canvas, mRect, mBean.diffTime, mTimeSize)
+                mDraw.drawArrows(canvas, mRect, mTaskBean.diffTime, mTimeSize)
             }
         }
     }

@@ -1,7 +1,6 @@
 package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
-import android.graphics.Rect
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 
 /**
  * @author 985892345
@@ -14,10 +13,10 @@ interface IRectManger {
     fun getClickLowerLimit(): Int
     fun getUpperLimit(insideY: Int, position: Int): Int
     fun getLowerLimit(insideY: Int, position: Int): Int
-    fun getBean(insideY: Int, position: Int): TSViewBean?
-    fun getDeletedBean(): TSViewBean
-    fun addBean(bean: TSViewBean)
-    fun deleteBean(bean: TSViewBean)
+    fun getBean(insideY: Int, position: Int): TSViewTaskBean?
+    fun getDeletedBean(): TSViewTaskBean
+    fun addBean(taskBean: TSViewTaskBean)
+    fun deleteBean(taskBean: TSViewTaskBean)
 
     /**
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean

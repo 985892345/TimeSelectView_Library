@@ -1,6 +1,9 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils
 
+import android.util.Log
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
+import java.io.PrintStream
+import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
@@ -38,6 +41,15 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
          * String时间文字的小时与分钟的分隔符
          */
         private const val TIME_STRING_SPLIT_SYMBOL = ":"
+
+        fun getDay(firstDate: String, diff: Int): String {
+            val sdf = SimpleDateFormat("yyyy-M-d")
+            val date = sdf.parse(firstDate)
+            val calendar = Calendar.getInstance()
+            calendar.time = date!!
+            calendar.add(Calendar.DATE, diff)
+            return sdf.format(calendar.time)
+        }
     }
 
     private val mData = data

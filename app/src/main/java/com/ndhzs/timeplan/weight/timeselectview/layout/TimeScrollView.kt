@@ -3,7 +3,6 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
@@ -41,6 +40,31 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         }
     }
 
+    /**
+     * 回到CurrentTime
+     */
+    fun backCurrentTime() {
+        removeCallbacks(mBackCurrentTimeRun)
+        scrollY = (when (mData.mCenterTime) {
+            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+                mTime.getNowTimeHeight() - height / 2
+            }
+            TSViewTimeUtil.CENTER_TIME_CENTER -> {
+                mData.mInsideTotalHeight / 2 - height / 2
+            }
+            else -> {
+                mTime.getTimeHeight(mData.mCenterTime) - height / 2
+            }
+        })
+    }
+
+    /**
+     * 设置滑动监听，只有在当前VpPosition == ViewPager2.currentItem时才会回调
+     */
+    fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit)) {
+        mOnScrollListener = l
+    }
+
     companion object {
         private const val AUTO_MOVE_THRESHOLD = 150 //自动滑动的阈值
         private const val MAX_AUTO_SLIDE_VELOCITY = 7F //最大滑动速度
@@ -52,6 +76,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private val mRectManger = rectManger
     private val mITimeScrollView = iTimeScrollView
     private var mLinkedViewPager2: ViewPager2? = null
+    private var mOnScrollListener: ((scrollY: Int, vpPosition: Int) -> Unit)? = null
 
     private var mIsCanLongClick = true
     var mClickRectViewPosition: Int? = null
@@ -332,6 +357,16 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 }
             }
             else -> {}
+        }
+    }
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        mLinkedViewPager2?.let {
+            val currentItem = it.currentItem
+            if (currentItem == mITimeScrollView.getVpPosition()) {
+                mOnScrollListener?.invoke(t, currentItem)
+            }
         }
     }
 }

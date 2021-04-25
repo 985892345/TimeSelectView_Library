@@ -1,11 +1,8 @@
 package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
-import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 
 /**
  * @author 985892345
@@ -18,5 +15,8 @@ interface IVpLayout {
     fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?)
     fun showNowTimeLine()
     fun notifyAllRectRefresh()
-    fun initializeBean(beans: MutableList<TSViewBean>)
+    fun initializeBean(taskBeans: MutableList<TSViewTaskBean>)
+    fun backCurrentTime()
+    fun moveTo(scrollY: Int)
+    fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit))
 }

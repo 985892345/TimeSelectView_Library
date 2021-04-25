@@ -7,10 +7,15 @@ import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.ndhzs.timeplan.weight.timeselectview.adapter.TSViewVpAdapter
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.BackCardView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
+import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * @author 985892345
@@ -63,8 +68,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
      */
-    fun notifyItemRefresh(position: Int = mViewPager2.currentItem) {
-        mVpAdapter.notifyItemChanged(position)
+    fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
+        mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
     }
 
     /**
@@ -74,16 +79,11 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         mVpAdapter.notifyDataSetChanged()
     }
 
-    fun notifyNowItemClear(position: Int = mViewPager2.currentItem) {
-        mBeans[position].clear()
-        notifyItemRefresh(position)
-    }
-
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      * 注意：修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
      */
-    fun setOnTSVClickListener(onClick: (bean: TSViewBean) -> Unit) {
+    fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
         mData.mOnClickListener = onClick
     }
 
@@ -111,21 +111,22 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 初始化数据，传入TSViewBean的数组。
+     * 初始化数据，传入TSViewDayBean的数组。
      *
      * 以beans的一维长度为ViewPager2的长度。
      *
      * @param currentItem 默认值为1
      * @param smoothScroll 默认值为false，是快速地滑动到currentItem
      */
-    fun initializeBean(beans: ArrayList<ArrayList<TSViewBean>>, currentItem: Int = 1, smoothScroll: Boolean = false) {
+    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
-            mBeans = beans
-            mVpAdapter = TSViewVpAdapter(mBeans, mData, mViewPager2)
+            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, dayBeans[0].day)
             mViewPager2.adapter = mVpAdapter
             mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
             setCurrentItem(currentItem, smoothScroll)
             addView(mViewPager2)
+        }else {
+            throw Exception("TimeSelectView has been initialized!")
         }
     }
 
@@ -136,6 +137,10 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         mViewPager2.registerOnPageChangeCallback(callback)
     }
 
+    fun setOnScrollListener(l: (scrollY: Int) -> Unit) {
+        mVpAdapter.setOnScrollListener(l)
+    }
+
     /**
      * 设置当前ViewPager2的页数位置
      */
@@ -144,7 +149,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     private val mData = TSViewInternalData(context, attrs)
-    private lateinit var mBeans: ArrayList<ArrayList<TSViewBean>>
+    private lateinit var mTaskBeans: ArrayList<ArrayList<TSViewTaskBean>>
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
 
@@ -177,8 +182,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     interface OnDataChangeListener {
-        fun onDataAdd(newData: TSViewBean)
-        fun onDataDelete(deletedData: TSViewBean)
-        fun onDataAlter(alterData: TSViewBean)
+        fun onDataAdd(newData: TSViewTaskBean)
+        fun onDataDelete(deletedData: TSViewTaskBean)
+        fun onDataAlter(alterData: TSViewTaskBean)
     }
 }

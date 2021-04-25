@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils.tscrollview
 import android.animation.ValueAnimator
 import android.content.Context
 import android.os.Vibrator
+import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -33,7 +34,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             }
             it.addListener(onEnd = { mAnimator = null })
             val duration = (sqrt(abs(scrollY - y).toFloat()) * 35).toLong()
-            it.duration = if (duration < 500) 500 else duration
+            it.duration = if (duration < 500) 500 else if (duration > 1100) 1100 else duration
             it.interpolator = OvershootInterpolator(1.2F)
             it.start()
         }

@@ -4,7 +4,10 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
+import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
+import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * @author 985892345
@@ -19,20 +22,22 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val beans = ArrayList<ArrayList<TSViewBean>>()
+        val beans = ArrayList<TSViewDayBean>()
+        val calendar = Calendar.getInstance()
         repeat(20) {
-            beans.add(ArrayList())
+            beans.add(TSViewDayBean(calendar.time))
+            calendar.add(Calendar.DATE, 1)
         }
         mTimeView = findViewById(R.id.time_view)
         mTimeView.initializeBean(beans)
+        mTimeView.showNowTimeLine(1)
 
         findViewById<Button>(R.id.button_clear).setOnClickListener {
-            mTimeView.notifyItemRefresh()
+            mTimeView.notifyItemRefresh(isBackToCurrentTime = true)
         }
 
         findViewById<Button>(R.id.button_1).setOnClickListener {
             mTimeView.setTimeInterval(1)
-            mTimeView.setIsShowDiffTime(false)
         }
 
         findViewById<Button>(R.id.button_5).setOnClickListener {
