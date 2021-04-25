@@ -12,6 +12,7 @@ import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IScrollLayout
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
+import kotlin.math.abs
 
 /**
  * @author 985892345
@@ -114,7 +115,13 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                         mData.mDataChangeListener?.onDataAlter(bean)
                         val rect2 = Rect(0, topBottom[0], rawRect.width(), topBottom[1])
                         mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
-                        mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：位置必须在通知RectView后调用
+                        mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：这条语句位置必须在通知RectView后调用
+                    }
+
+                    if (mIsBack) { //抬起手后，回到原位置的时候通知TimeScrollView滑到原来的高度
+                        mIScrollLayout.notifyTimeScrollViewScrollToInitialHeight(mIScrollLayout.getRectImgViewInitialRect().centerY())
+                    }else { //抬起手后，在没有回到原位置的时候通知TimeScrollView自动滑到适宜的高度
+                        mIScrollLayout.notifyTimeScrollViewScrollToSuitableHeight()
                     }
                 }
                 mData.mCondition = NULL
@@ -123,6 +130,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         return true
     }
 
+    private var mIsBack = false
     private fun getRawLeftAndInsideTop(rawRect: Rect, prePosition: Int, nowPosition: Int, insideUpY: Int): IntArray {
         if (prePosition == nowPosition) {
             val rawLeft = getRawLeft(prePosition)
@@ -142,25 +150,31 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
             val nowPositionLeft = getRawLeft(nowPosition)
             return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
                 if (nowLowerLimit in top..bottom) { //1
+                    mIsBack = false
                     intArrayOf(nowPositionLeft, nowLowerLimit - rectHeight, nowPosition)
                 }else if (nowUpperLimit in top..bottom) { //2
+                    mIsBack = false
                     intArrayOf(nowPositionLeft, nowUpperLimit, nowPosition)
                 }else { //包括了3、4、5、6、7
                     if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
+                        mIsBack = true
                         val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                         intArrayOf(prePositionLeft, correctTop, prePosition)
                     }else {
                         val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
                         if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
+                            mIsBack = false
                             val correctTop = getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
                             intArrayOf(nowPositionLeft, correctTop, nowPosition)
                         } else { //4、5-2、6、7-2
+                            mIsBack = true
                             val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                             intArrayOf(prePositionLeft, correctTop, prePosition)
                         }
                     }
                 }
             }else { //包括 a 的所有情况
+                mIsBack = true
                 val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                 intArrayOf(prePositionLeft, correctTop, prePosition)
             }
@@ -193,22 +207,28 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
         //每个if对应了一种情况，具体请以序号看纸上的草图
         return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
             if (nowLowerLimit in top..bottom) { //1
+                mIsBack = false
                 nowLowerLimit - rectHeight
             }else if (nowUpperLimit in top..bottom) { //2
+                mIsBack = false
                 nowUpperLimit
             }else { //包括了3、4、5、6、7
                 if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
+                    mIsBack = true
                     getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
                 }else {
                     val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, position)
                     if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
+                        mIsBack = false
                         getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, position, insideUpY)
                     } else { //4、5-2、6、7-2
+                        mIsBack = true
                         getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
                     }
                 }
             }
         }else { //包括 a 的所有情况
+            mIsBack = true
             getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
         }
     }

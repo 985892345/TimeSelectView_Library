@@ -65,15 +65,30 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
         mEveryMinuteHeight[60] = mIntervalHeight.toFloat()
     }
 
+    /**
+     * 返回时间对应的合适高度
+     *
+     * 注意：当你设置的时间范围不存在当前时间时，会返回时间轴中心线高度，这么设计的理由是：该方法只能用于
+     * [com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]的自动回到CurrentTime时调用
+     */
     override fun getNowTimeHeight(): Int {
         return getTimeHeight(getNowTime())
     }
 
+    /**
+     * 返回当前时间与以当前position对应的时间轴的startTime的距离
+     */
     override fun getNowTimeHeight(position: Int): Int {
         val time = getNowTime()
         return mExtraHeight + ((time - mData.mTimeRangeArray[position][0]) * mIntervalHeight).toInt()
     }
 
+    /**
+     * 返回时间对应的合适高度
+     *
+     * 注意：当你设置的时间范围不存在当前时间时，会返回时间轴中心线高度，这么设计的理由是：该方法只能用于
+     * [com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]的自动回到CurrentTime时调用
+     */
     override fun getTimeHeight(time: Float): Int {
         var t = time
         var isIn = false
@@ -84,8 +99,8 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
                 break
             }
         }
-        if (!isIn) {
-            return -1
+        if (!isIn) { //当你设置的时间范围不存在当前时间时，自动以时间轴中心为中心线
+            t = (mData.mTimeRangeArray[0][1] - mData.mTimeRangeArray[0][0])/2F
         }
         return mExtraHeight + ((t - mData.mTimeRangeArray[0][0]) * mIntervalHeight).toInt()
     }

@@ -31,4 +31,6 @@ interface IScrollLayout {
     fun setIsCanLongClick(boolean: Boolean)
     fun notifyRectViewRedraw()
     fun notifyRectViewAddRectFromDeleted(rect: Rect, position: Int)
+    fun notifyTimeScrollViewScrollToSuitableHeight()
+    fun notifyTimeScrollViewScrollToInitialHeight(height: Int)
 }

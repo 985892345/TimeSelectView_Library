@@ -224,6 +224,14 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
         override fun notifyRectViewAddRectFromDeleted(rect: Rect, position: Int) {
             mRectViews[position].addRectFromDeleted(rect)
         }
+
+        override fun notifyTimeScrollViewScrollToSuitableHeight() {
+            mTimeScrollView.scrollToSuitableHeight()
+        }
+
+        override fun notifyTimeScrollViewScrollToInitialHeight(height: Int) {
+            mTimeScrollView.scrollToSuitableHeight(height)
+        }
     }
 
     inner class My4IParentLayout : IParentLayout {

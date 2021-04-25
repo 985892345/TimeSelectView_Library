@@ -14,28 +14,46 @@ import java.util.*
 @SuppressLint("ViewConstructor")
 class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager2) : FrameLayout(context) {
 
+    /**
+     * 初始化
+     */
     fun initialize(dayBeans: TSViewDayBean, vpPosition: Int, firstDate: String) {
         mIVpLayout.initializeBean(dayBeans.taskBeans)
         mObjectManger.mVpPosition = vpPosition
         mObjectManger.mFirstDate = firstDate
     }
 
+    /**
+     * 设置滑动监听接口
+     */
     fun setOnScrollListener(l: (scrollY: Int, vpPosition: Int) -> Unit) {
         mIVpLayout.setOnScrollListener(l)
     }
 
+    /**
+     * 显示当前时间线
+     */
     fun showNowTimeLine() {
         mIVpLayout.showNowTimeLine()
     }
 
+    /**
+     * 取消显示时间线
+     */
     fun cancelShowNowTimeLine() {
         mIVpLayout.cancelShowNowTimeLine()
     }
 
+    /**
+     * 快速回到设置的当前时间
+     */
     fun backCurrentTime() {
         mIVpLayout.backCurrentTime()
     }
 
+    /**
+     * 就是一个调用内部ScrollView的setScrollY方法
+     */
     fun moveTo(scrollY: Int) {
         mIVpLayout.moveTo(scrollY)
     }

@@ -65,6 +65,39 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mOnScrollListener = l
     }
 
+    /**
+     * 用于整体移动松手时自动滑动到适宜的高度
+     * @param height 默认为-1，代表整体移动的矩形能在新位置放下，那就自动滑到合适的高度；
+     * 当传入值时，表示整体移动的矩形不能在新的位置放下，那就滑到原来的高度，此高度由调用者提供
+     */
+    fun scrollToSuitableHeight(height: Int = -1) {
+        if (height == -1) {
+            var dy = 0
+            //以下为自动滑到适当位置的判断
+            when (mData.mCondition) {
+                TOP_SLIDE_DOWN, BOTTOM_SLIDE_DOWN, EMPTY_SLIDE_DOWN -> { //时间轴向上滑
+                    dy = mOuterUpY - (height - AUTO_MOVE_THRESHOLD) + 10
+                }
+                TOP_SLIDE_UP, BOTTOM_SLIDE_UP, EMPTY_SLIDE_UP -> { //时间轴向下滑
+                    dy = mOuterUpY - AUTO_MOVE_THRESHOLD - 10
+                }
+                INSIDE_SLIDE_DOWN -> { //时间轴向上滑
+                    val bottom = mITimeScrollView.getOuterBottom()
+                    dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
+                }
+                INSIDE_SLIDE_UP -> { //时间轴向下滑
+                    val top = mITimeScrollView.getOuterTop()
+                    dy = top - AUTO_MOVE_THRESHOLD - 10
+                }
+                else -> {
+                }
+            }
+            slowlyMoveBy(dy)
+        }else {
+            slowlyMoveTo(height - this.height / 2)
+        }
+    }
+
     companion object {
         private const val AUTO_MOVE_THRESHOLD = 150 //自动滑动的阈值
         private const val MAX_AUTO_SLIDE_VELOCITY = 7F //最大滑动速度
@@ -136,31 +169,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         removeCallbacks(mBackCurrentTimeRun)
     }
 
+    private var mOuterUpY = 0
     override fun dispatchTouchEventUp(outerX: Int, outerY: Int) {
+        mOuterUpY = outerY
         postDelayed(mBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
         if (mStartRun) {
             mStartRun = false
             removeCallbacks(mSlideRunnable)
-            var dy = 0
-            //以下为自动滑到适当位置的判断
-            when (mData.mCondition) {
-                TOP_SLIDE_DOWN, BOTTOM_SLIDE_DOWN, EMPTY_SLIDE_DOWN -> { //时间轴向上滑
-                    dy = outerY - (height - AUTO_MOVE_THRESHOLD) + 10
-                }
-                TOP_SLIDE_UP, BOTTOM_SLIDE_UP, EMPTY_SLIDE_UP -> { //时间轴向下滑
-                    dy = outerY - AUTO_MOVE_THRESHOLD - 10
-                }
-                INSIDE_SLIDE_DOWN -> { //时间轴向上滑
-                    val bottom = mITimeScrollView.getOuterBottom()
-                    dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
-                }
-                INSIDE_SLIDE_UP -> { //时间轴向下滑
-                    val top = mITimeScrollView.getOuterTop()
-                    dy = top - AUTO_MOVE_THRESHOLD - 10
-                }
-                else -> {}
-            }
-            slowlyMoveBy(dy)
         }
     }
 

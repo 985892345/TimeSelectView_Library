@@ -222,7 +222,14 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
         return super.onTouchEvent(ev)
     }
 
+    /**
+     * 事件分发中的DOWN事件处理
+     */
     protected open fun dispatchTouchEventDown(outerX: Int, outerY: Int) {}
+
+    /**
+     * 事件分发中的UP事件处理
+     */
     protected open fun dispatchTouchEventUp(outerX: Int, outerY: Int) {}
 
     /**
@@ -236,10 +243,27 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     protected open fun isInLongClickArea(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean = false
 
     /**
+     * 没有大范围和长距离的移动时调用的方法，简单来说就是一次点击事件
+     *
      * 此时已经经过了[dispatchTouchEventDown]、[dispatchTouchEventUp]、[onInterceptTouchEventDown]
+     * @return 此方法因为在onInterceptTouchEvent的UP事件中被调用，返回true可以防止事件向下传递
      */
     protected open fun onClick(insideX: Int, insideY: Int): Boolean = false
+
+    /**
+     * 通知长按开始的方法
+     */
     protected open fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {}
+
+    /**
+     * 处理与ViewPager2的同向滑动冲突
+     */
     protected open fun setLinkedViewPager2(): ViewPager2? = null
+
+    /**
+     * 自动滑动的处理，没有默认实现
+     *
+     * 该方法是在onInterceptTouchEvent的MOVE事件中被调用，此时事件并不是ScrollView在拦截，事件已经传递给子View了
+     */
     protected open fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int) {}
 }
