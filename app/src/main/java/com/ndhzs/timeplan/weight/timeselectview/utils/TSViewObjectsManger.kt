@@ -95,6 +95,12 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             }
         }
 
+        override fun cancelShowNowTimeLine() {
+            mChildLayouts.forEach{
+                it.cancelShowNowTimeLine()
+            }
+        }
+
         override fun notifyAllRectRefresh() {
             mRectViews.forEach {
                 it.notifyRectRedraw()

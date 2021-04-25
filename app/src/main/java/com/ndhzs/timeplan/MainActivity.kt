@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
         }
         mTimeView = findViewById(R.id.time_view)
         mTimeView.initializeBean(beans)
-        mTimeView.showNowTimeLine(1)
+        mTimeView.showNowTimeLine(0)
 
         findViewById<Button>(R.id.button_clear).setOnClickListener {
             mTimeView.notifyItemRefresh(isBackToCurrentTime = true)

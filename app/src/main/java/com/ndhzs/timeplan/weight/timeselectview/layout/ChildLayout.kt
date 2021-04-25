@@ -20,11 +20,17 @@ class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInte
      * 设置是否显示当前时间线
      */
     fun showNowTimeLine() {
-        if (mNowTimeLineView == null) {
-            mNowTimeLineView = NowTimeLineView(context, mData, mTime, mPosition)
-            val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-            addView(mNowTimeLineView, lp) //由于这个只会在一个TimeSelectView中添加，所以就不写在TSViewUtil中
-        }
+        //这里添加是否为null的判断反而在ViewPager2中不显示
+        mNowTimeLineView = NowTimeLineView(context, mData, mTime, mPosition)
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
+        addView(mNowTimeLineView, lp) //由于这个只会在一个TimeSelectView中添加，所以就不写在TSViewObjectsManger中
+    }
+
+    /**
+     * 取消显示时间线
+     */
+    fun cancelShowNowTimeLine() {
+        removeView(mNowTimeLineView)
     }
 
 

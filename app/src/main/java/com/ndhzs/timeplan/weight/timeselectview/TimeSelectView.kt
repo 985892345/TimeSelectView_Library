@@ -67,6 +67,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     /**
      * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
+     * @param isBackToCurrentTime 是否回到设置的中心线
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
         mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
@@ -97,7 +98,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     /**
      * 得到当前的TimeSelectView是否处于长按状态，
-     * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用TSViewLongClick.sIsLongClick
+     * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
      */
     fun getIsLongClick(): Boolean {
         return mData.mIsLongClick
@@ -111,16 +112,15 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 初始化数据，传入TSViewDayBean的数组。
+     * 初始化数据，传入TSViewDayBean的数组
      *
-     * 以beans的一维长度为ViewPager2的长度。
-     *
+     * 以beans的一维长度为ViewPager2的item数
      * @param currentItem 默认值为1
-     * @param smoothScroll 默认值为false，是快速地滑动到currentItem
+     * @param smoothScroll 默认值为false
      */
     fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
-            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, dayBeans[0].day)
+            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2)
             mViewPager2.adapter = mVpAdapter
             mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
             setCurrentItem(currentItem, smoothScroll)
@@ -149,7 +149,6 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     private val mData = TSViewInternalData(context, attrs)
-    private lateinit var mTaskBeans: ArrayList<ArrayList<TSViewTaskBean>>
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
 

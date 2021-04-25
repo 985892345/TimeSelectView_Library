@@ -17,11 +17,11 @@ import kotlin.collections.HashMap
  * @date 2021/4/24
  * @description
  */
-class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, firstDate: String) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
+class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
 
     fun showNowTimeLine(position: Int) {
         mViewPager2.post {
-            if (mLastShowNowTimePosition != -1) {
+            if (mLastShowNowTimePosition != -1) { //先通知之前的删掉时间线
                 notifyItemChanged(mLastShowNowTimePosition)
             }
             if (mLastShowNowTimePosition != position) {
@@ -46,7 +46,6 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
     private val mDayBeans = dayBeans
     private val mData = data
     private val mViewPager2 = viewPager2
-    private val mFirstDate = firstDate
 
     private var mOnScrollListener: ((scrollY: Int) -> Unit)? = null
     private var mOnScrollListenerSave: ((scrollY: Int) -> Unit)? = null
@@ -65,7 +64,7 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.mVpLayout.initialize(mDayBeans[position], position, mFirstDate)
+        holder.mVpLayout.initialize(mDayBeans[position], position, mDayBeans[0].day)
         holder.mVpLayout.setOnScrollListener { scrollY, vpPosition ->
             mPositionWithScrollY[vpPosition] = scrollY
             mOnScrollListener?.invoke(scrollY)
@@ -96,6 +95,8 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         }
         if (mLastShowNowTimePosition == position) {
             holder.mVpLayout.showNowTimeLine()
+        }else {
+            holder.mVpLayout.cancelShowNowTimeLine()
         }
     }
 

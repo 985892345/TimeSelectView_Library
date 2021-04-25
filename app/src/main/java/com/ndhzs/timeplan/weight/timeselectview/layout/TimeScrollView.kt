@@ -41,7 +41,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
-     * 回到CurrentTime
+     * 快速回到CurrentTime
      */
     fun backCurrentTime() {
         removeCallbacks(mBackCurrentTimeRun)
@@ -189,13 +189,14 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         return mClickRectViewPosition != null
     }
 
-    override fun onClick(insideX: Int, insideY: Int) {
+    override fun onClick(insideX: Int, insideY: Int): Boolean {
         if (mClickRectViewPosition != null) {
             val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
                 mData.mOnClickListener?.invoke(bean)
             }
         }
+        return true
     }
 
     override fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {

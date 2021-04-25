@@ -81,7 +81,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     fun getIsLongClick(): Boolean = mIsLongClick
 
     companion object {
-        private const val MOVE_THRESHOLD = 5 //识别是长按而能移动的阈值
+        const val MOVE_THRESHOLD = 5 //识别是长按而能移动的阈值
     }
 
     private var mIsLongClick = false
@@ -193,7 +193,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             * */
             MotionEvent.ACTION_UP -> {
                 if (!mIsLongClick && abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
-                    onClick(x + scrollX, y + scrollY)
+                    return onClick(x + scrollX, y + scrollY)
                 }
             }
         }
@@ -238,7 +238,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     /**
      * 此时已经经过了[dispatchTouchEventDown]、[dispatchTouchEventUp]、[onInterceptTouchEventDown]
      */
-    protected open fun onClick(insideX: Int, insideY: Int) {}
+    protected open fun onClick(insideX: Int, insideY: Int): Boolean = false
     protected open fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {}
     protected open fun setLinkedViewPager2(): ViewPager2? = null
     protected open fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int) {}

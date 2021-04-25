@@ -28,6 +28,10 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
         mIVpLayout.showNowTimeLine()
     }
 
+    fun cancelShowNowTimeLine() {
+        mIVpLayout.cancelShowNowTimeLine()
+    }
+
     fun backCurrentTime() {
         mIVpLayout.backCurrentTime()
     }

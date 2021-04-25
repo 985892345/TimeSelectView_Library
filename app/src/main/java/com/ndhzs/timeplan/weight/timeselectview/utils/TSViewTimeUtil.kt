@@ -69,10 +69,23 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
         return getTimeHeight(getNowTime())
     }
 
+    override fun getNowTimeHeight(position: Int): Int {
+        val time = getNowTime()
+        return mExtraHeight + ((time - mData.mTimeRangeArray[position][0]) * mIntervalHeight).toInt()
+    }
+
     override fun getTimeHeight(time: Float): Int {
         var t = time
-        if (t !in mData.mTimeRangeArray[0][0].toFloat()..mData.mTimeRangeArray[0][1].toFloat()) {
-            t = (mData.mTimeRangeArray[0][1] - mData.mTimeRangeArray[0][0]).toFloat()
+        var isIn = false
+        for (i in 0 until mData.mTSViewAmount) {
+            if (t in mData.mTimeRangeArray[i][0].toFloat()..mData.mTimeRangeArray[i][1].toFloat()) {
+                t -= mData.mTimeRangeArray[i][0].toFloat()
+                isIn = true
+                break
+            }
+        }
+        if (!isIn) {
+            return -1
         }
         return mExtraHeight + ((t - mData.mTimeRangeArray[0][0]) * mIntervalHeight).toInt()
     }
