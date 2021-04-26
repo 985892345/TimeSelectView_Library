@@ -5,13 +5,12 @@ import android.content.Context
 import android.os.Vibrator
 import android.util.Log
 import android.view.MotionEvent
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
 import androidx.viewpager2.widget.ViewPager2
 import kotlin.math.abs
-import kotlin.math.sqrt
+import kotlin.math.pow
 
 /**
  * @author 985892345
@@ -33,9 +32,8 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
                 scrollY = nowY
             }
             it.addListener(onEnd = { mAnimator = null })
-            val duration = (sqrt(abs(scrollY - y).toFloat()) * 35).toLong()
-            it.duration = if (duration < 500) 500 else if (duration > 1100) 1100 else duration
-            it.interpolator = OvershootInterpolator(1.2F)
+            it.duration = (abs(scrollY - y).toDouble().pow(0.3) * 66).toLong()
+            it.interpolator = OvershootInterpolator(1F)
             it.start()
         }
     }

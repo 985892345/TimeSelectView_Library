@@ -14,10 +14,11 @@ interface IVpLayout {
     fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup)
     fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?)
     fun showNowTimeLine()
-    fun cancelShowNowTimeLine()
+    fun onViewRecycled()
     fun notifyAllRectRefresh()
     fun initializeBean(taskBeans: MutableList<TSViewTaskBean>)
     fun backCurrentTime()
     fun moveTo(scrollY: Int)
     fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit))
+    fun notifyRectViewRedraw()
 }

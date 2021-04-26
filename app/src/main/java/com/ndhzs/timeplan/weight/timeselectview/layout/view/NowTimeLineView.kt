@@ -31,7 +31,7 @@ class NowTimeLineView(context: Context, data: TSViewInternalData, time: ITSViewT
         mTimeLinePaint.style = Paint.Style.FILL
         postDelayed(object : Runnable {
             override fun run() {
-                layout(0, 0, 0, 0)
+                layout(0, 0, width, 0)
                 postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
             }
         }, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)

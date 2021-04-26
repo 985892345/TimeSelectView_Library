@@ -8,6 +8,7 @@ package com.ndhzs.timeplan.weight.timeselectview.viewinterface
  */
 interface IRectView {
     fun notifyAllRectViewRefresh()
+    fun notifyTimeScrollViewScrollToSuitableHeight()
     fun setIsCanLongClick(boolean: Boolean)
     fun getDay(): String
 }

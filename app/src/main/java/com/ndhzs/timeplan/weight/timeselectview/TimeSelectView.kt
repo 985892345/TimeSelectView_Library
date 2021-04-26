@@ -27,13 +27,6 @@ import kotlin.collections.ArrayList
 class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
 
     /**
-     * 设置是否显示当前时间线
-     */
-    fun showNowTimeLine(position: Int = mViewPager2.currentItem) {
-        mVpAdapter.showNowTimeLine(position)
-    }
-
-    /**
      * 时间间隔数
      * @param timeInterval 必须为60的因数，若不是，将以15为间隔数
      */
@@ -115,12 +108,13 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 初始化数据，传入TSViewDayBean的数组
      *
      * 以beans的一维长度为ViewPager2的item数
+     * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
      * @param currentItem 默认值为1
      * @param smoothScroll 默认值为false
      */
-    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, currentItem: Int = 0, smoothScroll: Boolean = false) {
+    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
-            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2)
+            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, showNowTimeLinePosition)
             mViewPager2.adapter = mVpAdapter
             mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
             setCurrentItem(currentItem, smoothScroll)

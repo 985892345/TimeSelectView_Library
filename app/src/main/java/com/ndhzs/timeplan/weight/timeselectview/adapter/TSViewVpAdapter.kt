@@ -2,14 +2,12 @@ package com.ndhzs.timeplan.weight.timeselectview.adapter
 
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.VpLayout
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /**
  * @author 985892345
@@ -17,86 +15,69 @@ import kotlin.collections.HashMap
  * @date 2021/4/24
  * @description
  */
-class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
-
-    fun showNowTimeLine(position: Int) {
-        mViewPager2.post {
-            if (mLastShowNowTimePosition != -1) { //先通知之前的删掉时间线
-                notifyItemChanged(mLastShowNowTimePosition)
-            }
-            if (mLastShowNowTimePosition != position) {
-                mLastShowNowTimePosition = position
-                notifyItemChanged(position)
-            }
-        }
-    }
+class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, showNowTimeLinePosition: Int) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
 
     fun notifyItemRefresh(position: Int, isBackToCurrentTime: Boolean) {
         mRefreshPosition = position
-        mIsBackToCurrentTime = isBackToCurrentTime
-        mOnScrollListener = null
-        notifyItemChanged(position)
+        notifyItemChanged(position, listOf(NOTIFY_ITEM_REFRESH, isBackToCurrentTime))
     }
 
     fun setOnScrollListener(l: (scrollY: Int) -> Unit) {
         mOnScrollListener = l
-        mOnScrollListenerSave = l
+    }
+
+    companion object {
+
+        /**
+         * 用于在[getItemViewType]，返回哪个position显示时间线的
+         */
+        private const val SHOW_NOW_TIME_LINE_POSITION = 0
+
+        /**
+         * 用于在[getItemViewType]，返回哪些position不显示时间线的
+         */
+        private const val NOT_SHOW = 1
+
+        /**
+         * 用于[onBindViewHolder]中判断，此时说明是[notifyItemRefresh]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_REFRESH = 0
     }
 
     private val mDayBeans = dayBeans
     private val mData = data
     private val mViewPager2 = viewPager2
+    private val mShowNowTimeLinePosition = showNowTimeLinePosition
 
     private var mOnScrollListener: ((scrollY: Int) -> Unit)? = null
-    private var mOnScrollListenerSave: ((scrollY: Int) -> Unit)? = null
-
-    private var mLastShowNowTimePosition = -1
 
     private var mRefreshPosition = -1
-    private var mIsBackToCurrentTime = false
-
-    private val mPositionWithScrollY = HashMap<Int, Int>()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = VpLayout(parent.context, mData, mViewPager2)
-        view.layoutParams = ViewGroup.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT)
+        val view = VpLayout(parent.context, mData, mViewPager2, mDayBeans[0].day, viewType == SHOW_NOW_TIME_LINE_POSITION)
+        view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.mVpLayout.initialize(mDayBeans[position], position, mDayBeans[0].day)
-        holder.mVpLayout.setOnScrollListener { scrollY, vpPosition ->
-            mPositionWithScrollY[vpPosition] = scrollY
-            mOnScrollListener?.invoke(scrollY)
-        }
-        if (position == mRefreshPosition) {
-            mRefreshPosition = -1
-            if (position == mViewPager2.currentItem) {
-                val scrollY = mPositionWithScrollY[position]
-                val run = if (mIsBackToCurrentTime) {
-                    Runnable {
-                        holder.mVpLayout.backCurrentTime()
-                    }
-                }else {
-                    Runnable {
-                        holder.mVpLayout.moveTo(scrollY!!)
-                    }
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            onBindViewHolder(holder, position)
+        }else {
+            val list = payloads[0] as List<*>
+            if ((list[0] as Int) == NOTIFY_ITEM_REFRESH) {
+                holder.mVpLayout.refresh()
+                if (list[1] as Boolean) {
+                    holder.mVpLayout.backCurrentTime()
                 }
-                //此时是在调用notifyItemChanged后执行的，因为调用那个有可能会使整个View重绘，就只好使用一个延时在重绘后再移动
-                //50毫秒的时间应该比较够
-                //后面还有一个设置滑动监听延时了100毫秒，因为ScrollTo()等一系列方法可能是异线程调用，得等重绘并到了正确的位置后再设置监听
-                mViewPager2.postDelayed(run, 50)
-                mViewPager2.postDelayed({
-                    mOnScrollListener = mOnScrollListenerSave
-                }, 100)
-            }else {
-                holder.mVpLayout.backCurrentTime()
             }
         }
-        if (mLastShowNowTimePosition == position) {
-            holder.mVpLayout.showNowTimeLine()
-        }else {
-            holder.mVpLayout.cancelShowNowTimeLine()
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        val vpLayout = holder.mVpLayout
+        vpLayout.initialize(mDayBeans[position], position)
+        vpLayout.setOnScrollListener { scrollY, vpPosition ->
+            mOnScrollListener?.invoke(scrollY)
         }
     }
 
@@ -104,7 +85,18 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         return mDayBeans.size
     }
 
-    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    override fun getItemViewType(position: Int): Int {
+        if (position == mShowNowTimeLinePosition) {
+            return SHOW_NOW_TIME_LINE_POSITION
+        }
+        return NOT_SHOW
+    }
+
+    override fun onViewRecycled(holder: ViewHolder) {
+        holder.mVpLayout.onViewRecycled()
+    }
+
+    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val mVpLayout = itemView as VpLayout
     }
 }

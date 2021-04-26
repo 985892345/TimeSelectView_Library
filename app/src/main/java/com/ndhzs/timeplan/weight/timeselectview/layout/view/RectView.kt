@@ -206,6 +206,7 @@ class RectView(context: Context, data: TSViewInternalData,
                             bean.startTime = mTime.getTime(rect.top, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
+                            mIRectView.notifyTimeScrollViewScrollToSuitableHeight()
                             mData.mDataChangeListener?.onDataAlter(bean)
                         }
                         BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
@@ -213,6 +214,7 @@ class RectView(context: Context, data: TSViewInternalData,
                             bean.endTime = mTime.getTime(rect.bottom, mPosition)
                             bean.diffTime = mTime.getDiffTime(rect.top, rect.bottom)
                             mIRectManger.addRectFromDeleted(rect)
+                            mIRectView.notifyTimeScrollViewScrollToSuitableHeight()
                             mData.mDataChangeListener?.onDataAlter(bean)
                         }
                         EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
@@ -224,6 +226,7 @@ class RectView(context: Context, data: TSViewInternalData,
                             val insideColor = mData.mDefaultInsideColor
                             val bean = TSViewTaskBean(mIRectView.getDay(), name, startTime, endTime, diffTime, borderColor, insideColor)
                             mIRectManger.addNewRect(rect, bean)
+                            mIRectView.notifyTimeScrollViewScrollToSuitableHeight()
                         }
                         else -> {
                         }

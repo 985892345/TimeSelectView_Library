@@ -41,21 +41,18 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
-     * 快速回到CurrentTime
+     * 回到CurrentTime
      */
     fun backCurrentTime() {
-        removeCallbacks(mBackCurrentTimeRun)
-        scrollY = (when (mData.mCenterTime) {
-            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
-                mTime.getNowTimeHeight() - height / 2
-            }
-            TSViewTimeUtil.CENTER_TIME_CENTER -> {
-                mData.mInsideTotalHeight / 2 - height / 2
-            }
-            else -> {
-                mTime.getTimeHeight(mData.mCenterTime) - height / 2
-            }
-        })
+        removeCallbacks(mAfterUpBackCurrentTimeRun)
+        post(mAfterUpBackCurrentTimeRun)
+    }
+
+    /**
+     * 用于取消回到CurrentTime
+     */
+    fun cancelAfterUpBackCurrentTimeRun() {
+        removeCallbacks(mAfterUpBackCurrentTimeRun)
     }
 
     /**
@@ -66,7 +63,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
-     * 用于整体移动松手时自动滑动到适宜的高度
+     * 用于整体移动和矩形边界改变松手时自动滑动到适宜的高度
      * @param height 默认为-1，代表整体移动的矩形能在新位置放下，那就自动滑到合适的高度；
      * 当传入值时，表示整体移动的矩形不能在新的位置放下，那就滑到原来的高度，此高度由调用者提供
      */
@@ -76,14 +73,14 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             //以下为自动滑到适当位置的判断
             when (mData.mCondition) {
                 TOP_SLIDE_DOWN, BOTTOM_SLIDE_DOWN, EMPTY_SLIDE_DOWN -> { //时间轴向上滑
-                    dy = mOuterUpY - (height - AUTO_MOVE_THRESHOLD) + 10
+                    dy = mOuterUpY - (this.height - AUTO_MOVE_THRESHOLD) + 10
                 }
                 TOP_SLIDE_UP, BOTTOM_SLIDE_UP, EMPTY_SLIDE_UP -> { //时间轴向下滑
                     dy = mOuterUpY - AUTO_MOVE_THRESHOLD - 10
                 }
                 INSIDE_SLIDE_DOWN -> { //时间轴向上滑
                     val bottom = mITimeScrollView.getOuterBottom()
-                    dy = bottom - (height - AUTO_MOVE_THRESHOLD) + 10
+                    dy = bottom - (this.height - AUTO_MOVE_THRESHOLD) + 10
                 }
                 INSIDE_SLIDE_UP -> { //时间轴向下滑
                     val top = mITimeScrollView.getOuterTop()
@@ -115,17 +112,18 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     var mClickRectViewPosition: Int? = null
 
     init {
+
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, data.mInsideTotalHeight)
         iTimeScrollView.addScrollLayout(lp, this)
         data.setOnConditionEndListener {
             onLongClickEnd(it)
         }
-        moveToCenterTime()
+        scrollToCenterTime()
         isVerticalScrollBarEnabled = false //取消滚动条
         overScrollMode = OVER_SCROLL_NEVER //取消滑到边界的上下虚影
     }
 
-    private fun moveToCenterTime() {
+    private fun scrollToCenterTime() {
         if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
             post {
                 scrollY = mTime.getNowTimeHeight() - height / 2
@@ -149,7 +147,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         }
     }
 
-    private val mBackCurrentTimeRun = Runnable {
+    private val mAfterUpBackCurrentTimeRun = Runnable {
         slowlyMoveTo(when (mData.mCenterTime) {
             TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
                 mTime.getNowTimeHeight() - height / 2
@@ -166,13 +164,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
 
     override fun dispatchTouchEventDown(outerX: Int, outerY: Int) {
-        removeCallbacks(mBackCurrentTimeRun)
+        removeCallbacks(mAfterUpBackCurrentTimeRun)
     }
 
     private var mOuterUpY = 0
     override fun dispatchTouchEventUp(outerX: Int, outerY: Int) {
         mOuterUpY = outerY
-        postDelayed(mBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
+        postDelayed(mAfterUpBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
         if (mStartRun) {
             mStartRun = false
             removeCallbacks(mSlideRunnable)

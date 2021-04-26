@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Button
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
-import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -29,8 +28,7 @@ class MainActivity : AppCompatActivity() {
             calendar.add(Calendar.DATE, 1)
         }
         mTimeView = findViewById(R.id.time_view)
-        mTimeView.initializeBean(beans)
-        mTimeView.showNowTimeLine(0)
+        mTimeView.initializeBean(beans, 0)
 
         findViewById<Button>(R.id.button_clear).setOnClickListener {
             mTimeView.notifyItemRefresh(isBackToCurrentTime = true)

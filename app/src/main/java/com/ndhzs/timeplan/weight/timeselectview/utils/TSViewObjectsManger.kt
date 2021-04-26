@@ -20,10 +20,10 @@ import kotlin.collections.ArrayList
  * @date 2021/3/20
  * @description 所有View的管理工具
  */
-class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
+class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: String) {
 
-    var mVpPosition = 0
-    lateinit var mFirstDate: String
+    var mVpPosition = -1
+    private val mFirstDay = firstDay
 
     private val mContext = context
     private val mData = data
@@ -34,9 +34,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
     }, { rect, bean, position ->
         mRectImgView.start(rect, bean, position)
-        mRectViews.forEach {
-            it.notifyRectRedraw()
-        }
+        notifyAllRectViewRedraw()
 
     }, { rect, bean, initialSideY, upperLimit, lowerLimit, position ->
         mRectViews[position].clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
@@ -76,6 +74,12 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
         return rect
     }
 
+    private fun notifyAllRectViewRedraw() {
+        mRectViews.forEach {
+            it.notifyRectRedraw()
+        }
+    }
+
 
     inner class My1IVpLayout : IVpLayout {
         override fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
@@ -95,16 +99,13 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
             }
         }
 
-        override fun cancelShowNowTimeLine() {
-            mChildLayouts.forEach{
-                it.cancelShowNowTimeLine()
-            }
+        override fun onViewRecycled() {
+            mVpPosition = -1 //防止onScrollListener接口回调
+            mTimeScrollView.backCurrentTime()
         }
 
         override fun notifyAllRectRefresh() {
-            mRectViews.forEach {
-                it.notifyRectRedraw()
-            }
+            return this@TSViewObjectsManger.notifyAllRectViewRedraw()
         }
 
         override fun initializeBean(taskBeans: MutableList<TSViewTaskBean>) {
@@ -122,6 +123,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
 
         override fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit)) {
             mTimeScrollView.setOnScrollListener(l)
+        }
+
+        override fun notifyRectViewRedraw() {
+            return this@TSViewObjectsManger.notifyAllRectViewRedraw()
         }
     }
 
@@ -216,9 +221,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
         }
 
         override fun notifyRectViewRedraw() {
-            mRectViews.forEach {
-                it.notifyRectRedraw()
-            }
+            return this@TSViewObjectsManger.notifyAllRectViewRedraw()
         }
 
         override fun notifyRectViewAddRectFromDeleted(rect: Rect, position: Int) {
@@ -243,7 +246,6 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
     }
 
     inner class My4IRectImgView : IRectImgView {
-
         override fun getRectViewToRectImgViewDistance(position: Int): Int {
             val mRectViewLocation = IntArray(2)
             val mRectImgViewLocation = IntArray(2)
@@ -276,10 +278,13 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
     }
 
     inner class My6IRectView : IRectView {
+
         override fun notifyAllRectViewRefresh() {
-            mRectViews.forEach {
-                it.notifyRectRedraw()
-            }
+            return this@TSViewObjectsManger.notifyAllRectViewRedraw()
+        }
+
+        override fun notifyTimeScrollViewScrollToSuitableHeight() {
+            mTimeScrollView.scrollToSuitableHeight()
         }
 
         override fun setIsCanLongClick(boolean: Boolean) {
@@ -287,7 +292,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData) {
         }
 
         override fun getDay(): String {
-            return TSViewTimeUtil.getDay(mFirstDate, mVpPosition)
+            return TSViewTimeUtil.getDay(mFirstDay, mVpPosition)
         }
     }
 }
