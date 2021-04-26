@@ -49,6 +49,23 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
+     * 快速地回到CurrentTime
+     */
+    fun fastBackCurrentTime() {
+        scrollY = when (mData.mCenterTime) {
+            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+                mTime.getNowTimeHeight() - height / 2
+            }
+            TSViewTimeUtil.CENTER_TIME_CENTER -> {
+                mData.mInsideTotalHeight / 2 - height / 2
+            }
+            else -> {
+                mTime.getTimeHeight(mData.mCenterTime) - height / 2
+            }
+        }
+    }
+
+    /**
      * 用于取消回到CurrentTime
      */
     fun cancelAfterUpBackCurrentTimeRun() {
@@ -204,6 +221,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     override fun onClick(insideX: Int, insideY: Int): Boolean {
         if (mClickRectViewPosition != null) {
+            if (mData.mIsLongClick) {
+                mITimeScrollView.notifyRectViewRecoverRectFromDeleted(mClickRectViewPosition!!)
+            }
             val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
                 mData.mOnClickListener?.invoke(bean)

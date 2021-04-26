@@ -44,8 +44,8 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
     /**
      * 用于ViewPager2的onViewRecycler()的调用
      */
-    fun onViewRecycled() {
-        mIVpLayout.onViewRecycled()
+    fun onViewDetachedFromWindow() {
+        mIVpLayout.onViewDetachedFromWindow()
     }
 
     /**

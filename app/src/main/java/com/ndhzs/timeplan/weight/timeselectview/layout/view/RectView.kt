@@ -82,6 +82,13 @@ class RectView(context: Context, data: TSViewInternalData,
     }
 
     /**
+     * 恢复被删掉的矩形
+     */
+    fun recoverRectFromDeleted() {
+        addRectFromDeleted(mIRectManger.getDeletedRect())
+    }
+
+    /**
      * 用于在长按后设置动态绘图的矩形和bean
      */
     fun clickTopAndBottomStart(initialRect: Rect, deletedTaskBean: TSViewTaskBean, initialSideY: Int, upperLimit: Int, lowerLimit: Int) {
@@ -354,6 +361,8 @@ class RectView(context: Context, data: TSViewInternalData,
         })
         animator.duration = 4 * rect.height().toLong()
         animator.start()
-        mIRectManger.deleteRect(mDeletedTaskBean!!)
+        if (mDeletedTaskBean != null) {
+            mIRectManger.deleteRect(mDeletedTaskBean!!)
+        }
     }
 }

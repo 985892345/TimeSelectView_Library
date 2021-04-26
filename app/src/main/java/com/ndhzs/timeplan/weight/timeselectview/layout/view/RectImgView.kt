@@ -82,6 +82,14 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     }
 
     /**
+     * 用于特殊情况直接取消[RectImgView]的矩形
+     */
+    fun forcedEnd() {
+        mRect.setEmpty()
+        invalidate()
+    }
+
+    /**
      * 整体移动到删除区域时调用，会有一个删除动画
      */
     fun delete(onEndListener : () -> Unit?) {

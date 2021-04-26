@@ -162,6 +162,10 @@ class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
             return rectWithBean
         }
 
+        override fun getDeletedRect(): Rect {
+            return mDeletedRect
+        }
+
         override fun deleteRect(taskBean: TSViewTaskBean) {
             this@RectManger.deleteBean(taskBean)
         }

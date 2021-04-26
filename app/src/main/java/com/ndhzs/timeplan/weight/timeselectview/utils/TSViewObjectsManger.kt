@@ -99,9 +99,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             }
         }
 
-        override fun onViewRecycled() {
+        override fun onViewDetachedFromWindow() {
             mVpPosition = -1 //防止onScrollListener接口回调
-            mTimeScrollView.backCurrentTime()
+            mTimeScrollView.fastBackCurrentTime()
         }
 
         override fun notifyAllRectRefresh() {
@@ -157,6 +157,11 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
 
         override fun getVpPosition(): Int {
             return mVpPosition
+        }
+
+        override fun notifyRectViewRecoverRectFromDeleted(position: Int) {
+            mRectViews[position].recoverRectFromDeleted()
+            mRectImgView.forcedEnd()
         }
     }
 

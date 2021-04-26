@@ -92,8 +92,8 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         return NOT_SHOW
     }
 
-    override fun onViewRecycled(holder: ViewHolder) {
-        holder.mVpLayout.onViewRecycled()
+    override fun onViewDetachedFromWindow(holder: ViewHolder) {
+        holder.mVpLayout.onViewDetachedFromWindow()
     }
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

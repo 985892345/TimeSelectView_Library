@@ -1,5 +1,6 @@
 package com.ndhzs.timeplan.weight.timeselectview.viewinterface
 
+import android.graphics.Rect
 import android.view.ViewGroup
 
 /**
@@ -16,4 +17,5 @@ interface ITimeScrollView {
     fun getOuterBottom(): Int
     fun getRectViewPosition(rowX: Int): Int?
     fun getVpPosition(): Int
+    fun notifyRectViewRecoverRectFromDeleted(position: Int)
 }

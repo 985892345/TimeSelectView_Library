@@ -15,7 +15,7 @@ import kotlin.math.pow
 /**
  * @author 985892345
  * @date 2021/3/21
- * @description 处理TimeSelectView的触摸事件
+ * @description 处理[com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]的触摸事件
  */
 abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
 
