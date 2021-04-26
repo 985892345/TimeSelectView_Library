@@ -92,7 +92,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                     val insideFinalTop = rawLeftAndInsideTop[1]
                     val position = rawLeftAndInsideTop[2]
                     mIScrollLayout.slideEndRectImgView(rawFinalLeft, insideFinalTop) {
-                        val topBottom = if (y <= mInitialY + RectView.UNCONSTRAINED_DISTANCE) { //说明矩形向上移动
+                        val topBottom = if (y <= mInitialY + mIScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动
                             mTime.getCorrectTopHeight(insideFinalTop,
                                     insideFinalTop,
                                     mRectManger.getLowerLimit(insideFinalTop, position),
@@ -235,9 +235,9 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
 
     private fun getCorrectTopHeight(rect: Rect, upperLimit: Int, lowerLimit: Int, position: Int, insideUpY: Int): Int {
         //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-        return if (insideUpY < mInitialY - RectView.UNCONSTRAINED_DISTANCE) { //说明矩形向上移动了
+        return if (insideUpY < mInitialY - mIScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动了
             mTime.getCorrectTopHeight(rect.top, upperLimit, position, mData.mTimeInterval)
-        }else if (insideUpY > mInitialY + RectView.UNCONSTRAINED_DISTANCE){ //说明矩形向下移动了
+        }else if (insideUpY > mInitialY + mIScrollLayout.getUnconstrainedDistance()){ //说明矩形向下移动了
             mTime.getCorrectBottomHeight(rect.bottom, lowerLimit, position, mData.mTimeInterval) - rect.height()
         }else {
             mTime.getCorrectTopHeight(rect.top, upperLimit, position, 1)

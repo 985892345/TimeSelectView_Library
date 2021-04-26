@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.OvershootInterpolator
@@ -13,7 +14,6 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectDraw
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick.*
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectView
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.IRectViewRectManger
 import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
@@ -107,13 +107,12 @@ class RectView(context: Context, data: TSViewInternalData,
         mLowerLimit = lowerLimit
     }
 
-
-    companion object {
-        var UNCONSTRAINED_DISTANCE = 50
-    }
-
+    /**
+     * 在能够摆脱时间间隔数控制的最小移动距离
+     */
+    val mUnconstrainedDistance: Int
     init {
-        UNCONSTRAINED_DISTANCE = time.getMinuteBottomHeight(10)
+        mUnconstrainedDistance = time.getMinuteBottomHeight(10)
     }
 
 
@@ -248,10 +247,12 @@ class RectView(context: Context, data: TSViewInternalData,
     private fun getCorrectRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         if (rect.isEmpty) {
             rectChangeEndCallbacks.invoke()
-            mIRectManger.deleteRect(mDeletedTaskBean!!)
+            if (mDeletedTaskBean != null) {
+                mIRectManger.deleteRect(mDeletedTaskBean!!)
+            }
             return null
         }
-        return if (abs(insideUpY - mInitialY) < UNCONSTRAINED_DISTANCE) { //抬起时的高度与按下去的起始高度的距离差在一定的范围内就
+        return if (abs(insideUpY - mInitialY) < mUnconstrainedDistance) { //抬起时的高度与按下去的起始高度的距离差在一定的范围内就可以不受时间间隔数约束
             if (rect.height() > mDraw.getMinHeight()) {
                 postDelayed({
                     rectChangeEndCallbacks.invoke()

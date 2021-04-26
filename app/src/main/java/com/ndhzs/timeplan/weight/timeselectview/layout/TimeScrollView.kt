@@ -36,7 +36,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mIsCanLongClick = boolean
         if (boolean && mIsCloseLongClickJudge) {
             mIsCloseLongClickJudge = false
-            restartLongClickJudge(0)
+            restartLongClickJudge()
         }
     }
 

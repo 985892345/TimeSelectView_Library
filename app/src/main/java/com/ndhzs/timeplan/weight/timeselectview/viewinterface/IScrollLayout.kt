@@ -17,6 +17,7 @@ interface IScrollLayout {
     fun getPreRectViewPosition(): Int
     fun getRectViewRawLocation(position: Int): Rect
     fun getChildLayoutLocation(position: Int): Rect
+    fun getUnconstrainedDistance(): Int
 
     /**
      * @return 返回左右值为相对于屏幕坐标，上下值为内部坐标的Rect

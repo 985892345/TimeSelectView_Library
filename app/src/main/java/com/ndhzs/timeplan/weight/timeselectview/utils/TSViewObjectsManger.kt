@@ -185,6 +185,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             return this@TSViewObjectsManger.getChildLayoutLocation(position)
         }
 
+        override fun getUnconstrainedDistance(): Int {
+            return mRectViews[0].mUnconstrainedDistance
+        }
+
         override fun getRectImgViewRawRect(): Rect {
             return mRectImgView.getRawRect()
         }

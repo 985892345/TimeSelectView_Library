@@ -67,19 +67,24 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     /**
      * 重新启动长按，只能在符合长按条件下才能实现
      *
-     * 默认延时0.01秒
+     * 默认延时0.05秒
      */
-    fun restartLongClickJudge(delayMillis: Long = 10) {
+    fun restartLongClickJudge(delayMillis: Long = 50) {
         if (mIsMatchLongClick) {
             removeCallbacks(mLongClickRun)
             postDelayed(mLongClickRun, delayMillis)
         }
     }
 
-    fun getIsLongClick(): Boolean = mIsLongClick
+    fun getIsLongClick(): Boolean {
+        return mIsLongClick
+    }
 
     companion object {
-        const val MOVE_THRESHOLD = 5 //识别是长按而能移动的阈值
+        /**
+         * 识别是长按而能移动的阈值
+         */
+        const val MOVE_THRESHOLD = 5
     }
 
     private var mIsLongClick = false
@@ -140,6 +145,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
                 }
             }
             MotionEvent.ACTION_UP -> {
+                mIsMatchLongClick = false
                 removeCallbacks(mLongClickRun)
                 if (mIsLongClick) {
                     mIsLongClick = false
