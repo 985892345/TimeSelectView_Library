@@ -12,7 +12,7 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
  */
 interface IScrollLayout {
     fun addParentLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup)
+    fun addStickerLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
     fun getRectViewPosition(rowX: Int): Int?
     fun getPreRectViewPosition(): Int
     fun getRectViewRawLocation(position: Int): Rect

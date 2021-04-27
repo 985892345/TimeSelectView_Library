@@ -10,11 +10,9 @@ import com.ndhzs.timeplan.weight.timeselectview.adapter.TSViewVpAdapter
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.BackCardView
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
-import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewTimeUtil
-import java.text.SimpleDateFormat
-import java.util.*
 import kotlin.collections.ArrayList
 
 /**
@@ -131,6 +129,11 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         mViewPager2.registerOnPageChangeCallback(callback)
     }
 
+    /**
+     * 当前显示页面的滑动回调，不是ViewPager2的滑动回调
+     *
+     * 若你想监听ViewPager2的滑动，请使用[registerOnPageChangeCallback]
+     */
     fun setOnScrollListener(l: (scrollY: Int) -> Unit) {
         mVpAdapter.setOnScrollListener(l)
     }
@@ -140,6 +143,13 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      */
     fun setCurrentItem(item: Int, smoothScroll: Boolean = true) {
         mViewPager2.setCurrentItem(item, smoothScroll)
+    }
+
+    /**
+     * 设置多个时间轴中拖动任务的阻力值
+     */
+    fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE) {
+        mData.mDragResistance = resistance
     }
 
     private val mData = TSViewInternalData(context, attrs)

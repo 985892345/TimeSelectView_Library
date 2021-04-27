@@ -14,28 +14,11 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
  * @description [ParentLayout]之下，[com.ndhzs.timeplan.weight.timeselectview.layout.view.RectView]之上
  */
 @SuppressLint("ViewConstructor")
-class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInternalData, time: ITSViewTimeUtil, position: Int) : FrameLayout(context) {
-
-    /**
-     * 设置是否显示当前时间线
-     */
-    fun showNowTimeLine() {
-        post {
-            if (mNowTimeLineView == null) {
-                mNowTimeLineView = NowTimeLineView(context, mData, mTime, mPosition)
-                val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-                addView(mNowTimeLineView, lp) //由于这个只会在一个TimeSelectView中添加，所以就不写在TSViewObjectsManger中
-            }
-        }
-    }
-
+class ChildLayout(context: Context, iChildLayout: IChildLayout, data: TSViewInternalData, position: Int) : FrameLayout(context) {
 
     private val mData = data
-    private val mTime = time
     private val mIChildLayout = iChildLayout
     private val mPosition = position
-
-    private var mNowTimeLineView: NowTimeLineView? = null
 
     init {
         val lp = LayoutParams(data.mRectViewWidth, LayoutParams.MATCH_PARENT)

@@ -15,6 +15,7 @@ interface IVpLayout {
     fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?)
     fun showNowTimeLine()
     fun onViewDetachedFromWindow()
+    fun onViewRecycled()
     fun notifyAllRectRefresh()
     fun initializeBean(taskBeans: MutableList<TSViewTaskBean>)
     fun backCurrentTime()

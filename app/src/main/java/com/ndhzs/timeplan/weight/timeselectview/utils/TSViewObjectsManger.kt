@@ -2,6 +2,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
+import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
@@ -45,7 +46,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
     private val mSeparatorLineViews = ArrayList<SeparatorLineView>()
 
     private val mParentLayout = ParentLayout(context, My4IParentLayout(), data)
-    private val mRectImgView = RectImgView(context, My4IRectImgView(), data, mTime, mRectDraw)
+    private val mRectImgView = RectImgView(context, My5IRectImgView(), data, mTime, mRectDraw)
+
+    private val mStickerLayout = StickerLayout(context, My4IStickerLayout(), data, mTime)
 
     private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data, mTime, mRectManger)
     private val mBackCardView = BackCardView(context, data)
@@ -94,14 +97,15 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
         }
 
         override fun showNowTimeLine() {
-            mChildLayouts.forEach {
-                it.showNowTimeLine()
-            }
+            mStickerLayout.showNowTimeLine()
         }
 
         override fun onViewDetachedFromWindow() {
-            mVpPosition = -1 //防止onScrollListener接口回调
             mTimeScrollView.fastBackCurrentTime()
+        }
+
+        override fun onViewRecycled() {
+            mVpPosition = -1 //防止onScrollListener接口回调
         }
 
         override fun notifyAllRectRefresh() {
@@ -159,9 +163,13 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             return mVpPosition
         }
 
-        override fun notifyRectViewRecoverRectFromDeleted(position: Int) {
+        override fun onLongClickStartButNotMove(position: Int) {
             mRectViews[position].recoverRectFromDeleted()
             mRectImgView.forcedEnd()
+        }
+
+        override fun onScrollChanged(oldScrollY: Int, scrollY: Int) {
+            mRectImgView.boundaryRefresh(oldScrollY, scrollY, mData.mInsideTotalHeight, mTimeScrollView.height)
         }
     }
 
@@ -170,8 +178,8 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             v.addView(mParentLayout, lp)
         }
 
-        override fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mRectImgView, lp)
+        override fun addStickerLayout(lp: ViewGroup.LayoutParams, v: ViewGroup) {
+            v.addView(mStickerLayout, lp)
         }
 
         override fun getRectViewPosition(rowX: Int): Int? {
@@ -248,13 +256,31 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
 
     inner class My4IParentLayout : IParentLayout {
         override fun addChildLayout(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val childLayout = ChildLayout(mContext, My5IChildLayout(), mData, mTime, position)
+            val childLayout = ChildLayout(mContext, My5IChildLayout(), mData, position)
             mChildLayouts.add(childLayout)
             v.addView(childLayout, lp)
         }
     }
+    
+    inner class My4IStickerLayout : IStickerLayout {
+        override fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
+            v.addView(mRectImgView, lp)
+        }
 
-    inner class My4IRectImgView : IRectImgView {
+        override fun getChildLayoutWidth(): Int {
+            return mChildLayouts[0].width
+        }
+
+        override fun getChildLayoutToStickerLayoutDistance(position: Int): Int {
+            val mChildLayoutLocation = IntArray(2)
+            val mStickerLayoutLocation = IntArray(2)
+            mChildLayouts[position].getLocationInWindow(mChildLayoutLocation)
+            mRectImgView.getLocationInWindow(mStickerLayoutLocation)
+            return mChildLayoutLocation[0] - mStickerLayoutLocation[0]
+        }
+    }
+
+    inner class My5IRectImgView : IRectImgView {
         override fun getRectViewToRectImgViewDistance(position: Int): Int {
             val mRectViewLocation = IntArray(2)
             val mRectImgViewLocation = IntArray(2)

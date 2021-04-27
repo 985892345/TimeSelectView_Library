@@ -96,6 +96,10 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         holder.mVpLayout.onViewDetachedFromWindow()
     }
 
+    override fun onViewRecycled(holder: ViewHolder) {
+        holder.mVpLayout.onViewRecycled()
+    }
+
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val mVpLayout = itemView as VpLayout
     }

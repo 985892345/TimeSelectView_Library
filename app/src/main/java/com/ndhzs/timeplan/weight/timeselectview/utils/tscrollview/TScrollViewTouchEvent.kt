@@ -9,6 +9,7 @@ import android.view.animation.OvershootInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
 import androidx.viewpager2.widget.ViewPager2
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -21,7 +22,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
 
     private var mAnimator: ValueAnimator? = null
     /**
-     * 与scrollTo()类似，但速度较缓慢
+     * 与[scrollTo]类似，但速度较缓慢
      */
     fun slowlyMoveTo(y: Int) {
         cancelSlowlyMove()
@@ -32,21 +33,21 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
                 scrollY = nowY
             }
             it.addListener(onEnd = { mAnimator = null })
-            it.duration = (abs(scrollY - y).toDouble().pow(0.3) * 66).toLong()
+            it.duration = (abs(scrollY - y).toDouble().pow(0.3) * 66 + 80).toLong()
             it.interpolator = OvershootInterpolator(1F)
             it.start()
         }
     }
 
     /**
-     * 与scrollBy()类似，但速度较缓慢，不建议短时间大量调用
+     * 与[scrollBy]类似，但速度较缓慢，不建议短时间大量调用
      */
     fun slowlyMoveBy(dy: Int) {
         slowlyMoveTo(scrollY + dy)
     }
 
     /**
-     * 取消slowlyMoveTo()、slowlyMoveBy()的滑动
+     * 取消[slowlyMoveTo]、[slowlyMoveBy]的滑动
      */
     fun cancelSlowlyMove() {
         mAnimator?.let {
@@ -67,7 +68,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     /**
      * 重新启动长按，只能在符合长按条件下才能实现
      *
-     * 默认延时0.05秒
+     * @param delayMillis 默认延时0.05秒
      */
     fun restartLongClickJudge(delayMillis: Long = 50) {
         if (mIsMatchLongClick) {
@@ -146,16 +147,13 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             }
             MotionEvent.ACTION_UP -> {
                 mIsMatchLongClick = false
-                removeCallbacks(mLongClickRun)
-                if (mIsLongClick) {
-                    mIsLongClick = false
-                }
                 dispatchTouchEventUp(x, y)
             }
         }
         return super.dispatchTouchEvent(ev)
     }
 
+    private var mIsMove = false
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
         val x = ev.x.toInt()
         val y = ev.y.toInt()
@@ -163,6 +161,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
         val rawY = ev.rawY.toInt()
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
+                mIsMove = false
                 cancelSlowlyMove()
                 if (onInterceptTouchEventDown(x, y, rawX, rawY)) {
                     removeCallbacks(mLongClickRun)
@@ -186,6 +185,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             * return true，将事件一直不向下传递
             * */
             MotionEvent.ACTION_MOVE -> {
+                mIsMove = true //只有在大于了移动阈值后才会调用
                 if (mIsLongClick) {
                     automaticSlide(x, y, x + scrollX, y + scrollY)
                 }else {
@@ -196,8 +196,15 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             * 根据上面写的注释，可得到这里的UP事件只有在DOWN、MOVE都return false的情况下才会调用
             * */
             MotionEvent.ACTION_UP -> {
-                if (!mIsLongClick && abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
-                    return onClick(x + scrollX, y + scrollY)
+                if (abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
+                    if (!mIsLongClick) {
+                        removeCallbacks(mLongClickRun)
+                        return onClick(x + scrollX, y + scrollY)
+                    }else {
+                        if (!mIsMove) { //长按却没有移动
+                            return onLongClickStartButNotMove()
+                        }
+                    }
                 }
             }
         }
@@ -247,6 +254,13 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     protected open fun isInLongClickArea(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean = false
 
     /**
+     * 调用此方法说明长按已经发生，但手指却没有移动或移动距离在阈值以内，如果你在[onLongClickStart]调用了一些东西，可以在这里取消他们
+     *
+     * @return 此方法因为在onInterceptTouchEvent的UP事件中被调用，返回true可以防止事件向下传递
+     */
+    abstract fun onLongClickStartButNotMove(): Boolean
+
+    /**
      * 没有大范围和长距离的移动时调用的方法，简单来说就是一次点击事件
      *
      * 此时已经经过了[dispatchTouchEventDown]、[dispatchTouchEventUp]、[onInterceptTouchEventDown]
@@ -256,8 +270,10 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
 
     /**
      * 通知长按开始的方法
+     *
+     * [onLongClickStartButNotMove]该方法可能你需要重写
      */
-    protected open fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {}
+    abstract fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int)
 
     /**
      * 处理与ViewPager2的同向滑动冲突

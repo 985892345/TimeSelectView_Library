@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         }
         mTimeView = findViewById(R.id.time_view)
         mTimeView.initializeBean(beans, 0)
+        mTimeView.setDragResistance(10)
 
         findViewById<Button>(R.id.button_clear).setOnClickListener {
             mTimeView.notifyItemRefresh(isBackToCurrentTime = true)

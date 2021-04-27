@@ -17,6 +17,7 @@ import com.ndhzs.timeplan.weight.timeselectview.viewinterface.ITSViewTimeUtil
 @SuppressLint("ViewConstructor")
 class NowTimeLineView(context: Context, data: TSViewInternalData, time: ITSViewTimeUtil, position: Int) : View(context) {
 
+    private val mData = data
     private val mLineWidth = 3F
     private val mBallRadius = 7
     private val mTime = time
@@ -31,7 +32,7 @@ class NowTimeLineView(context: Context, data: TSViewInternalData, time: ITSViewT
         mTimeLinePaint.style = Paint.Style.FILL
         postDelayed(object : Runnable {
             override fun run() {
-                layout(0, 0, width, 0)
+                layout(left, 0, right, 0)
                 postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
             }
         }, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
@@ -56,7 +57,7 @@ class NowTimeLineView(context: Context, data: TSViewInternalData, time: ITSViewT
     override fun onDraw(canvas: Canvas) {
         val cx = mIntervalLeft - SeparatorLineView.VERTICAL_LINE_WIDTH/2F
         val cy = mBallRadius.toFloat()
-        val stopX = (width - SeparatorLineView.INTERVAL_RIGHT_WIDTH).toFloat()
+        val stopX = (width - mData.mIntervalRight).toFloat()
         canvas.drawCircle(cx, cy, cy, mTimeLinePaint)
         canvas.drawLine(cx, cy, stopX, cy, mTimeLinePaint)
     }

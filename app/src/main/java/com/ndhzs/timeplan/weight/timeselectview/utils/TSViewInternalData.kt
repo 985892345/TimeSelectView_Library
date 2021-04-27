@@ -6,6 +6,7 @@ import android.util.Log
 import com.ndhzs.timeplan.R
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
+import com.ndhzs.timeplan.weight.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import java.io.PrintWriter
 
@@ -27,7 +28,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     val mDefaultTaskName: String //默认任务名称
 
     var mTimeInterval: Int //时间间隔数
-    private var mTimelineRange: Int //单个时间轴的时长，不允许其他得到这个值，为防止出现高度问题，请用mTimeRangeArray计算得到
+    private var mTimelineRange: Int //单个时间轴的时长，不允许其他类得到这个值，为防止出现高度问题，请用mTimeRangeArray计算得到
     var mTimeRangeArray = Array(2) { intArrayOf(0) } //时间轴的时间范围值
         private set
 
@@ -40,12 +41,15 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
 
     val mExtraHeight:Int //上方和下方多的高度
     val mIntervalLeft: Int //左边时间刻度文字间隔宽度
+    val mIntervalRight: Int //右侧水平线空出来的宽度
     val mIntervalHeight: Int //一个小时的间隔高度
     val mInsideTotalHeight: Int //总高度
     val mRectViewWidth: Int //矩形绘制宽度
 
     val mRectViewTop: Int //RectView实际绘制区域的顶部值
     val mRectViewBottom: Int //RectView实际绘制区域的底部值
+
+    var mDragResistance = RectImgView.DEFAULT_DRAG_RESISTANCE //拖动阻力值
 
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
@@ -94,6 +98,8 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mDefaultTaskName = ty.getString(R.styleable.TimeSelectView_defaultTaskName).toString()
 
         mCardCornerRadius = ty.getDimension(R.styleable.TimeSelectView_cardCornerRadius, 28F)
+//        mIntervalRight = (mCardCornerRadius - 0.5F).toInt()
+        mIntervalRight = 10
 
         mTimeInterval = ty.getInt(R.styleable.TimeSelectView_timeInterval, 15)
         if (60 % mTimeInterval != 0) mTimeInterval = 15
@@ -115,7 +121,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
         mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 360F).toInt()
         mExtraHeight = mIntervalHeight / 2
         mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
-        mRectViewWidth = mTimelineWidth - mIntervalLeft - SeparatorLineView.INTERVAL_RIGHT_WIDTH
+        mRectViewWidth = mTimelineWidth - mIntervalLeft - mIntervalRight
 
         mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, mIntervalLeft / 2.8F)
         mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, mTimeTextSize * 1.16F)

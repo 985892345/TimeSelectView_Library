@@ -2,6 +2,7 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewLongClick
@@ -34,7 +35,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
      */
     fun setIsCanLongClick(boolean: Boolean) {
         mIsCanLongClick = boolean
-        if (boolean && mIsCloseLongClickJudge) {
+        if (boolean && mIsCloseLongClickJudge && mClickRectViewPosition != null) {
             mIsCloseLongClickJudge = false
             restartLongClickJudge()
         }
@@ -80,7 +81,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     /**
-     * 用于整体移动和矩形边界改变松手时自动滑动到适宜的高度
+     * 用于整体移动、矩形边界改变、绘制新的矩形，上述情况在松手时自动滑动到适宜的高度
      * @param height 默认为-1，代表整体移动的矩形能在新位置放下，那就自动滑到合适的高度；
      * 当传入值时，表示整体移动的矩形不能在新的位置放下，那就滑到原来的高度，此高度由调用者提供
      */
@@ -129,7 +130,6 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     var mClickRectViewPosition: Int? = null
 
     init {
-
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, data.mInsideTotalHeight)
         iTimeScrollView.addScrollLayout(lp, this)
         data.setOnConditionEndListener {
@@ -141,20 +141,17 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     }
 
     private fun scrollToCenterTime() {
-        if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
-            post {
+        post {
+            if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
                 scrollY = mTime.getNowTimeHeight() - height / 2
                 postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
-            }
-        }else if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_CENTER) { //以中心值为中线
-            post {
+            }else if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_CENTER) { //以中心值为中线
                 scrollY = mData.mInsideTotalHeight / 2 - height / 2
-            }
-        }else { //以mCenterTime为中线，不随时间移动
-            post {
+            }else { //以mCenterTime为中线，不随时间移动
                 scrollY = mTime.getTimeHeight(mData.mCenterTime) - height / 2
             }
         }
+
     }
 
     private val mBackNowTimeRun = object : Runnable {
@@ -202,7 +199,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mInitialX = outerX
         mInitialY = outerY
         mInitialScrollY = scrollY
-        if (!mIsCanLongClick) {
+        if (!mIsCanLongClick) { //用于在动画还在运行时，禁止长按
             mIsCloseLongClickJudge = true
             closeLongClickJudge()
         }
@@ -219,11 +216,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         return mClickRectViewPosition != null
     }
 
+    override fun onLongClickStartButNotMove(): Boolean {
+        mITimeScrollView.onLongClickStartButNotMove(mClickRectViewPosition!!)
+        return true
+    }
+
     override fun onClick(insideX: Int, insideY: Int): Boolean {
         if (mClickRectViewPosition != null) {
-            if (mData.mIsLongClick) {
-                mITimeScrollView.notifyRectViewRecoverRectFromDeleted(mClickRectViewPosition!!)
-            }
             val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
                 mData.mOnClickListener?.invoke(bean)
@@ -234,6 +233,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     override fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {
         mData.mIsLongClick = true
+        if (mClickRectViewPosition == null) {
+            Log.d("123", "onLongClickStart(TimeScrollView.kt:238)-->> when is Null: raw = $rawX")
+        }
         mRectManger.longClickConditionJudge(insideY, mClickRectViewPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
         mUpperLimit = mRectManger.getClickUpperLimit()
         mLowerLimit = mRectManger.getClickLowerLimit()
@@ -399,6 +401,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mLinkedViewPager2?.let {
             val currentItem = it.currentItem
             if (currentItem == mITimeScrollView.getVpPosition()) {
+                mITimeScrollView.onScrollChanged(oldt, t)
                 mOnScrollListener?.invoke(t, currentItem)
             }
         }

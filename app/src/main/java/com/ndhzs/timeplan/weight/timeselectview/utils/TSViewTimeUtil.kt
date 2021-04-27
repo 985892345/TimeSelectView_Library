@@ -25,7 +25,7 @@ class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
         /**
          * 回到当前时间高度的间隔时间
          */
-        const val DELAY_BACK_CURRENT_TIME = 10000L
+        const val DELAY_BACK_CURRENT_TIME = 1000000L
 
         /**
          * 回到中心值的mCenterTime值

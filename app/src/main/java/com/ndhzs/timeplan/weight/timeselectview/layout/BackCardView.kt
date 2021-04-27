@@ -19,7 +19,7 @@ class BackCardView(context: Context, private val data: TSViewInternalData) : Lin
         /**
          * 为了显示CardView虚影的上下间隔值
          */
-        const val TOP_BOTTOM_MARGIN = 10
+        const val TOP_BOTTOM_MARGIN = 20
 
         /**
          * 为了显示CardView虚影的左右间隔值
