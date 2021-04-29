@@ -19,7 +19,7 @@ interface IVpLayout {
     fun notifyAllRectRefresh()
     fun initializeBean(taskBeans: MutableList<TSViewTaskBean>)
     fun backCurrentTime()
-    fun moveTo(scrollY: Int)
-    fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit))
+    fun timeLineScrollTo(scrollY: Int)
+    fun timeLineSlowlyScrollTo(scrollY: Int)
     fun notifyRectViewRedraw()
 }

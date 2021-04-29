@@ -117,10 +117,7 @@ class RectView(context: Context, data: TSViewInternalData,
     /**
      * 在能够摆脱时间间隔数控制的最小移动距离
      */
-    val mUnconstrainedDistance: Int
-    init {
-        mUnconstrainedDistance = time.getMinuteBottomHeight(10)
-    }
+    val mUnconstrainedDistance: Int = time.getMinuteBottomHeight(10)
 
 
     private val mData = data
@@ -293,7 +290,7 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.bottom = rect.bottom
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt()
+            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt() //回弹的距离
             val animator = ValueAnimator.ofInt(rect.top, newRect.top - bounce, newRect.top)
                     animator.addUpdateListener {
                 val top = it.animatedValue as Int
@@ -322,7 +319,7 @@ class RectView(context: Context, data: TSViewInternalData,
         newRect.bottom = mTime.getCorrectBottomHeight(rect.bottom, mLowerLimit, mPosition, mData.mTimeInterval)
         mIsInRectChangeAnimator = true
         if (newRect.height() > mDraw.getMinHeight()) {
-            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt()
+            val bounce = sqrt(mData.mTimeInterval.toDouble() * 5).toInt() //回弹的距离
             val animator = ValueAnimator.ofInt(rect.bottom, newRect.bottom + bounce, newRect.bottom)
             animator.addUpdateListener {
                 val bottom = it.animatedValue as Int

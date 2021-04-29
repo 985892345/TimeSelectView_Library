@@ -26,8 +26,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
      * 解决与ViewPager2的同向滑动冲突
      * @param viewPager2 传入ViewPager2，不是ViewPager
      */
-    fun setLinkedViewPager2(viewPager2: ViewPager2) {
+    fun setLinkedViewPager2(viewPager2: ViewPager2, onVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null) {
         mLinkedViewPager2 = viewPager2
+        super.setLinkViewPager2(viewPager2, onVpInterceptionStart)
     }
 
     /**
@@ -54,13 +55,13 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
      */
     fun fastBackCurrentTime() {
         scrollY = when (mData.mCenterTime) {
-            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> { //以当前时间线为中线
                 mTime.getNowTimeHeight() - height / 2
             }
-            TSViewTimeUtil.CENTER_TIME_CENTER -> {
+            TSViewTimeUtil.CENTER_TIME_CENTER -> { //以中心值为中线
                 mData.mInsideTotalHeight / 2 - height / 2
             }
-            else -> {
+            else -> { //以你设定的时间为中线
                 mTime.getTimeHeight(mData.mCenterTime) - height / 2
             }
         }
@@ -71,13 +72,6 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
      */
     fun cancelAfterUpBackCurrentTimeRun() {
         removeCallbacks(mAfterUpBackCurrentTimeRun)
-    }
-
-    /**
-     * 设置滑动监听，只有在当前VpPosition == ViewPager2.currentItem时才会回调
-     */
-    fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit)) {
-        mOnScrollListener = l
     }
 
     /**
@@ -107,9 +101,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 else -> {
                 }
             }
-            slowlyMoveBy(dy)
+            slowlyScrollBy(dy)
         }else {
-            slowlyMoveTo(height - this.height / 2)
+            slowlyScrollTo(height - this.height / 2)
         }
     }
 
@@ -124,7 +118,6 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private val mRectManger = rectManger
     private val mITimeScrollView = iTimeScrollView
     private var mLinkedViewPager2: ViewPager2? = null
-    private var mOnScrollListener: ((scrollY: Int, vpPosition: Int) -> Unit)? = null
 
     private var mIsCanLongClick = true
     var mClickRectViewPosition: Int? = null
@@ -142,43 +135,48 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
 
     private fun scrollToCenterTime() {
         post {
-            if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_NOW_TIME) { //以当前时间线为中线
-                scrollY = mTime.getNowTimeHeight() - height / 2
-                postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
-            }else if (mData.mCenterTime == TSViewTimeUtil.CENTER_TIME_CENTER) { //以中心值为中线
-                scrollY = mData.mInsideTotalHeight / 2 - height / 2
-            }else { //以mCenterTime为中线，不随时间移动
-                scrollY = mTime.getTimeHeight(mData.mCenterTime) - height / 2
+            scrollY = when (mData.mCenterTime) { //以当前时间线为中线
+                TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+                    postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
+                    mTime.getNowTimeHeight() - height / 2
+                }
+                TSViewTimeUtil.CENTER_TIME_CENTER -> { //以中心值为中线
+                    mData.mInsideTotalHeight / 2 - height / 2
+                }
+                else -> { //以你设定的时间为中线，不随时间移动
+                    mTime.getTimeHeight(mData.mCenterTime) - height / 2
+                }
             }
         }
-
     }
 
     private val mBackNowTimeRun = object : Runnable {
         override fun run() {
-            slowlyMoveTo(mTime.getNowTimeHeight() - height / 2)
+            slowlyScrollTo(mTime.getNowTimeHeight() - height / 2)
             postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
         }
     }
 
-    private val mAfterUpBackCurrentTimeRun = Runnable {
-        slowlyMoveTo(when (mData.mCenterTime) {
-            TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
-                mTime.getNowTimeHeight() - height / 2
-            }
-            TSViewTimeUtil.CENTER_TIME_CENTER -> {
-                mData.mInsideTotalHeight / 2 - height / 2
-            }
-            else -> {
-                mTime.getTimeHeight(mData.mCenterTime) - height / 2
-            }
-        })
+    private val mAfterUpBackCurrentTimeRun = object : Runnable {
+        override fun run() {
+            slowlyScrollTo(when (mData.mCenterTime) {
+                TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
+                    postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
+                    mTime.getNowTimeHeight() - height / 2
+                }
+                TSViewTimeUtil.CENTER_TIME_CENTER -> {
+                    mData.mInsideTotalHeight / 2 - height / 2
+                }
+                else -> {
+                    mTime.getTimeHeight(mData.mCenterTime) - height / 2
+                }
+            })
+        }
     }
-
-
 
     override fun dispatchTouchEventDown(outerX: Int, outerY: Int) {
         removeCallbacks(mAfterUpBackCurrentTimeRun)
+        removeCallbacks(mBackNowTimeRun)
     }
 
     private var mOuterUpY = 0
@@ -248,8 +246,6 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mData.mOnLongClickEndListener?.invoke(condition)
     }
 
-    override fun setLinkedViewPager2(): ViewPager2? = mLinkedViewPager2
-
     private var mOuterX = 0
     private var mOuterY = 0
     private var mPreOuterY = 0
@@ -287,7 +283,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val isTopSlide = outerY < AUTO_MOVE_THRESHOLD
                 val isBottomSlide = outerY > height - AUTO_MOVE_THRESHOLD
                 val isInCanSlideLimit = insideY in mUpperLimit..mLowerLimit
-                if (!isTopSlide && !isBottomSlide || !isInCanSlideLimit ||
+                //50为一个上下的阈值，只有移动超过了这个阈值，才可以自动滑动
+                val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 10)..(mForbidSlideCenter + 10)
+                if (!isTopSlide && !isBottomSlide || !isInCanSlideLimit || isInForbidSlideLimit ||
                         scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
                     mStartRun = false
@@ -307,8 +305,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     }
                 }else {
                     if (isTopSlide) { //时间轴往下滑
-                        if (outerY > mPreOuterY) {
+                        if (outerY > mPreOuterY + 5) { //时间轴往下滑中，突然你也向下滑，此时禁止自动滑动
                             mPreOuterY = outerY
+                            mForbidSlideCenter = insideY - scrollY
                             return
                         }
                         mVelocity = -min((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
@@ -326,8 +325,9 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                             }
                         }
                     }else { //时间轴往上滑
-                        if (outerY < mPreOuterY) {
+                        if (outerY < mPreOuterY - 5) { //时间轴往上滑中，突然你也向上滑，此时禁止自动滑动
                             mPreOuterY = outerY
+                            mForbidSlideCenter = insideY - scrollY
                             return
                         }
                         mVelocity = min((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
@@ -358,7 +358,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                 val bottom = mITimeScrollView.getOuterBottom()
                 val isTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
                 val isBottomSlide = bottom > height - AUTO_MOVE_THRESHOLD * 0.4F
-                val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 100)..(mForbidSlideCenter + 100)
+                //20为一个上下的阈值，只有移动超过了这个阈值，才可以自动滑动
+                val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 20)..(mForbidSlideCenter + 20)
                 if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit ||
                         scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
@@ -367,7 +368,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                     mData.mCondition = INSIDE
                 }else {
                     if (isTopSlide) { //时间轴往下滑
-                        if (outerY > mPreOuterY) {
+                        if (outerY > mPreOuterY + 5) { //时间轴往下滑中，突然你也向下滑，此时禁止自动滑动
                             mPreOuterY = outerY
                             mForbidSlideCenter = insideY - scrollY
                             return
@@ -375,7 +376,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
                         mVelocity = -min((AUTO_MOVE_THRESHOLD - top) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
                         mData.mCondition = INSIDE_SLIDE_UP
                     }else { //时间轴往上滑
-                        if (outerY < mPreOuterY) {
+                        if (outerY < mPreOuterY - 5) { //时间轴往上滑中，突然你也向上滑，此时禁止自动滑动
                             mPreOuterY = outerY
                             mForbidSlideCenter = insideY - scrollY
                             return
@@ -401,8 +402,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         mLinkedViewPager2?.let {
             val currentItem = it.currentItem
             if (currentItem == mITimeScrollView.getVpPosition()) {
-                mITimeScrollView.onScrollChanged(oldt, t)
-                mOnScrollListener?.invoke(t, currentItem)
+                mITimeScrollView.onScrollChanged(t)
+                mData.mOnScrollListener?.invoke(t, currentItem)
             }
         }
     }

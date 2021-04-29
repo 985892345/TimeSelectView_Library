@@ -171,8 +171,8 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     /**
      * 因为CardView的圆角问题，上下滑动时，边界的显示区域会覆盖圆角，所以提供此方法在ScrollView滑动时调用刷新
      */
-    fun boundaryRefresh(oldScrollY: Int, scrollY: Int, insideHeight: Int, outerHeight: Int) {
-        if (scrollY !in mData.mExtraHeight..insideHeight - mData.mExtraHeight - outerHeight) {
+    fun boundaryRefresh(scrollY: Int, insideHeight: Int, outerHeight: Int) {
+        if (scrollY !in mData.mExtraHeight..insideHeight - mData.mExtraHeight - outerHeight) { //只有能显示边界时才刷新
             mDrawBoundaryDiffHeight = if (scrollY in 0..mData.mExtraHeight) { //说明时间轴处于顶部
                 scrollY
             }else { //说明时间轴处于底部
@@ -184,8 +184,6 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
                     invalidate()
                 }
             }
-        }else {
-            mDrawBoundaryDiffHeight = 0
         }
     }
 
@@ -259,7 +257,7 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
             }
         }
 
-        if (mRectViewToRectImgViewDistances[0] != mRectViewToRectImgViewDistances[1]) {
+        if (mRectViewToRectImgViewDistances[0] != 0) {
             //绘制顶部与底部的灰色区域
             repeat(mData.mTSViewAmount) {
                 val left = mRectViewToRectImgViewDistances[it].toFloat()

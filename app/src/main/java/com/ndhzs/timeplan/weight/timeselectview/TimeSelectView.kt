@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
@@ -23,6 +24,35 @@ import kotlin.collections.ArrayList
  * [com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]
  */
 class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+
+    /**
+     * 初始化数据，传入TSViewDayBean的数组
+     *
+     * 以beans的一维长度为ViewPager2的item数
+     * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
+     * @param currentItem 默认值为1
+     * @param smoothScroll 默认值为false
+     */
+    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
+        if (childCount == 0) {
+            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, showNowTimeLinePosition)
+            mViewPager2.adapter = mVpAdapter
+            mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
+            setCurrentItem(currentItem, smoothScroll)
+            addView(mViewPager2)
+        }else {
+            throw Exception("TimeSelectView has been initialized!")
+        }
+    }
+
+    /**
+     * 当前显示页面的滑动回调，不是ViewPager2的滑动回调
+     *
+     * 若你想监听ViewPager2的滑动，请使用[registerOnPageChangeCallback]
+     */
+    fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit) {
+        mVpAdapter.setOnScrollListener(l)
+    }
 
     /**
      * 时间间隔数
@@ -57,21 +87,6 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
-     * @param isBackToCurrentTime 是否回到设置的中心线
-     */
-    fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
-        mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
-    }
-
-    /**
-     * 通知所有item刷新
-     */
-    fun notifyAllItemRefresh() {
-        mVpAdapter.notifyDataSetChanged()
-    }
-
-    /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      * 注意：修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
      */
@@ -88,6 +103,13 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
+     * 设置数据改变监听
+     */
+    fun setOnDataListener(l: OnDataChangeListener) {
+        mData.mDataChangeListener = l
+    }
+
+    /**
      * 得到当前的TimeSelectView是否处于长按状态，
      * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
      */
@@ -96,30 +118,25 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置数据改变监听
+     * 得到当前显示的时间轴的ScrollY
      */
-    fun setOnDataListener(l: OnDataChangeListener) {
-        mData.mDataChangeListener = l
+    fun getTimeLineScrollY(): Int {
+        return mVpAdapter.getTimeLineScrollY()
     }
 
     /**
-     * 初始化数据，传入TSViewDayBean的数组
-     *
-     * 以beans的一维长度为ViewPager2的item数
-     * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
-     * @param currentItem 默认值为1
-     * @param smoothScroll 默认值为false
+     * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
+     * @param isBackToCurrentTime 是否回到设置的中心线
      */
-    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
-        if (childCount == 0) {
-            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, showNowTimeLinePosition)
-            mViewPager2.adapter = mVpAdapter
-            mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
-            setCurrentItem(currentItem, smoothScroll)
-            addView(mViewPager2)
-        }else {
-            throw Exception("TimeSelectView has been initialized!")
-        }
+    fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
+        mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
+    }
+
+    /**
+     * 通知所有item刷新
+     */
+    fun notifyAllItemRefresh() {
+        mVpAdapter.notifyAllItemRefresh()
     }
 
     /**
@@ -130,12 +147,24 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 当前显示页面的滑动回调，不是ViewPager2的滑动回调
-     *
-     * 若你想监听ViewPager2的滑动，请使用[registerOnPageChangeCallback]
+     * 使时间轴瞬移
      */
-    fun setOnScrollListener(l: (scrollY: Int) -> Unit) {
-        mVpAdapter.setOnScrollListener(l)
+    fun timeLineScrollTo(scrollY: Int) {
+        mVpAdapter.timeLineScrollTo(scrollY)
+    }
+
+    /**
+     * @param dy dy > 0，向上瞬移；dy < 0，向下瞬移
+     */
+    fun timeLineScrollBy(dy: Int) {
+        timeLineScrollTo(getTimeLineScrollY() + dy)
+    }
+
+    /**
+     * 使时间轴较缓慢地滑动，并有回弹动画
+     */
+    fun timeLineSlowlyScrollTo(scrollY: Int) {
+        mVpAdapter.timeLineSlowlyScrollTo(scrollY)
     }
 
     /**
@@ -146,7 +175,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置多个时间轴中拖动任务的阻力值
+     * 设置在多个时间轴中拖动任务的阻力值
+     * @param resistance 不填入值时还原为初始化值
      */
     fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE) {
         mData.mDragResistance = resistance
@@ -155,6 +185,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     private val mData = TSViewInternalData(context, attrs)
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
+
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         val minWidth = mData.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2

@@ -1,6 +1,7 @@
 package com.ndhzs.timeplan.weight.timeselectview.utils.rect
 
 import android.graphics.Rect
+import android.util.Log
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeplan.weight.timeselectview.layout.view.SeparatorLineView
 import com.ndhzs.timeplan.weight.timeselectview.utils.TSViewInternalData
@@ -147,9 +148,6 @@ class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
         }
 
         override fun getRectWithBeanMap(): Map<Rect, TSViewTaskBean> {
-            if (mData.mTSViewAmount == 1) {
-                return mAllRectWithBean
-            }
             val rectWithBean = HashMap<Rect, TSViewTaskBean>()
             mAllRectWithBean.forEach {
                 val rect = it.key

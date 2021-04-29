@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.layout
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.Gravity
+import android.view.MotionEvent
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewDayBean
@@ -21,13 +22,6 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
     }
 
     /**
-     * 设置滑动监听接口
-     */
-    fun setOnScrollListener(l: (scrollY: Int, vpPosition: Int) -> Unit) {
-        mIVpLayout.setOnScrollListener(l)
-    }
-
-    /**
      * 快速回到设置的当前时间
      */
     fun backCurrentTime() {
@@ -35,10 +29,17 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
     }
 
     /**
-     * 就是一个调用内部ScrollView的setScrollY方法
+     * 调用内部ScrollView的setScrollY方法
      */
-    fun moveTo(scrollY: Int) {
-        mIVpLayout.moveTo(scrollY)
+    fun timeLineScrollTo(scrollY: Int) {
+        mIVpLayout.timeLineScrollTo(scrollY)
+    }
+
+    /**
+     * 调用自定义ScrollView的slowlyScrollTo，自定义了回弹效果
+     */
+    fun timeLineSlowlyScrollTo(scrollY: Int) {
+        mIVpLayout.timeLineSlowlyScrollTo(scrollY)
     }
 
     /**

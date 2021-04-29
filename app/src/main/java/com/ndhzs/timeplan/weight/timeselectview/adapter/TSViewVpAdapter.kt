@@ -17,13 +17,47 @@ import kotlin.collections.ArrayList
  */
 class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, showNowTimeLinePosition: Int) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
 
+
+    /**
+     * 设置内部ScrollView的滑动监听
+     */
+    fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit) {
+        mData.mOnScrollListener = {scrollY, vpPosition ->
+            mScrollY = scrollY
+            l.invoke(scrollY, vpPosition)
+        }
+    }
+
+    /**
+     * 得到当前item的ScrollView的滑动量
+     */
+    fun getTimeLineScrollY(): Int {
+        return mScrollY
+    }
+
+    fun notifyAllItemRefresh() {
+        notifyDataSetChanged()
+    }
+
+    /**
+     * 让某个位置的item刷新
+     */
     fun notifyItemRefresh(position: Int, isBackToCurrentTime: Boolean) {
-        mRefreshPosition = position
         notifyItemChanged(position, listOf(NOTIFY_ITEM_REFRESH, isBackToCurrentTime))
     }
 
-    fun setOnScrollListener(l: (scrollY: Int) -> Unit) {
-        mOnScrollListener = l
+    /**
+     * 使内部的ScrollView直接瞬移，调用的ScrollView的scrollTo方法
+     */
+    fun timeLineScrollTo(scrollY: Int) {
+        notifyItemChanged(mViewPager2.currentItem, listOf(NOTIFY_ITEM_SCROLL_TO, scrollY))
+    }
+
+    /**
+     * 使内部的ScrollView较缓慢地滑动，并有回弹动画
+     */
+    fun timeLineSlowlyScrollTo(scrollY: Int) {
+        notifyItemChanged(mViewPager2.currentItem, listOf(NOTIFY_ITEM_SLOWLY_SCROLL_TO, scrollY))
     }
 
     companion object {
@@ -42,6 +76,18 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
          * 用于[onBindViewHolder]中判断，此时说明是[notifyItemRefresh]调用的notifyItemChanged
          */
         private const val NOTIFY_ITEM_REFRESH = 0
+
+        /**
+         * 用于[onBindViewHolder]中判断，此时说明是[timeLineScrollTo]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_SCROLL_TO = 1
+
+        /**
+         * 用于[onBindViewHolder]中判断，此时说明是[timeLineSlowlyScrollTo]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_SLOWLY_SCROLL_TO = 2
+
+
     }
 
     private val mDayBeans = dayBeans
@@ -49,9 +95,7 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
     private val mViewPager2 = viewPager2
     private val mShowNowTimeLinePosition = showNowTimeLinePosition
 
-    private var mOnScrollListener: ((scrollY: Int) -> Unit)? = null
-
-    private var mRefreshPosition = -1
+    private var mScrollY = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = VpLayout(parent.context, mData, mViewPager2, mDayBeans[0].day, viewType == SHOW_NOW_TIME_LINE_POSITION)
@@ -63,11 +107,21 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         if (payloads.isEmpty()) {
             onBindViewHolder(holder, position)
         }else {
-            val list = payloads[0] as List<*>
-            if ((list[0] as Int) == NOTIFY_ITEM_REFRESH) {
-                holder.mVpLayout.refresh()
-                if (list[1] as Boolean) {
-                    holder.mVpLayout.backCurrentTime()
+            payloads.forEach {
+                val list = it as List<*>
+                when (list[0] as Int) {
+                    NOTIFY_ITEM_REFRESH -> {
+                        holder.mVpLayout.refresh()
+                        if (list[1] as Boolean) {
+                            holder.mVpLayout.backCurrentTime()
+                        }
+                    }
+                    NOTIFY_ITEM_SCROLL_TO -> {
+                        holder.mVpLayout.timeLineScrollTo(list[1] as Int)
+                    }
+                    NOTIFY_ITEM_SLOWLY_SCROLL_TO -> {
+                        holder.mVpLayout.timeLineSlowlyScrollTo(list[1] as Int)
+                    }
                 }
             }
         }
@@ -76,9 +130,6 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val vpLayout = holder.mVpLayout
         vpLayout.initialize(mDayBeans[position], position)
-        vpLayout.setOnScrollListener { scrollY, vpPosition ->
-            mOnScrollListener?.invoke(scrollY)
-        }
     }
 
     override fun getItemCount(): Int {

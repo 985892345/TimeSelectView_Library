@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity2">
+
+    <com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
+        android:id="@+id/time_view_2"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="80dp"
+        android:layout_marginBottom="80dp"
+        app:amount="2"
+        app:centerTime="-1"
+        app:cardCornerRadius="8dp"
+        app:timelineWidth="160dp"
+        app:timeRangeArray="0-18,6-0"
+        app:timelineInterval="10dp"
+        app:isShowDiffTime="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/button_back_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#FFDCCC48"
+        android:text="回到中心时间"
+        android:textColor="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/button_2_1"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/time_view_2" />
+
+    <Button
+        android:id="@+id/button_2_1"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:text="1"
+        app:layout_constraintBottom_toBottomOf="@+id/button_back_2"
+        app:layout_constraintEnd_toStartOf="@+id/button_2_5"
+        app:layout_constraintHorizontal_bias="0.39"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/button_back_2"
+        app:layout_constraintTop_toTopOf="@+id/button_back_2" />
+
+    <Button
+        android:id="@+id/button_2_5"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:text="5"
+        app:layout_constraintBottom_toBottomOf="@+id/button_2_1"
+        app:layout_constraintEnd_toStartOf="@+id/button_2_10"
+        app:layout_constraintStart_toEndOf="@+id/button_2_1"
+        app:layout_constraintTop_toTopOf="@+id/button_2_1" />
+
+    <Button
+        android:id="@+id/button_2_10"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:text="10"
+        app:layout_constraintEnd_toStartOf="@+id/button_2_15"
+        app:layout_constraintStart_toEndOf="@+id/button_2_5"
+        app:layout_constraintTop_toTopOf="@+id/button_2_5" />
+
+    <Button
+        android:id="@+id/button_2_15"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:text="15"
+        app:layout_constraintBottom_toBottomOf="@+id/button_2_10"
+        app:layout_constraintEnd_toStartOf="@+id/button_2_20"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/button_2_10"
+        app:layout_constraintTop_toTopOf="@+id/button_2_10" />
+
+    <Button
+        android:id="@+id/button_2_20"
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:text="20"
+        app:layout_constraintBottom_toBottomOf="@+id/button_2_15"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/button_2_15"
+        app:layout_constraintTop_toTopOf="@+id/button_2_15" />
+
+    <TextView
+        android:id="@+id/textView_2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="设置时间间隔数"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toTopOf="@+id/button_2_10"
+        app:layout_constraintEnd_toEndOf="@+id/button_2_20"
+        app:layout_constraintStart_toStartOf="@+id/button_2_1" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

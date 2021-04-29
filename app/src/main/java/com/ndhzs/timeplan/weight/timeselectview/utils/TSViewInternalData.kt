@@ -3,6 +3,7 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
+import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.R
 import com.ndhzs.timeplan.weight.timeselectview.TimeSelectView
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
@@ -54,7 +55,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
     var mIsShowDiffTime: Boolean //最终的任务区域是否显示时间差
     var mIsShowStartEndTime: Boolean //最终的任务区域是否显示上下边界时间
 
-    var mDataChangeListener: TimeSelectView.OnDataChangeListener? = null
+    var mDataChangeListener: TimeSelectView.OnDataChangeListener? = null //数据改变监听
 
     var mIsLongClick = false //是否处于长按状态
         set(value) {
@@ -153,7 +154,7 @@ class TSViewInternalData(context: Context, attrs: AttributeSet? = null) {
                         e.printStackTrace(PrintWriter("****  Your TimeSelectView of timeRangeArray's startHour or endHour is wrong!  ****"))
                         throw Exception()
                     }
-                    if (endHour < startHour) {
+                    if (endHour <= startHour) {
                         endHour += 24
                     }
                     mTimelineRange = endHour - startHour

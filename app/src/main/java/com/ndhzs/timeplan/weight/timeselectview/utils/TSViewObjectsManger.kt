@@ -121,12 +121,12 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             mTimeScrollView.backCurrentTime()
         }
 
-        override fun moveTo(scrollY: Int) {
+        override fun timeLineScrollTo(scrollY: Int) {
             mTimeScrollView.scrollY = scrollY
         }
 
-        override fun setOnScrollListener(l: ((scrollY: Int, vpPosition: Int) -> Unit)) {
-            mTimeScrollView.setOnScrollListener(l)
+        override fun timeLineSlowlyScrollTo(scrollY: Int) {
+            mTimeScrollView.slowlyScrollTo(scrollY)
         }
 
         override fun notifyRectViewRedraw() {
@@ -168,8 +168,8 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             mRectImgView.forcedEnd()
         }
 
-        override fun onScrollChanged(oldScrollY: Int, scrollY: Int) {
-            mRectImgView.boundaryRefresh(oldScrollY, scrollY, mData.mInsideTotalHeight, mTimeScrollView.height)
+        override fun onScrollChanged(scrollY: Int) {
+            mRectImgView.boundaryRefresh(scrollY, mData.mInsideTotalHeight, mTimeScrollView.height)
         }
     }
 

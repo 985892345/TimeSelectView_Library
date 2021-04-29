@@ -3,13 +3,11 @@ package com.ndhzs.timeplan.weight.timeselectview.utils.tscrollview
 import android.animation.ValueAnimator
 import android.content.Context
 import android.os.Vibrator
-import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.OvershootInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
 import androidx.viewpager2.widget.ViewPager2
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.abs
 import kotlin.math.pow
 
@@ -17,23 +15,24 @@ import kotlin.math.pow
  * @author 985892345
  * @date 2021/3/21
  * @description 处理[com.ndhzs.timeplan.weight.timeselectview.layout.TimeScrollView]的触摸事件
+ * @param delayMillis 判定为长按所需要的时间，默认为300毫秒
  */
-abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
+abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) : ScrollView(context) {
 
     private var mAnimator: ValueAnimator? = null
     /**
      * 与[scrollTo]类似，但速度较缓慢
      */
-    fun slowlyMoveTo(y: Int) {
-        cancelSlowlyMove()
-        mAnimator = ValueAnimator.ofInt(scrollY, y)
+    fun slowlyScrollTo(scrollY: Int) {
+        cancelSlowlyScroll()
+        mAnimator = ValueAnimator.ofInt(this.scrollY, scrollY)
         mAnimator?.let {
             it.addUpdateListener { animator ->
                 val nowY = animator.animatedValue as Int
-                scrollY = nowY
+                this.scrollY = nowY
             }
             it.addListener(onEnd = { mAnimator = null })
-            it.duration = (abs(scrollY - y).toDouble().pow(0.3) * 66 + 80).toLong()
+            it.duration = (abs(this.scrollY - scrollY).toDouble().pow(0.3) * 66 + 80).toLong()
             it.interpolator = OvershootInterpolator(1F)
             it.start()
         }
@@ -42,14 +41,14 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     /**
      * 与[scrollBy]类似，但速度较缓慢，不建议短时间大量调用
      */
-    fun slowlyMoveBy(dy: Int) {
-        slowlyMoveTo(scrollY + dy)
+    fun slowlyScrollBy(dy: Int) {
+        slowlyScrollTo(scrollY + dy)
     }
 
     /**
-     * 取消[slowlyMoveTo]、[slowlyMoveBy]的滑动
+     * 取消[slowlyScrollTo]、[slowlyScrollBy]的滑动
      */
-    fun cancelSlowlyMove() {
+    fun cancelSlowlyScroll() {
         mAnimator?.let {
             if (it.isRunning) {
                 it.cancel()
@@ -77,31 +76,50 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
         }
     }
 
+    /**
+     * 得到是否是长按
+     */
     fun getIsLongClick(): Boolean {
         return mIsLongClick
+    }
+
+    /**
+     * 处理与ViewPager2的同向滑动冲突
+     *
+     * 注意：该解决方案并不完善，在滑动到边界时使ViewPager2滑动后，滑动事件就全被ViewPager2拦截，
+     * 只要不松手，之后的所有滑动都只会引起ViewPager2滑动，此问题暂无法解决
+     * @param onVpInterceptionStart 当开始让ViewPager2拦截时的回调
+     */
+    fun setLinkViewPager2(viewPager2: ViewPager2, onVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null) {
+        mLinkViewPager2 = viewPager2
+        mOnVpInterceptionStart = onVpInterceptionStart
     }
 
     companion object {
         /**
          * 识别是长按而能移动的阈值
          */
-        const val MOVE_THRESHOLD = 5
+        const val MOVE_THRESHOLD = 8
     }
+
+    private var mLinkViewPager2: ViewPager2? = null
+    private var mOnVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null
 
     private var mIsLongClick = false
     private var mIsMatchLongClick = true
-    private var mInitialX = 0
-    private var mInitialY = 0
-    private var mRawX = 0
-    private var mRawY = 0
+    private var mOuterInitialX = 0
+    private var mOuterInitialY = 0
+    private var mInitialRawX = 0
+    private var mInitialRawY = 0
     private val mLongClickRun = Runnable {
         mIsLongClick = true
         mIsMatchLongClick = false
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(30)
-        onLongClickStart(mInitialX + scrollX, mInitialY + scrollY, mRawX, mRawY)
+        onLongClickStart(mOuterInitialX + scrollX, mOuterInitialY + scrollY, mInitialRawX, mInitialRawY)
     }
 
+    private val mDelayMillis = delayMillis
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val x = ev.x.toInt()
         val y = ev.y.toInt()
@@ -109,19 +127,19 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
         val rawY = ev.rawY.toInt()
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
-                mInitialX = x
-                mInitialY = y
-                mRawX = rawX
-                mRawY = rawY
+                mOuterInitialX = x
+                mOuterInitialY = y
+                mInitialRawX = rawX
+                mInitialRawY = rawY
                 mIsLongClick = false
                 mIsMatchLongClick = true
-                postDelayed(mLongClickRun, 250)
+                postDelayed(mLongClickRun, mDelayMillis)
                 dispatchTouchEventDown(x, y)
             }
             MotionEvent.ACTION_MOVE -> {
                 if (!mIsLongClick) {
                     if (isInLongClickArea(x, y, rawX, rawY)) {
-                        if (abs(x - mInitialX) > MOVE_THRESHOLD || abs(y - mInitialY) > MOVE_THRESHOLD) {
+                        if (abs(x - mOuterInitialX) > MOVE_THRESHOLD || abs(y - mOuterInitialY) > MOVE_THRESHOLD) {
                             removeCallbacks(mLongClickRun)
                             mIsMatchLongClick = false
                         }else {
@@ -162,7 +180,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
         when (ev.action) {
             MotionEvent.ACTION_DOWN -> {
                 mIsMove = false
-                cancelSlowlyMove()
+                cancelSlowlyScroll()
                 if (onInterceptTouchEventDown(x, y, rawX, rawY)) {
                     removeCallbacks(mLongClickRun)
                     return true
@@ -196,7 +214,7 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
             * 根据上面写的注释，可得到这里的UP事件只有在DOWN、MOVE都return false的情况下才会调用
             * */
             MotionEvent.ACTION_UP -> {
-                if (abs(x - mInitialX) < MOVE_THRESHOLD && abs(y - mInitialY) < MOVE_THRESHOLD){
+                if (abs(x - mOuterInitialX) < MOVE_THRESHOLD && abs(y - mOuterInitialY) < MOVE_THRESHOLD){
                     if (!mIsLongClick) {
                         removeCallbacks(mLongClickRun)
                         return onClick(x + scrollX, y + scrollY)
@@ -212,19 +230,22 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        val viewPager2 = setLinkedViewPager2()
-        viewPager2?.let {
+        mLinkViewPager2?.let {
             when (ev.action) {
                 MotionEvent.ACTION_DOWN -> {
                     it.isUserInputEnabled = false
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    if (scrollY == 0 && ev.y > mInitialY) {
+                    if (scrollY == 0 && ev.y > mOuterInitialY) {
+                        //一旦设置成true后，所有的事件都将会被ViewPager2拦截，再设置成false将无法被调用
+                        //除非能在ViewPager2的父布局进行单独控制
                         it.isUserInputEnabled = true
+                        mOnVpInterceptionStart?.invoke(it, ev.rawY)
                         return false
                     }
-                    if (scrollY + height == getChildAt(0).height && ev.y < mInitialY) {
+                    if (scrollY + height == getChildAt(0).height && ev.y < mOuterInitialY) {
                         it.isUserInputEnabled = true
+                        mOnVpInterceptionStart?.invoke(it, ev.rawY)
                         return false
                     }
                 }
@@ -274,11 +295,6 @@ abstract class TScrollViewTouchEvent(context: Context) : ScrollView(context) {
      * [onLongClickStartButNotMove]该方法可能你需要重写
      */
     abstract fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int)
-
-    /**
-     * 处理与ViewPager2的同向滑动冲突
-     */
-    protected open fun setLinkedViewPager2(): ViewPager2? = null
 
     /**
      * 自动滑动的处理，没有默认实现

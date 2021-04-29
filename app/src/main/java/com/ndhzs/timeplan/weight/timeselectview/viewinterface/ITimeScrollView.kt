@@ -17,5 +17,5 @@ interface ITimeScrollView {
     fun getRectViewPosition(rowX: Int): Int?
     fun getVpPosition(): Int
     fun onLongClickStartButNotMove(position: Int)
-    fun onScrollChanged(oldScrollY: Int, scrollY: Int)
+    fun onScrollChanged(scrollY: Int)
 }
