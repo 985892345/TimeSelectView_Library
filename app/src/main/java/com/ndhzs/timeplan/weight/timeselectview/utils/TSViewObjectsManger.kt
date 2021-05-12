@@ -2,7 +2,6 @@ package com.ndhzs.timeplan.weight.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
-import android.util.Log
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
@@ -55,26 +54,48 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
 
     private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), data, mTime, mRectManger)
 
-    private fun getChildLayoutLocation(position: Int): Rect {
-        val rect = Rect()
-        mChildLayouts[position].getGlobalVisibleRect(rect)
-        return rect
+    private fun getChildLayoutInWindowLeftRight(position: Int): IntArray {
+        val location = IntArray(2)
+        mChildLayouts[position].getLocationInWindow(location)
+        location[1] = location[0] + mChildLayouts[position].width
+        return location
     }
 
-    private fun getRectViewPosition(rowX: Int): Int? {
+    private fun getChildLayoutOnScreenLeftRight(position: Int): IntArray {
+        val location = IntArray(2)
+        mChildLayouts[position].getLocationOnScreen(location)
+        location[1] = location[0] + mChildLayouts[position].width
+        return location
+    }
+
+    private fun getRectViewPosition(inWindowX: Int): Int? {
         for (i in 0 until mData.mTSViewAmount) {
-            val rect = getRectViewRawLocation(i)
-            if (rowX in rect.left..rect.right) {
+            val leftRight = getRectViewInWindowLeftRight(i)
+            if (inWindowX < leftRight[0]) {
+                return null
+            }else if (inWindowX in leftRight[0]..leftRight[1]) {
                 return i
             }
         }
         return null
     }
 
-    private fun getRectViewRawLocation(position: Int): Rect {
-        val rect = Rect()
-        mRectViews[position].getGlobalVisibleRect(rect)
-        return rect
+    private fun getRectViewInWindowLeftRight(position: Int): IntArray {
+        val location = IntArray(2)
+        mRectViews[position].getLocationInWindow(location)
+        location[1] = location[0] + mRectViews[position].width
+        return location
+    }
+
+    private fun getRectViewOnScreenLeftRight(position: Int): IntArray {
+        val location = IntArray(2)
+        mRectViews[position].getLocationOnScreen(location)
+        location[1] = location[0] + mRectViews[position].width
+        return location
+    }
+
+    private fun getDiffBetweenInWindowAndOnScreen(): Int {
+        return getRectViewOnScreenLeftRight(0)[0] - getRectViewInWindowLeftRight(0)[0]
     }
 
     private fun notifyAllRectViewRedraw() {
@@ -121,6 +142,10 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             mTimeScrollView.backCurrentTime()
         }
 
+        override fun cancelAutoBackCurrentTime() {
+            mTimeScrollView.cancelAfterUpBackCurrentTimeRun()
+        }
+
         override fun timeLineScrollTo(scrollY: Int) {
             mTimeScrollView.scrollY = scrollY
         }
@@ -129,8 +154,9 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             mTimeScrollView.slowlyScrollTo(scrollY)
         }
 
-        override fun notifyRectViewRedraw() {
-            return this@TSViewObjectsManger.notifyAllRectViewRedraw()
+        override fun notifyRectViewDataChanged() {
+            mRectManger.refreshData()
+            notifyAllRectRefresh()
         }
     }
 
@@ -155,8 +181,8 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             return mRectImgView.getInsideBottom() - mTimeScrollView.scrollY
         }
 
-        override fun getRectViewPosition(rowX: Int): Int? {
-            return this@TSViewObjectsManger.getRectViewPosition(rowX)
+        override fun getRectViewPosition(onScreenX: Int): Int? {
+            return this@TSViewObjectsManger.getRectViewPosition(onScreenX - getDiffBetweenInWindowAndOnScreen())
         }
 
         override fun getVpPosition(): Int {
@@ -182,36 +208,32 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             v.addView(mStickerLayout, lp)
         }
 
-        override fun getRectViewPosition(rowX: Int): Int? {
-            return this@TSViewObjectsManger.getRectViewPosition(rowX)
+        override fun getRectViewPosition(inWindowX: Int): Int? {
+            return this@TSViewObjectsManger.getRectViewPosition(inWindowX)
         }
 
         override fun getPreRectViewPosition(): Int {
             return mTimeScrollView.mClickRectViewPosition!!
         }
 
-        override fun getRectViewRawLocation(position: Int): Rect {
-            return this@TSViewObjectsManger.getRectViewRawLocation(position)
+        override fun getRectViewInWindowLeftRight(position: Int): IntArray {
+            return this@TSViewObjectsManger.getRectViewInWindowLeftRight(position)
         }
 
-        override fun getChildLayoutLocation(position: Int): Rect {
-            return this@TSViewObjectsManger.getChildLayoutLocation(position)
+        override fun getChildLayoutInWindowLeftRight(position: Int): IntArray {
+            return this@TSViewObjectsManger.getChildLayoutInWindowLeftRight(position)
         }
 
         override fun getUnconstrainedDistance(): Int {
             return mRectViews[0].mUnconstrainedDistance
         }
 
-        override fun getRectImgViewRawRect(): Rect {
-            return mRectImgView.getRawRect()
+        override fun getRectImgViewInWindowRect(): Rect {
+            return mRectImgView.getInWindowRect()
         }
 
         override fun getRectImgViewInitialRect(): Rect {
             return mRectImgView.getRawInitialRect()
-        }
-
-        override fun getDeleteBean(): TSViewTaskBean {
-            return mRectManger.getDeletedBean()
         }
 
         override fun getStartEndDTime(top: Int, bottom: Int, position: Int): Array<String> {
@@ -225,8 +247,8 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             mRectImgView.slideRectImgView(dx, dy)
         }
 
-        override fun slideEndRectImgView(rawFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit?) {
-            mRectImgView.over(rawFinalLeft, insideFinalTop, onEndListener)
+        override fun slideEndRectImgView(inWindowFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit?) {
+            mRectImgView.over(inWindowFinalLeft, insideFinalTop, onEndListener)
         }
 
         override fun deleteRectImgView(onEndListener: () -> Unit?) {
@@ -293,7 +315,7 @@ class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: 
             return if (mData.mTSViewAmount == 1) {
                 Int.MAX_VALUE
             }else {
-                getRectViewRawLocation(1).left - getRectViewRawLocation(0).left
+                getRectViewInWindowLeftRight(1)[0] - getRectViewInWindowLeftRight(0)[0]
             }
         }
     }

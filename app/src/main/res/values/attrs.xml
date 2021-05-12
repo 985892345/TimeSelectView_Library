@@ -18,9 +18,9 @@
         <attr name="centerTime" format="float"/>
 
         <!--默认任务边框颜色-->
-        <attr name="defaultBorderColor" format="color"/>
+        <attr name="defaultBorderColor" format="reference|color"/>
         <!--默认任务内部颜色-->
-        <attr name="defaultInsideColor" format="color"/>
+        <attr name="defaultInsideColor" format="reference|color"/>
         <!--默认任务名称-->
         <attr name="defaultTaskName" format="string"/>
 

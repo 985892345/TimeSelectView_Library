@@ -99,7 +99,7 @@ abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) 
         /**
          * 识别是长按而能移动的阈值
          */
-        const val MOVE_THRESHOLD = 8
+        const val MOVE_THRESHOLD = 5
     }
 
     private var mLinkViewPager2: ViewPager2? = null
@@ -139,7 +139,7 @@ abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) 
             MotionEvent.ACTION_MOVE -> {
                 if (!mIsLongClick) {
                     if (isInLongClickArea(x, y, rawX, rawY)) {
-                        if (abs(x - mOuterInitialX) > MOVE_THRESHOLD || abs(y - mOuterInitialY) > MOVE_THRESHOLD) {
+                        if (abs(rawX - mInitialRawX) > MOVE_THRESHOLD || abs(rawY - mInitialRawY) > MOVE_THRESHOLD) {
                             removeCallbacks(mLongClickRun)
                             mIsMatchLongClick = false
                         }else {
@@ -267,12 +267,12 @@ abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) 
     /**
      * 在onInterceptTouchEvent的Down事件直接拦截并移除长按延时Runnable
      */
-    protected open fun onInterceptTouchEventDown(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean = false
+    protected open fun onInterceptTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean = false
 
     /**
      * 如果是长按区域，则在dispatchTouchEvent的Move事件中会进行判断，要么到长按的时间成为长按，要么滑动的距离超过阈值不为长按，不然Move事件将一直不向下分发
      */
-    protected open fun isInLongClickArea(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean = false
+    protected open fun isInLongClickArea(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean = false
 
     /**
      * 调用此方法说明长按已经发生，但手指却没有移动或移动距离在阈值以内，如果你在[onLongClickStart]调用了一些东西，可以在这里取消他们
@@ -294,7 +294,7 @@ abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) 
      *
      * [onLongClickStartButNotMove]该方法可能你需要重写
      */
-    abstract fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int)
+    abstract fun onLongClickStart(insideX: Int, insideY: Int, onScreenX: Int, onScreenY: Int)
 
     /**
      * 自动滑动的处理，没有默认实现

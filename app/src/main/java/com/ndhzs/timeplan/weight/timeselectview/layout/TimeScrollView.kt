@@ -193,7 +193,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
     private var mInitialY = 0
     private var mInitialScrollY = 0
     private var mIsCloseLongClickJudge = false
-    override fun onInterceptTouchEventDown(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean {
+    override fun onInterceptTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean {
         mInitialX = outerX
         mInitialY = outerY
         mInitialScrollY = scrollY
@@ -201,7 +201,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
             mIsCloseLongClickJudge = true
             closeLongClickJudge()
         }
-        mClickRectViewPosition = mITimeScrollView.getRectViewPosition(rawX)
+        mClickRectViewPosition = mITimeScrollView.getRectViewPosition(onScreenX)
         return if (mClickRectViewPosition == null) {
             true
         }else {
@@ -210,7 +210,7 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         }
     }
 
-    override fun isInLongClickArea(outerX: Int, outerY: Int, rawX: Int, rawY: Int): Boolean {
+    override fun isInLongClickArea(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean {
         return mClickRectViewPosition != null
     }
 
@@ -229,11 +229,8 @@ class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: T
         return true
     }
 
-    override fun onLongClickStart(insideX: Int, insideY: Int, rawX: Int, rawY: Int) {
+    override fun onLongClickStart(insideX: Int, insideY: Int, onScreenX: Int, onScreenY: Int) {
         mData.mIsLongClick = true
-        if (mClickRectViewPosition == null) {
-            Log.d("123", "onLongClickStart(TimeScrollView.kt:238)-->> when is Null: raw = $rawX")
-        }
         mRectManger.longClickConditionJudge(insideY, mClickRectViewPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
         mUpperLimit = mRectManger.getClickUpperLimit()
         mLowerLimit = mRectManger.getClickLowerLimit()

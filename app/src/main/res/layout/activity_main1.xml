@@ -14,7 +14,7 @@
         android:layout_marginBottom="80dp"
         app:amount="1"
         app:cardCornerRadius="8dp"
-        app:centerTime="-2"
+        app:centerTime="8"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

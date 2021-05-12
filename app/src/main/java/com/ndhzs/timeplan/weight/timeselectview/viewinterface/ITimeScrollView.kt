@@ -14,7 +14,7 @@ interface ITimeScrollView {
     fun slideRectImgView(dx: Int, dy: Int)
     fun getOuterTop(): Int
     fun getOuterBottom(): Int
-    fun getRectViewPosition(rowX: Int): Int?
+    fun getRectViewPosition(onScreenX: Int): Int?
     fun getVpPosition(): Int
     fun onLongClickStartButNotMove(position: Int)
     fun onScrollChanged(scrollY: Int)

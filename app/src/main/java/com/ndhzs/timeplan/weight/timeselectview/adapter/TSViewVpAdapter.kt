@@ -47,6 +47,13 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
     }
 
     /**
+     * 该方法用于在任务在外部被增加或删除时调用
+     */
+    fun notifyItemDataChanged(position: Int, isBackToCurrentTime: Boolean) {
+        notifyItemChanged(position, listOf(NOTIFY_ITEM_DATA_CHANGED, isBackToCurrentTime))
+    }
+
+    /**
      * 使内部的ScrollView直接瞬移，调用的ScrollView的scrollTo方法
      */
     fun timeLineScrollTo(scrollY: Int) {
@@ -58,6 +65,20 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
      */
     fun timeLineSlowlyScrollTo(scrollY: Int) {
         notifyItemChanged(mViewPager2.currentItem, listOf(NOTIFY_ITEM_SLOWLY_SCROLL_TO, scrollY))
+    }
+
+    /**
+     * 手动调用当前页面的时间轴回到xml中设置的CurrentTime
+     */
+    fun backCurrentTime() {
+        notifyItemChanged(mViewPager2.currentItem, NOTIFY_ITEM_BACK_CURRENT_ITEM)
+    }
+
+    /**
+     * 取消当前页面的时间轴自动回到xml中设置的CurrentTime的延时，延时是在每次手指离开时间轴就会开启
+     */
+    fun cancelAutoBackCurrent() {
+        notifyItemChanged(mViewPager2.currentItem, NOTIFY_ITEM_CANCEL_AUTO_BACK_CURRENT_ITEM)
     }
 
     companion object {
@@ -78,15 +99,29 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
         private const val NOTIFY_ITEM_REFRESH = 0
 
         /**
+         * 用于[onBindViewHolder]中判断，此时说明是[notifyItemDataChanged]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_DATA_CHANGED = 1
+
+        /**
          * 用于[onBindViewHolder]中判断，此时说明是[timeLineScrollTo]调用的notifyItemChanged
          */
-        private const val NOTIFY_ITEM_SCROLL_TO = 1
+        private const val NOTIFY_ITEM_SCROLL_TO = 2
 
         /**
          * 用于[onBindViewHolder]中判断，此时说明是[timeLineSlowlyScrollTo]调用的notifyItemChanged
          */
-        private const val NOTIFY_ITEM_SLOWLY_SCROLL_TO = 2
+        private const val NOTIFY_ITEM_SLOWLY_SCROLL_TO = 3
 
+        /**
+         * 用于[onBindViewHolder]中判断，此时说明是[backCurrentTime]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_BACK_CURRENT_ITEM = 4
+
+        /**
+         * 用于[onBindViewHolder]中判断，此时说明是[cancelAutoBackCurrent]调用的notifyItemChanged
+         */
+        private const val NOTIFY_ITEM_CANCEL_AUTO_BACK_CURRENT_ITEM = 5
 
     }
 
@@ -116,11 +151,23 @@ class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalDa
                             holder.mVpLayout.backCurrentTime()
                         }
                     }
+                    NOTIFY_ITEM_DATA_CHANGED -> {
+                        holder.mVpLayout.refreshAfterDataChanged()
+                        if (list[1] as Boolean) {
+                            holder.mVpLayout.backCurrentTime()
+                        }
+                    }
                     NOTIFY_ITEM_SCROLL_TO -> {
                         holder.mVpLayout.timeLineScrollTo(list[1] as Int)
                     }
                     NOTIFY_ITEM_SLOWLY_SCROLL_TO -> {
                         holder.mVpLayout.timeLineSlowlyScrollTo(list[1] as Int)
+                    }
+                    NOTIFY_ITEM_BACK_CURRENT_ITEM -> {
+                        holder.mVpLayout.backCurrentTime()
+                    }
+                    NOTIFY_ITEM_CANCEL_AUTO_BACK_CURRENT_ITEM -> {
+                        holder.mVpLayout.cancelAutoBackCurrentTime()
                     }
                 }
             }

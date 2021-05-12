@@ -75,16 +75,16 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
             }
             MotionEvent.ACTION_UP -> {
                 mIScrollLayout.setIsCanLongClick(false)
-                val rawRect = mIScrollLayout.getRectImgViewRawRect()
-                mNowPosition = mIScrollLayout.getRectViewPosition(rawRect.centerX())
-                val isOverLeft = rawRect.right < mIScrollLayout.getChildLayoutLocation(0).left
-                val isOverRight = rawRect.left > mIScrollLayout.getChildLayoutLocation(mData.mTSViewAmount - 1).right
+                val inWindowRect = mIScrollLayout.getRectImgViewInWindowRect()
+                mNowPosition = mIScrollLayout.getRectViewPosition(inWindowRect.centerX())
+                val isOverLeft = inWindowRect.right < mIScrollLayout.getChildLayoutInWindowLeftRight(0)[0]
+                val isOverRight = inWindowRect.left > mIScrollLayout.getChildLayoutInWindowLeftRight(mData.mTSViewAmount - 1)[1]
                 if (isOverLeft || isOverRight || mNowPosition == null) {
                     mIScrollLayout.setIsCanLongClick(true)
                     mIScrollLayout.deleteRectImgView()
-                    mData.mDataChangeListener?.onDataDelete(mIScrollLayout.getDeleteBean())
+                    mRectManger.deleteBean(mRectManger.getDeletedBean())
                 }else {
-                    putDownRectJudgeAndProcess(rawRect, y)
+                    putDownRectJudgeAndProcess(inWindowRect, y)
                 }
                 mData.mCondition = NULL
             }
@@ -95,13 +95,13 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
     /**
      * 能否放下矩形的判断和处理
      */
-    private fun putDownRectJudgeAndProcess(rawRect: Rect, y: Int) {
+    private fun putDownRectJudgeAndProcess(inWindowRect: Rect, y: Int) {
         val prePosition = mIScrollLayout.getPreRectViewPosition()
-        val rawLeftAndInsideTop = getRawLeftAndInsideTop(rawRect, prePosition, mNowPosition!!, y)
-        val rawFinalLeft = rawLeftAndInsideTop[0]
-        val insideFinalTop = rawLeftAndInsideTop[1]
-        val position = rawLeftAndInsideTop[2]
-        mIScrollLayout.slideEndRectImgView(rawFinalLeft, insideFinalTop) {
+        val inWindowLeftAndInsideTop = getRawLeftAndInsideTop(inWindowRect, prePosition, mNowPosition!!, y)
+        val inWindowFinalLeft = inWindowLeftAndInsideTop[0]
+        val insideFinalTop = inWindowLeftAndInsideTop[1]
+        val position = inWindowLeftAndInsideTop[2]
+        mIScrollLayout.slideEndRectImgView(inWindowFinalLeft, insideFinalTop) {
             val topBottom = if (y <= mInitialY + mIScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动
                 mTime.getCorrectTopHeight(insideFinalTop,
                         insideFinalTop,
@@ -110,7 +110,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                         mRectManger.getDeletedBean().diffTime)
             }else { //说明矩形向下移动
                 //因为是向下滑动的，所以之前计算的是正确的bottom值
-                val correctBottom = insideFinalTop + rawRect.height()
+                val correctBottom = insideFinalTop + inWindowRect.height()
                 mTime.getCorrectBottomHeight(correctBottom,
                         mRectManger.getUpperLimit(correctBottom, position),
                         correctBottom,
@@ -118,12 +118,12 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                         mRectManger.getDeletedBean().diffTime)
             }
             val times = mIScrollLayout.getStartEndDTime(topBottom[0], topBottom[1], position)
-            val bean = mIScrollLayout.getDeleteBean()
+            val bean = mRectManger.getDeletedBean()
             bean.startTime = times[0]
             bean.endTime = times[1]
             bean.diffTime = times[2]
             mData.mDataChangeListener?.onDataAlter(bean)
-            val rect2 = Rect(0, topBottom[0], rawRect.width(), topBottom[1])
+            val rect2 = Rect(0, topBottom[0], inWindowRect.width(), topBottom[1])
             mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
             mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：这条语句位置必须在通知RectView后调用
         }
@@ -136,23 +136,23 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
     }
 
     private var mIsBack = false
-    private fun getRawLeftAndInsideTop(rawRect: Rect, prePosition: Int, nowPosition: Int, insideUpY: Int): IntArray {
+    private fun getRawLeftAndInsideTop(inWindowRect: Rect, prePosition: Int, nowPosition: Int, insideUpY: Int): IntArray {
         if (prePosition == nowPosition) {
-            val rawLeft = getRawLeft(prePosition)
-            val insideTop = getInsideTop(rawRect, prePosition, insideUpY)
-            return intArrayOf(rawLeft, insideTop, prePosition)
+            val inWindowLeft = getInWindowLeft(prePosition)
+            val insideTop = getInsideTop(inWindowRect, prePosition, insideUpY)
+            return intArrayOf(inWindowLeft, insideTop, prePosition)
         }else {
             //以下是整体移动到另一个RectView，不同的情况对应不同的图，图在两张A4纸上
-            val top = rawRect.top
-            val bottom = rawRect.bottom
-            val rectHeight = rawRect.height()
+            val top = inWindowRect.top
+            val bottom = inWindowRect.bottom
+            val rectHeight = inWindowRect.height()
             val initialRect = mIScrollLayout.getRectImgViewInitialRect()
             val preUpperLimit = mRectManger.getClickUpperLimit()
             val preLowerLimit = mRectManger.getClickLowerLimit()
             val nowUpperLimit = mRectManger.getUpperLimit(bottom, nowPosition)
             val nowLowerLimit = mRectManger.getLowerLimit(top, nowPosition)
-            val prePositionLeft = getRawLeft(prePosition)
-            val nowPositionLeft = getRawLeft(nowPosition)
+            val prePositionLeft = getInWindowLeft(prePosition)
+            val nowPositionLeft = getInWindowLeft(nowPosition)
             return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
                 if (nowLowerLimit in top..bottom) { //1
                     mIsBack = false
@@ -169,7 +169,7 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
                         val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
                         if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
                             mIsBack = false
-                            val correctTop = getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
+                            val correctTop = getCorrectTopHeight(inWindowRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
                             intArrayOf(nowPositionLeft, correctTop, nowPosition)
                         } else { //4、5-2、6、7-2
                             mIsBack = true
@@ -189,8 +189,8 @@ class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewI
     /**
      * 返回整体移动放手后矩形该放置的位置的左边值
      */
-    private fun getRawLeft(position: Int): Int {
-        return mIScrollLayout.getRectViewRawLocation(position).left
+    private fun getInWindowLeft(position: Int): Int {
+        return mIScrollLayout.getRectViewInWindowLeftRight(position)[0]
     }
 
     /**

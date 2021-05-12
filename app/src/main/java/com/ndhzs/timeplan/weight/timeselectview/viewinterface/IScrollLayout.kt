@@ -13,21 +13,20 @@ import com.ndhzs.timeplan.weight.timeselectview.bean.TSViewTaskBean
 interface IScrollLayout {
     fun addParentLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
     fun addStickerLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun getRectViewPosition(rowX: Int): Int?
+    fun getRectViewPosition(inWindowX: Int): Int?
     fun getPreRectViewPosition(): Int
-    fun getRectViewRawLocation(position: Int): Rect
-    fun getChildLayoutLocation(position: Int): Rect
+    fun getRectViewInWindowLeftRight(position: Int): IntArray
+    fun getChildLayoutInWindowLeftRight(position: Int): IntArray
     fun getUnconstrainedDistance(): Int
 
     /**
      * @return 返回左右值为相对于屏幕坐标，上下值为内部坐标的Rect
      */
-    fun getRectImgViewRawRect(): Rect
+    fun getRectImgViewInWindowRect(): Rect
     fun getRectImgViewInitialRect(): Rect
-    fun getDeleteBean(): TSViewTaskBean
     fun getStartEndDTime(top: Int, bottom: Int, position: Int): Array<String>
     fun slideRectImgView(dx: Int, dy: Int)
-    fun slideEndRectImgView(rawFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit? = {})
+    fun slideEndRectImgView(inWindowFinalLeft: Int, insideFinalTop: Int, onEndListener: () -> Unit? = {})
     fun deleteRectImgView(onEndListener: () -> Unit? = {})
     fun setIsCanLongClick(boolean: Boolean)
     fun notifyRectViewRedraw()

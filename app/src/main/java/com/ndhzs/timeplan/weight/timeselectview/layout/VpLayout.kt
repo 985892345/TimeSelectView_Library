@@ -22,11 +22,19 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
     }
 
     /**
-     * 快速回到设置的当前时间
+     * 快速回到设置的CurrentTime
      */
     fun backCurrentTime() {
         mIVpLayout.backCurrentTime()
     }
+
+    /**
+     * 取消自动回到CurrentTime的延时
+     */
+    fun cancelAutoBackCurrentTime() {
+        mIVpLayout.cancelAutoBackCurrentTime()
+    }
+
 
     /**
      * 调用内部ScrollView的setScrollY方法
@@ -61,6 +69,13 @@ class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager
      */
     fun refresh() {
         mIVpLayout.notifyAllRectRefresh()
+    }
+
+    /**
+     * 通知所有RectView数据被外部改变，需重新加载
+     */
+    fun refreshAfterDataChanged() {
+        mIVpLayout.notifyRectViewDataChanged()
     }
 
     private val mObjectManger = TSViewObjectsManger(context, data, firstDate)

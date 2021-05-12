@@ -57,6 +57,13 @@ class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
         }
     }
 
+    /**
+     * 用于数据在外面改变，然后刷新
+     */
+    fun refreshData() {
+        initializeBean(mTaskBeans)
+    }
+
     companion object {
         private const val TOP_BOTTOM_WIDTH = 27 //长按响应顶部和底部的宽度
     }

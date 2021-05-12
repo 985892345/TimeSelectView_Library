@@ -70,7 +70,7 @@ enum class TSViewLongClick {
          * 这个可得到软件中全部的TimeSelectView是否存在处于长按状态的
          */
         val sHasLongClick
-            get() = sIsLongClickCount == 0
+            get() = sIsLongClickCount > 0
 
         /**
          * 这个可得到全部的TimeSelectView中处于长按状态的数量

@@ -104,6 +104,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     /**
      * 设置数据改变监听
+     *
+     * 注意：在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
      */
     fun setOnDataListener(l: OnDataChangeListener) {
         mData.mDataChangeListener = l
@@ -126,10 +128,21 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     /**
      * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
-     * @param isBackToCurrentTime 是否回到设置的中心线
+     *
+     * 注意：在任务增加或被删掉时调用此方法并不会改变，请调用[notifyItemDataChanged]
+     * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
         mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
+    }
+
+    /**
+     * 该方法用于在任务在外部被增加或删除时提醒内部重新读取数据
+     *
+     * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
+     */
+    fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
+        mVpAdapter.notifyItemDataChanged(position, isBackToCurrentTime)
     }
 
     /**
@@ -168,6 +181,20 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
+     * 手动调用当前页面的时间轴回到xml中设置的CurrentTime
+     */
+    fun backCurrentTime() {
+        mVpAdapter.backCurrentTime()
+    }
+
+    /**
+     * 取消当前页面的时间轴自动回到xml中设置的CurrentTime的延时，延时是在每次手指离开时间轴就会开启
+     */
+    fun cancelAutoBackCurrent() {
+        mVpAdapter.cancelAutoBackCurrent()
+    }
+
+    /**
      * 设置当前ViewPager2的页数位置
      */
     fun setCurrentItem(item: Int, smoothScroll: Boolean = true) {
@@ -180,6 +207,13 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      */
     fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE) {
         mData.mDragResistance = resistance
+    }
+
+    /**
+     * 返回当前内部的的ViewPager2的item索引
+     */
+    fun getCurrentItem(): Int {
+        return mViewPager2.currentItem
     }
 
     private val mData = TSViewInternalData(context, attrs)

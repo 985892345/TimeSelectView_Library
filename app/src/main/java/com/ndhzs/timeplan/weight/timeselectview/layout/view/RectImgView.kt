@@ -4,7 +4,6 @@ import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
@@ -46,10 +45,10 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     /**
      * 整体移动结束时调用
      */
-    fun over(rawFinalLeft: Int, insideFinalTop: Int, onEndListener : () -> Unit?) {
+    fun over(inWindowFinalLeft: Int, insideFinalTop: Int, onEndListener : () -> Unit?) {
         val location = IntArray(2)
         getLocationInWindow(location)
-        val insideFinalLeft = rawFinalLeft - location[0]
+        val insideFinalLeft = inWindowFinalLeft - location[0]
         val dTop = mRect.top - insideFinalTop
         val dLeft = mRect.left - insideFinalLeft
         val rectWidth = mRect.width()
@@ -133,10 +132,10 @@ class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInte
     /**
      * 返回变化的矩形
      *
-     * left、right为相对于屏幕的值，top、bottom为insideY值的Rect
+     * left、right为相对于Activity的值，top、bottom为insideY值的Rect
      * @return Rect的left、right值是相对于屏幕的值，top、bottom为内部值
      */
-    fun getRawRect(): Rect {
+    fun getInWindowRect(): Rect {
         val location = IntArray(2)
         getLocationInWindow(location)
         return Rect(mRect.left + location[0], mRect.top, mRect.right + location[0], mRect.bottom)
