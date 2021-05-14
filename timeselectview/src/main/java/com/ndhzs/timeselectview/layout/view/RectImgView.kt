@@ -210,7 +210,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
         /**
          * 在多个时间轴中左右拖动时的默认阻力值
          */
-        var DEFAULT_DRAG_RESISTANCE = 17
+        const val DEFAULT_DRAG_RESISTANCE = 17
     }
 
     private val mBoundaryPath1 = Path() //上下边界区域路1，与区域2取交集

@@ -13,6 +13,7 @@ import com.ndhzs.timeselectview.layout.BackCardView
 import com.ndhzs.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeselectview.utils.TSViewLongClick
+import com.ndhzs.timeselectview.utils.tscrollview.TScrollViewTouchEvent
 import kotlin.collections.ArrayList
 
 /**
@@ -29,8 +30,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      *
      * 以beans的一维长度为ViewPager2的item数
      * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
-     * @param currentItem 默认值为1
-     * @param smoothScroll 默认值为false
+     * @param currentItem 内部 ViewPager2 的 item 位置，默认值为0
+     * @param smoothScroll 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为false
      */
     fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
@@ -54,7 +55,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 时间间隔数
+     * 设置时间间隔数，必须为60的因数，若不是，将以15为间隔数
      * @param timeInterval 必须为60的因数，若不是，将以15为间隔数
      */
     fun setTimeInterval(timeInterval: Int) {
@@ -88,7 +89,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      *
-     * 注意：修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
+     * 注意：对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
         mData.mOnClickListener = onClick
@@ -137,7 +138,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 该方法用于在任务在外部被增加或删除时提醒内部重新读取数据
+     * 该方法用于任务在外面被增加或删除时提醒控件重新读取数据
      *
      * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
      */
@@ -146,7 +147,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 通知所有item刷新
+     * 通知ViewPager2的所有item刷新
      */
     fun notifyAllItemRefresh() {
         mVpAdapter.notifyAllItemRefresh()
@@ -203,10 +204,10 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置在多个时间轴中拖动任务的阻力值
+     * 设置相邻时间轴中拖动任务的阻力值
      * @param resistance 不填入值时还原为初始化值
      */
-    fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE) {
+    fun setDragResistance(resistance: Int = DEFAULT_DRAG_RESISTANCE) {
         mData.mDragResistance = resistance
     }
 
@@ -215,6 +216,18 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      */
     fun getCurrentItem(): Int {
         return mViewPager2.currentItem
+    }
+
+    companion object {
+        /**
+         * 识别是长按而能移动的阈值
+         */
+        const val MOVE_THRESHOLD = TScrollViewTouchEvent.MOVE_THRESHOLD
+
+        /**
+         * 在多个时间轴中左右拖动时的默认阻力值
+         */
+        const val DEFAULT_DRAG_RESISTANCE = RectImgView.DEFAULT_DRAG_RESISTANCE
     }
 
     private val mData = TSViewInternalData(context, attrs)
