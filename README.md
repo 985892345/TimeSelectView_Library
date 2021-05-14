@@ -66,7 +66,7 @@ dependencies {
 
 ## 概要
 ### XML属性
-|       attr name         |                usage               |
+|     **attr name**       |              **usage**             
 | :---------------------- | :---------------------------------------
 | app:amount              | 时间轴个数（建议不超过3个，超过后经测试暂无bug） 
 | app:cardRadius          | 时间轴背景的圆角度数                         
@@ -86,7 +86,7 @@ dependencies {
 | app:isShowTopBottomTime | 最终的任务区域是否显示上下边界时间
 
 ### Public方法
-| return  | method name |
+|**return**|**method name**
 | :-----: | :--------------------------
 |  Unit   | [backCurrentTime](#backCurrentTime) ()  
 |         | 当前页面回到xml中设置的CurrentTime
@@ -179,7 +179,7 @@ fun initializeBean(dayBeans: ArrayList<TSViewDayBean>,
 ````
 初始化数据
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | dayBeans                 | ArrayList<TSViewDayBean>: 以 [TSViewDayBean](#TSViewDayBean) 为数据的数组
 | showNowTimeLinePosition  | Int = -1: 显示时间线的位置，从0开始，传入负数将不会显示
@@ -202,7 +202,7 @@ fun notifyItemDataChanged(position: Int = mViewPager2.currentItem,
 该方法用于任务在外面被增加或删除时提醒控件重新读取数据  
 **注意：** 控件内部数据的增添删改也会引起外面传进来的数组中数据的改变
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | position                 | Int = mViewPager2.currentItem: 通知内部 ViewPager2 的页面位置刷新，默认为当前显示界面
 | isBackToCurrentTime      | Boolean = false: 刷新是否回到 xml 中设置的 app:centerTime 时间
@@ -215,7 +215,7 @@ fun notifyItemRefresh(position: Int = mViewPager2.currentItem,
 ````
 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | position                 | Int = mViewPager2.currentItem: 通知内部 ViewPager2 的页面位置刷新，默认为当前显示界面
 | isBackToCurrentTime      | Boolean = false: 刷新是否回到 xml 中设置的 app:centerTime 时间
@@ -242,7 +242,7 @@ fun setDragResistance(resistance: Int = DEFAULT_DRAG_RESISTANCE)
 ````
 设置相邻时间轴中拖动任务的阻力值
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | resistance               | Int = DEFAULT_DRAG_RESISTANCE: 设置相邻
 
@@ -277,7 +277,7 @@ fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 点击当前任务的监听，会返回当前点击任务的数据类  
 **注意：** 对 [TSViewTaskBean](#TSViewTaskBean) 修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | onClick                  | (taskBean: TSViewTaskBean) -> Unit: 点击任务后的回调，返回点击任务的 [TSViewTaskBean](#TSViewTaskBean) 
 
@@ -289,7 +289,7 @@ fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit),
 ````
 设置长按监听接口
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | onStart                  | (condition: TSViewLongClick) -> Unit: 长按开始的回调，返回长按的情况，详细请看 [TSViewLongClick](#TSViewLongClick)
 | onEnd                    | (condition: TSViewLongClick) -> Unit: 长按结束的回调，返回长按的情况，详细请看 [TSViewLongClick](#TSViewLongClick)
@@ -302,7 +302,7 @@ fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 当前页面时间轴的滑动回调  
 不是 ViewPager2 的滑动回调,若你想监听 ViewPager2 的滑动，请使用 [registerOnPageChangeCallback](#registeronpagechangecallback)
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | l                        | scrollY: Int: 返回控件的 scrollY
 |                          | itemPosition: Int: 内部 ViewPager2 的当前 item 位置
@@ -322,7 +322,7 @@ fun timeLineScrollBy(dy: Int)
 ````
 与 ScrollBy 相同  
 
-|        Parameters        | |
+|      **Parameters**      | |
 | :----------------------- | ------------
 | dy                       | Int: dy > 0，向上瞬移；dy < 0，向下瞬移
 
@@ -411,7 +411,7 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 # TSViewDayBean
 用于存储每天的所有任务
 
-|   Variables   | |
+| **Variables** | |
 | :------------ | ----------
 | val date      | String: 该 TSViewDayBean 所代表的日期，**注意：** 日期格式必须为"yyyy-M-d"，如：2021-5-14
 | val taskBeans | ArrayList<TSViewTaskBean>: 该 TSViewDayBean 所存储的当天所有任务
@@ -419,7 +419,7 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 # TSViewTaskBean
 用于存储当个任务
 
-|   Variables   | |
+| **Variables** | |
 | :------------ | ----------
 | date          | String: 任务日期，**注意：** 日期格式必须为"yyyy-M-d"，如：2021-5-14
 | name          | String: 任务名称
@@ -435,12 +435,12 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 # TSViewLongClick
 用来判断长按状态的枚举类
 
-|     Variables     | |
+|   **Variables**   | |
 | :---------------- | ----------
 | sHasLongClick     | Boolean: 这个可得到软件中全部的 TimeSelectView 是否存在处于长按状态的
 | sIsLongClickCount | Int: 这个可得到全部的TimeSelectView中处于长按状态的数量
 
-|       enum        | |
+|     **enum**      | |
 | :---------------- | ----------
 | NULL              | 不处于长按状态
 | TOP               | 长按的任务顶部
@@ -455,3 +455,9 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 | EMPTY_AREA        | 长按的空白区域
 | EMPTY_SLIDE_UP    | 长按的空白区域且处于向上滑的状态
 | EMPTY_SLIDE_DOWN  | 长按的空白区域且处于向下滑的状态
+
+---
+# 更新日志
+* 1.0.0
+第一个稳定版  
+2020-5-14号发布  
