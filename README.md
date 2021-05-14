@@ -48,44 +48,44 @@ dependencies {
         app:timelineInterval="10dp"/>  
 ```
 ### 自定义属性  
-* app:amount  
+* amount  
 时间轴个数(建议不超过3个，超过后经测试暂无bug)  
-**注意：** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
-* app:cardRadius  
+***注意：*** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
+* cardRadius  
 时间轴背景的圆角度数
-* app:centerTime  
+* centerTime  
 以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)  
 输入-1为以中心值为中心线  
 输入-2为以目前时间值为中心线  
-* app:timeRangeArray  
+* timeRangeArray  
 时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)  
-**注意：**
+***注意：***  
 时间都必须大于0且小于24  
-每个时间段的差值必须相等  
+**每个时间段的差值必须相等**  
 允许出现重复时间段  
-* app:timelineWidth  
+* timelineWidth  
 时间轴宽度
-* app:timelineInterval  
+* timelineInterval  
 相邻时间轴间隔
-* app:timeInterval  
+* timeInterval  
 时间默认间隔数，必须为60的因数，若不是，将以15为间隔数
-* app:intervalLeft  
+* intervalLeft  
 时间轴左侧的时间文字间隔宽度
-* app:intervalHeight  
+* intervalHeight  
 时间轴每小时间的间隔高度
-* app:defaultBorderColor  
+* defaultBorderColor  
 默认任务边框颜色
-* app:defaultInsideColor  
+* defaultInsideColor  
 默认任务内部颜色
-* app:defaultTaskName  
+* defaultTaskName  
 默认任务名称
-* app:timeTextSize  
+* timeTextSize  
 时间轴左侧时间文字大小(任务文字大小随之改变)
-* app:taskTextSize  
+* taskTextSize  
 任务名称文字大小
-* app:isShowDiffTime  
+* isShowDiffTime  
 最终的任务区域是否显示时间差
-* app:isShowTopBottomTime  
+* isShowTopBottomTime  
 最终的任务区域是否显示上下边界时间  
 ### Public fun 
 ```kotlin
