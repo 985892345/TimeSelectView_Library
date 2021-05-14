@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.ndhzs.timeselectview">
-
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.VIBRATE" />
+    package="com.ndhzs.demo">
 
     <application
         android:allowBackup="true"
@@ -15,18 +12,18 @@
         android:theme="@style/Theme.TimePlan">
 
         <activity
-            android:name="com.ndhzs.timeselectview.MainActivity3"
+            android:name="com.ndhzs.demo.MainActivity3"
             android:screenOrientation="landscape">
         </activity>
 
         <activity
-            android:name="com.ndhzs.timeselectview.MainActivity2"
+            android:name="com.ndhzs.demo.MainActivity2"
             android:screenOrientation="portrait"/>
         <activity
-            android:name="com.ndhzs.timeselectview.MainActivity1"
+            android:name="com.ndhzs.demo.MainActivity1"
             android:screenOrientation="portrait"/>
         <activity
-            android:name="com.ndhzs.timeselectview.MainActivity"
+            android:name="com.ndhzs.demo.MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

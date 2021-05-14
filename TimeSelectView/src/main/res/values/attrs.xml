@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="TimeSelectView">
+        <!--时间轴个数(最大为3个)-->
+        <attr name="amount" format="integer"/>
+        <!--时间轴背景的圆角度数-->
+        <attr name="cardRadius" format="dimension"/>
+
+        <!--时间范围数组。格式为"2-18,12-4"(逗号后没有空格)，
+        注意：
+        第一个的开始时间必须大于0；
+        允许出现重复时间段；
+        每个时间段的差值必须相等-->
+        <attr name="timeRangeArray" format="string"/>
+        <!--以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)。
+        输入-1为以中心值为中心线，
+        输入-2为以当前时间值为中心线-->
+        <attr name="centerTime" format="float"/>
+
+        <!--默认任务边框颜色-->
+        <attr name="defaultBorderColor" format="reference|color"/>
+        <!--默认任务内部颜色-->
+        <attr name="defaultInsideColor" format="reference|color"/>
+        <!--默认任务名称-->
+        <attr name="defaultTaskName" format="string"/>
+
+        <!--时间默认间隔数，必须为60的因数，若不是，将以15为间隔数-->
+        <attr name="timeInterval" format="integer"/>
+
+        <!--时间轴宽度-->
+        <attr name="timelineWidth" format="dimension"/>
+        <!--相邻时间轴间隔-->
+        <attr name="timelineInterval" format="dimension"/>
+        <!--时间轴左侧的时间间隔宽度-->
+        <attr name="intervalLeft" format="dimension"/>
+        <!--时间轴每小时间的间隔高度-->
+        <attr name="intervalHeight" format="dimension"/>
+
+        <!--时间轴左侧时间文字大小(任务文字大小随之改变)-->
+        <attr name="timeTextSize" format="dimension"/>
+        <!--任务名称文字大小-->
+        <attr name="taskTextSize" format="dimension"/>
+
+        <!--最终的任务区域是否显示时间差-->
+        <attr name="isShowDiffTime" format="boolean"/>
+        <!--最终的任务区域是否显示上下边界时间-->
+        <attr name="isShowTopBottomTime" format="boolean"/>
+    </declare-styleable>
+</resources>

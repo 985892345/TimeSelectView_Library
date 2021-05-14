@@ -6,14 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity3">
 
-    <com.ndhzs.timeselectview.weight.timeselectview.TimeSelectView
+    <com.ndhzs.timeselectview.TimeSelectView
         android:id="@+id/time_view_3"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         app:amount="6"
-        app:cardCornerRadius="8dp"
+        app:cardRadius="8dp"
         app:centerTime="-1"
         app:intervalHeight="110dp"
         app:isShowDiffTime="true"
