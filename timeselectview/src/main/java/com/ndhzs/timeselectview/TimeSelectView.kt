@@ -45,7 +45,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 当前显示页面的滑动回调，不是ViewPager2的滑动回调
+     * 当前页面时间轴的滑动回调，不是ViewPager2的滑动回调
      *
      * 若你想监听ViewPager2的滑动，请使用[registerOnPageChangeCallback]
      */
@@ -87,6 +87,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
 
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
+     *
      * 注意：修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
@@ -102,7 +103,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置数据改变监听
+     * 对数据改变进行监听
      *
      * 注意：在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
      */
@@ -111,7 +112,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 得到当前的TimeSelectView是否处于长按状态，
+     * 得到当前页面的TimeSelectView是否处于长按状态。
      * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
      */
     fun getIsLongClick(): Boolean {
@@ -119,14 +120,14 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 得到当前显示的时间轴的ScrollY
+     * 得到当前页面的时间轴的ScrollY
      */
     fun getTimeLineScrollY(): Int {
         return mVpAdapter.getTimeLineScrollY()
     }
 
     /**
-     * 默认通知当前显示页面所有的任务刷新，可输入索引值定向刷新
+     * 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
      *
      * 注意：在任务增加或被删掉时调用此方法并不会改变，请调用[notifyItemDataChanged]
      * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
@@ -152,20 +153,21 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置ViewPager2的OnPageChangeCallback
+     * 设置内部ViewPager2的OnPageChangeCallback
      */
     fun registerOnPageChangeCallback(callback: OnPageChangeCallback) {
         mViewPager2.registerOnPageChangeCallback(callback)
     }
 
     /**
-     * 使时间轴瞬移
+     * 使时间轴瞬移，与ScrollTo相同
      */
     fun timeLineScrollTo(scrollY: Int) {
         mVpAdapter.timeLineScrollTo(scrollY)
     }
 
     /**
+     * 与ScrollBy相同
      * @param dy dy > 0，向上瞬移；dy < 0，向下瞬移
      */
     fun timeLineScrollBy(dy: Int) {
@@ -180,21 +182,21 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 手动调用当前页面的时间轴回到xml中设置的CurrentTime
+     * 当前页面回到xml中设置的CurrentTime
      */
     fun backCurrentTime() {
         mVpAdapter.backCurrentTime()
     }
 
     /**
-     * 取消当前页面的时间轴自动回到xml中设置的CurrentTime的延时，延时是在每次手指离开时间轴就会开启
+     * 取消当前页面自动回到xml中设置的CurrentTime的延时。延时是在每次手指离开时间轴就会开启
      */
     fun cancelAutoBackCurrent() {
         mVpAdapter.cancelAutoBackCurrent()
     }
 
     /**
-     * 设置当前ViewPager2的页数位置
+     * 设置内部ViewPager2显示的页面位置
      */
     fun setCurrentItem(item: Int, smoothScroll: Boolean = true) {
         mViewPager2.setCurrentItem(item, smoothScroll)
@@ -209,7 +211,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 返回当前内部的的ViewPager2的item索引
+     * 得到内部ViewPager2的当前item索引
      */
     fun getCurrentItem(): Int {
         return mViewPager2.currentItem
