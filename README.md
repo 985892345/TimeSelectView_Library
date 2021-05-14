@@ -1,6 +1,8 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
+
 ## 使用方法  
+
 ### Project build  
 ```
 buildscript {
@@ -17,12 +19,14 @@ allprojects {
     }
 }
 ```
+
 ### Module build  
 ```
 dependencies {
     implementation 'com.github.985892345:TimeSelectView_Library:0.9'
 }
 ```
+
 ### 普通使用  
 * 单个时间轴
 ```
@@ -41,53 +45,81 @@ dependencies {
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:amount="2"                
-        app:centerTime="8"
+        app:centerTime="9"
         app:cardRadius="8dp"
         app:timeRangeArray="2-16,12-2"  
         app:timelineWidth="160dp"
         app:timelineInterval="10dp"/>  
 ```
+
 ### 自定义属性  
+
+| XML attributes     | |
+| :----------------- | ---------------------------------------- 
+| app:amount         | 时间轴个数（建议不超过3个，超过后经测试暂无bug） 
+| app:cardRadius     | 时间轴背景的圆角度数                         
+| app:centerTime     | 以输入时间线的为中心线，时间只能在第一个时间轴的范围内（支持小数）
+                     | 输入-1为以中心值为中心线  
+                     | 输入-2为以目前时间值为中心线  
+| app:timeRangeArray | 时间范围数组，格式为"2-18,12-4"（英文逗号，且逗号后没有空格）
+
+
 * amount  
 时间轴个数(建议不超过3个，超过后经测试暂无bug)  
 ***注意：*** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
+
 * cardRadius  
 时间轴背景的圆角度数
+
 * centerTime  
 以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)  
 输入-1为以中心值为中心线  
 输入-2为以目前时间值为中心线  
+ 
 * timeRangeArray  
 时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)  
 ***注意：***  
 时间都必须大于0且小于24  
 **每个时间段的差值必须相等**  
 允许出现重复时间段  
+
 * timelineWidth  
 时间轴宽度
+
 * timelineInterval  
 相邻时间轴间隔
+
 * timeInterval  
 时间默认间隔数，必须为60的因数，若不是，将以15为间隔数
+
 * intervalLeft  
 时间轴左侧的时间文字间隔宽度
+
 * intervalHeight  
 时间轴每小时间的间隔高度
+
 * defaultBorderColor  
 默认任务边框颜色
+
 * defaultInsideColor  
 默认任务内部颜色
+
 * defaultTaskName  
 默认任务名称
+
 * timeTextSize  
 时间轴左侧时间文字大小(任务文字大小随之改变)
+
 * taskTextSize  
 任务名称文字大小
+
 * isShowDiffTime  
 最终的任务区域是否显示时间差
+
 * isShowTopBottomTime  
 最终的任务区域是否显示上下边界时间  
-### Public fun 
+
+### Public methods
 ```kotlin
 fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
 ```
@@ -114,7 +146,7 @@ fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 ```
 
 ```kotlin
-fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick)
+fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
 ```
 
 ```kotlin
