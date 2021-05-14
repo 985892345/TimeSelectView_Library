@@ -1,8 +1,8 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
 * [参考格式](#普通使用)  
-* [XML attributes](#XML attributes)  
-* [Public methods](#Public methods)  
+* [XML属性](#XML属性)  
+* [Public方法](#Public方法)  
 * [滑动冲突的解决](#滑动冲突)  
 * [TSViewDayBean](#TSViewDayBean)   
 * [TSViewTaskBean](#TSViewTaskBean)  
@@ -65,7 +65,7 @@ dependencies {
 ```
 
 ## 概要
-### XML attributes
+### XML属性
 |       attr name         |                usage               |
 | :---------------------- | :---------------------------------------
 | app:amount              | 时间轴个数（建议不超过3个，超过后经测试暂无bug） 
@@ -85,7 +85,7 @@ dependencies {
 | app:isShowDiffTime      | 最终的任务区域是否显示时间差
 | app:isShowTopBottomTime | 最终的任务区域是否显示上下边界时间
 
-### Public methods
+### Public方法
 | return  | method name |
 | :-----: | :--------------------------
 |  Unit   | [backCurrentTime](#backCurrentTime) ()  
