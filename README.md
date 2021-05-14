@@ -1,9 +1,10 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
 ##使用方法  
+
 ###Project build  
 
-````
+```
 buildscript {
     repositories {
         ......
@@ -17,19 +18,20 @@ allprojects {
         maven { url 'https://jitpack.io' }
     }
 }
-````
+```
 
 ###Module build  
 
-````
+```
 dependencies {
     implementation 'com.github.985892345:TimeSelectView_Library:0.9'
 }
-````
+```
 
 ###普通使用  
+
 * 单个时间轴
-````
+```
 <com.ndhzs.timeselectview.TimeSelectView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -38,9 +40,9 @@ dependencies {
         app:cardRadius="8dp"
         app:timeRangeArray="2-2"      
         app:timelineWidth="160dp"/>
-````
+```
 * 多个时间轴
-````
+```
 <com.ndhzs.timeselectview.TimeSelectView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -50,9 +52,10 @@ dependencies {
         app:timeRangeArray="2-16,12-2"  
         app:timelineWidth="160dp"
         app:timelineInterval="10dp"/>  
-````
+```
 
 ###自定义属性  
+
 * app:amount  
 时间轴个数(建议不超过3个，超过后经测试暂无bug)  
 **注意：** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
@@ -63,7 +66,7 @@ dependencies {
 2. 输入-1为以中心值为中心线
 3. 输入-2为以目前时间值为中心线
 * app:timeRangeArray  
-时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)
+时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)  
 **注意：** 
 1. 时间都必须大于0且小于24
 2. 每个时间段的差值必须相等
@@ -91,69 +94,71 @@ dependencies {
 * app:isShowDiffTime  
 最终的任务区域是否显示时间差
 * app:isShowTopBottomTime  
-最终的任务区域是否显示上下边界时间
-###Public fun  
-````kotlin
+最终的任务区域是否显示上下边界时间  
+
+###Public fun 
+ 
+```kotlin
 fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
-````
+```
 **注意：** 上方方法必须调用  
-````kotlin
+```kotlin
 fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
-````
-````kotlin
+```
+``kotlin
 fun setTimeInterval(timeInterval: Int)
-````
-````kotlin
+```
+```kotlin
 fun setIsShowDiffTime(boolean: Boolean)
-````
-````kotlin
+```
+```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
-````
-````kotlin
+```
+```kotlin
 fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
-````
-````kotlin
+```
+```kotlin
 fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick)
-````
-````kotlin
+```
+```kotlin
 fun setOnDataListener(l: OnDataChangeListener)
-````
-````kotlin
+```
+```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
-````
-````kotlin
+```
+```kotlin
 fun getIsLongClick(): Boolean
-````
-````kotlin
+```
+```kotlin
 fun getTimeLineScrollY(): Int
-````
-````kotlin
+```
+```kotlin
 fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
-````
-````kotlin
+```
+```kotlin
 fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
-````
-````kotlin
+```
+```kotlin
 fun notifyAllItemRefresh()
-````
-````kotlin
+```
+```kotlin
 fun registerOnPageChangeCallback(callback: OnPageChangeCallback)
-````
-````kotlin
+```
+```kotlin
 fun timeLineSlowlyScrollTo(scrollY: Int)
-````
-````kotlin
+```
+```kotlin
 fun backCurrentTime()
-````
-````kotlin
+```
+```kotlin
 fun cancelAutoBackCurrent()
-````
-````kotlin
+```
+```kotlin
 fun setCurrentItem(item: Int, smoothScroll: Boolean = true)
-````
-````kotlin
+```
+```kotlin
 fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE)
-````
-````kotlin
+```
+```kotlin
 fun getCurrentItem(): Int
-````
+```
