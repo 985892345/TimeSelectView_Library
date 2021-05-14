@@ -1,5 +1,6 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
+[TSViewDayBean](#TSViewDayBean)、[TSViewTaskBean](#TSViewTaskBean)、[TSViewLongClick](#TSViewLongClick)
 
 ## 使用方法  
 
@@ -126,42 +127,44 @@ dependencies {
 |  Unit   | [timeLineSlowlyScrollTo](#timeLineSlowlyScrollTo) ( scrollY: Int )  
 |         | 使时间轴较缓慢地滑动，并有回弹动画
 
-#### backCurrentTime
+backCurrentTime
+---
 ````kotlin
 fun backCurrentTime()
 ````
 当前页面回到xml中设置的 app:centerTime 时间，若为-1以中心值为中心线，-2为以目前时间值为中心线
->
 
-#### cancelAutoBackCurrent
+cancelAutoBackCurrent
+---
 ````kotlin
 fun cancelAutoBackCurrent()
 ````
 取消当前页面自动回到xml中设置的 CurrentTime 的延时。延时是在每次手指离开时间轴就会开启
->
 
-#### getCurrentItem
+getCurrentItem
+---
 ````kotlin
 fun getCurrentItem(): Int
 ````
 得到内部 ViewPager2 的当前item索引
->
 
-#### getIsLongClick
+getIsLongClick
+---
 ````kotlin
 fun getIsLongClick(): Boolean
 ````
 得到当前页面的 TimeSelectView 是否处于长按状态。  
 若你想得到软件中所有的 TimeSelectView 是否存在处于长按状态的，可以使用 [TSViewLongClick](#TSViewLongClick)#sHasLongClick
->
 
-#### getTimeLineScrollY
+getTimeLineScrollY
+---
 ````kotlin
 fun getTimeLineScrollY(): Int
 ````
 得到当前页面的时间轴的ScrollY
 
-#### initializeBean
+initializeBean
+---
 ````kotlin
 fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, 
                    showNowTimeLinePosition: Int = -1, 
@@ -177,25 +180,29 @@ fun initializeBean(dayBeans: ArrayList<TSViewDayBean>,
 | currentItem              | Int = 0: 内部 ViewPager2 的 item 位置，默认值为0
 | smoothScroll             | Boolean = false: 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为false
 
-#### notifyAllItemRefresh
+notifyAllItemRefresh
+---
 ````kotlin
 fun notifyAllItemRefresh()
 ````
 通知ViewPager2的所有item刷新
 
-#### notifyItemDataChanged
+notifyItemDataChanged
+---
 ````kotlin
 fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, 
                           isBackToCurrentTime: Boolean = false)
 ````
-该方法用于任务在外面被增加或删除时提醒控件重新读取数据，***控件内部数据的增添删改也会引起外面传进来的数组中数据的改变***
+该方法用于任务在外面被增加或删除时提醒控件重新读取数据  
+**注意：** 控件内部数据的增添删改也会引起外面传进来的数组中数据的改变
 
 |        Parameters        | |
 | :----------------------- | ------------
 | position                 | Int = mViewPager2.currentItem: 通知内部 ViewPager2 的页面位置刷新，默认为当前显示界面
 | isBackToCurrentTime      | Boolean = false: 刷新是否回到 xml 中设置的 app:centerTime 时间
 
-#### notifyItemRefresh
+notifyItemRefresh
+---
 ````kotlin
 fun notifyItemRefresh(position: Int = mViewPager2.currentItem, 
                       isBackToCurrentTime: Boolean = false)
@@ -207,20 +214,23 @@ fun notifyItemRefresh(position: Int = mViewPager2.currentItem,
 | position                 | Int = mViewPager2.currentItem: 通知内部 ViewPager2 的页面位置刷新，默认为当前显示界面
 | isBackToCurrentTime      | Boolean = false: 刷新是否回到 xml 中设置的 app:centerTime 时间
 
-#### registerOnPageChangeCallback
+registerOnPageChangeCallback
+---
 ````kotlin
 fun registerOnPageChangeCallback(callback: OnPageChangeCallback)
 ````
 设置内部ViewPager2的OnPageChangeCallback
 
-#### setCurrentItem
+setCurrentItem
+---
 ````kotlin
 fun setCurrentItem(item: Int, 
                    smoothScroll: Boolean = true)
 ````
 设置内部ViewPager2显示的页面位置
 
-#### setDragResistance
+setDragResistance
+---
 ````kotlin
 fun setDragResistance(resistance: Int = DEFAULT_DRAG_RESISTANCE)
 ````
@@ -230,39 +240,43 @@ fun setDragResistance(resistance: Int = DEFAULT_DRAG_RESISTANCE)
 | :----------------------- | ------------
 | resistance               | Int = DEFAULT_DRAG_RESISTANCE: 设置相邻
 
-
-#### setIsShowDiffTime
+setIsShowDiffTime
+---
 ````kotlin
 fun setIsShowDiffTime(boolean: Boolean)
 ````
 最终的任务区域是否显示时间差
 
-#### setIsShowTopBottomTime
+setIsShowTopBottomTime
+---
 ````kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
 ````
 最终的任务区域是否显示上下边界时间
 
-#### setOnDataListener
+setOnDataListener
+---
 ````kotlin
 fun setOnDataListener(l: OnDataChangeListener)
 ````
 对数据改变进行监听  
-***注意：*** 移至删除区域被删除或长按添加新任务时会引起外面传进来的数组中数据的改变
+**注意：** 移至删除区域被删除或长按添加新任务时会引起外面传进来的数组中数据的改变
 所以在数据改变后的回调中不需删掉或增加数据
 
-#### setOnTSVClickListener
+setOnTSVClickListener
+---
 ````kotlin
 fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 ````
 点击当前任务的监听，会返回当前点击任务的数据类  
-***注意：*** 对 [TSViewTaskBean](#TSViewTaskBean) 修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
+**注意：** 对 [TSViewTaskBean](#TSViewTaskBean) 修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
 
 |        Parameters        | |
 | :----------------------- | ------------
 | onClick                  | (taskBean: TSViewTaskBean) -> Unit: 点击任务后的回调，返回点击任务的 [TSViewTaskBean](#TSViewTaskBean) 
 
-#### setOnTSVLongClickListener
+setOnTSVLongClickListener
+---
 ````kotlin
 fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), 
                               onEnd: ((condition: TSViewLongClick) -> Unit))
@@ -274,8 +288,8 @@ fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit),
 | onStart                  | (condition: TSViewLongClick) -> Unit: 长按开始的回调，返回长按的情况，详细请看 [TSViewLongClick](#TSViewLongClick)
 | onEnd                    | (condition: TSViewLongClick) -> Unit: 长按结束的回调，返回长按的情况，详细请看 [TSViewLongClick](#TSViewLongClick)
 
-
-#### setOnScrollListener
+setOnScrollListener
+---
 ````kotlin
 fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 ````
@@ -287,16 +301,16 @@ fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 | l                        | scrollY: Int: 返回控件的 scrollY
 |                          | itemPosition: Int: 内部 ViewPager2 的当前 item 位置
 
-
-
-#### setTimeInterval
+setTimeInterval
+---
 ````kotlin
 fun setTimeInterval(timeInterval: Int)
 ````
 设置时间间隔数  
-***注意：*** 必须为60的因数，若不是，将以15为间隔数
+**注意：** 必须为60的因数，若不是，将以15为间隔数
 
-#### timeLineScrollBy
+timeLineScrollBy
+---
 ````kotlin
 fun timeLineScrollBy(dy: Int)
 ````
@@ -306,13 +320,15 @@ fun timeLineScrollBy(dy: Int)
 | :----------------------- | ------------
 | dy                       | Int: dy > 0，向上瞬移；dy < 0，向下瞬移
 
-#### timeLineScrollTo
+timeLineScrollTo
+---
 ````kotlin
 fun timeLineScrollTo(scrollY: Int)
 ````
 使时间轴瞬移，与 ScrollTo 相同
 
-#### timeLineSlowlyScrollTo
+timeLineSlowlyScrollTo
+---
 ````kotlin
 fun timeLineSlowlyScrollTo(scrollY: Int)
 ````
@@ -387,5 +403,49 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 ````
 
 # TSViewDayBean
+用于存储每天的所有任务
+
+|   Variables   | |
+| :------------ | ----------
+| val date      | String: 该 TSViewDayBean 所代表的日期，**注意：** 日期格式必须为"yyyy-M-d"，如：2021-5-14
+| val taskBeans | ArrayList<TSViewTaskBean>: 该 TSViewDayBean 所存储的当天所有任务
+
 # TSViewTaskBean
+用于存储当个任务
+
+|   Variables   | |
+| :------------ | ----------
+| date          | String: 任务日期，**注意：** 日期格式必须为"yyyy-M-d"，如：2021-5-14
+| name          | String: 任务名称
+| startTime     | String: 任务开始时间
+| endTime       | String: 任务结束时间
+| diffTime      | String: 任务时间差
+| borderColor   | Int: 任务边框颜色
+| insideColor   | Int: 任务内部颜色
+| any1          | Any? = null: 用于万能转换
+| any2          | Any? = null: 用于万能转换
+| any3          | Any? = null: 用于万能转换
+
 # TSViewLongClick
+用来判断长按状态的枚举类
+
+|     Variables     | |
+| :---------------- | ----------
+| sHasLongClick     | Boolean: 这个可得到软件中全部的 TimeSelectView 是否存在处于长按状态的
+| sIsLongClickCount | Int: 这个可得到全部的TimeSelectView中处于长按状态的数量
+
+|       enum        | |
+| :---------------- | ----------
+| NULL              | 不处于长按状态
+| TOP               | 长按的任务顶部
+| TOP_SLIDE_UP      | 长按的任务顶部且处于向上滑的状态
+| TOP_SLIDE_DOWN    | 长按的任务顶部且处于向下滑的状态
+| BOTTOM            | 长按的任务底部
+| BOTTOM_SLIDE_UP   | 按的任务底部且处于向上滑的状态
+| BOTTOM_SLIDE_DOWN | 长按的任务底部且处于向下滑的状态
+| INSIDE            | 长按的任务内部
+| INSIDE_SLIDE_UP   | 长按的任务内部且处于向上滑的状态
+| INSIDE_SLIDE_DOWN | 长按的任务内部且处于向下滑的状态
+| EMPTY_AREA        | 长按的空白区域
+| EMPTY_SLIDE_UP    | 长按的空白区域且处于向上滑的状态
+| EMPTY_SLIDE_DOWN  | 长按的空白区域且处于向下滑的状态

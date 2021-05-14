@@ -3,13 +3,14 @@ package com.ndhzs.timeselectview.utils
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description 用来判断长按状态的类
+ * @description 用来判断长按状态的枚举类
  */
 enum class TSViewLongClick {
     /**
      * 不处于长按状态
      */
     NULL,
+
 
     /**
      * 长按的任务顶部
@@ -24,6 +25,7 @@ enum class TSViewLongClick {
      */
     TOP_SLIDE_DOWN,
 
+
     /**
      * 长按的任务底部
      */
@@ -37,6 +39,7 @@ enum class TSViewLongClick {
      */
     BOTTOM_SLIDE_DOWN,
 
+
     /**
      * 长按的任务内部
      */
@@ -45,11 +48,11 @@ enum class TSViewLongClick {
      * 长按的任务内部且处于向上滑的状态
      */
     INSIDE_SLIDE_UP,
-
     /**
      * 长按的任务内部且处于向下滑的状态
      */
     INSIDE_SLIDE_DOWN,
+
 
     /**
      * 长按的空白区域
@@ -59,11 +62,11 @@ enum class TSViewLongClick {
      * 长按的空白区域且处于向上滑的状态
      */
     EMPTY_SLIDE_UP,
-
     /**
      * 长按的空白区域且处于向下滑的状态
      */
     EMPTY_SLIDE_DOWN;
+
 
     companion object {
         /**

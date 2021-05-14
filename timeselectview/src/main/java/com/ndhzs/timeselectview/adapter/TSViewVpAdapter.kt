@@ -133,7 +133,7 @@ internal class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewI
     private var mScrollY = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = VpLayout(parent.context, mData, mViewPager2, mDayBeans[0].day, viewType == SHOW_NOW_TIME_LINE_POSITION)
+        val view = VpLayout(parent.context, mData, mViewPager2, mDayBeans[0].date, viewType == SHOW_NOW_TIME_LINE_POSITION)
         view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         return ViewHolder(view)
     }

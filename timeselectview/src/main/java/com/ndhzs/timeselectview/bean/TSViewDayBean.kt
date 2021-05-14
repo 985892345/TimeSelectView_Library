@@ -8,24 +8,23 @@ import kotlin.collections.ArrayList
  *@author 985892345
  *@email 2767465918@qq.com
  *@data 2021/4/25
- *@description
+ *@description 用于存储每天的所有任务
  */
 class TSViewDayBean {
 
-    var day: String
+    val date: String
+    val taskBeans = ArrayList<TSViewTaskBean>()
 
     constructor(day: String) {
-        this.day = day
+        this.date = day
     }
 
     constructor(date: Date) {
         val sdf = SimpleDateFormat("yyyy-M-d")
-        day = sdf.format(date)
+        this.date = sdf.format(date)
     }
 
     fun size(): Int {
         return taskBeans.size
     }
-
-    val taskBeans = ArrayList<TSViewTaskBean>()
 }
