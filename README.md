@@ -54,15 +54,15 @@ dependencies {
 * app:cardRadius  
 时间轴背景的圆角度数
 * app:centerTime  
-1. 以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)
-2. 输入-1为以中心值为中心线
-3. 输入-2为以目前时间值为中心线
+以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)  
+输入-1为以中心值为中心线  
+输入-2为以目前时间值为中心线  
 * app:timeRangeArray  
 时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)  
-**注意：** 
-1. 时间都必须大于0且小于24
-2. 每个时间段的差值必须相等
-3. 允许出现重复时间段
+**注意：**
+时间都必须大于0且小于24  
+每个时间段的差值必须相等  
+允许出现重复时间段  
 * app:timelineWidth  
 时间轴宽度
 * app:timelineInterval  
@@ -91,103 +91,83 @@ dependencies {
 ```kotlin
 fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
 ```
-**注意：** 上方方法必须调用  
-
+***注意: 上方方法必须调用***  
 
 ```kotlin
 fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 ```
 
-
 ```kotlin
 fun setTimeInterval(timeInterval: Int)
 ```
-
 
 ```kotlin
 fun setIsShowDiffTime(boolean: Boolean)
 ```
 
-
 ```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
 ```
-
 
 ```kotlin
 fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 ```
 
-
 ```kotlin
 fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick)
 ```
-
 
 ```kotlin
 fun setOnDataListener(l: OnDataChangeListener)
 ```
 
-
 ```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
 ```
-
 
 ```kotlin
 fun getIsLongClick(): Boolean
 ```
 
-
 ```kotlin
 fun getTimeLineScrollY(): Int
 ```
-
 
 ```kotlin
 fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
 ```
 
-
 ```kotlin
 fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
 ```
-
 
 ```kotlin
 fun notifyAllItemRefresh()
 ```
 
-
 ```kotlin
 fun registerOnPageChangeCallback(callback: OnPageChangeCallback)
 ```
-
 
 ```kotlin
 fun timeLineSlowlyScrollTo(scrollY: Int)
 ```
 
-
 ```kotlin
 fun backCurrentTime()
 ```
-
 
 ```kotlin
 fun cancelAutoBackCurrent()
 ```
 
-
 ```kotlin
 fun setCurrentItem(item: Int, smoothScroll: Boolean = true)
 ```
 
-
 ```kotlin
 fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE)
 ```
-
 
 ```kotlin
 fun getCurrentItem(): Int
