@@ -149,6 +149,9 @@ internal class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView
         }
     }
 
+    /**
+     * 回到目前时间的Runnable
+     */
     private val mBackNowTimeRun = object : Runnable {
         override fun run() {
             slowlyScrollTo(mTime.getNowTimeHeight() - height / 2)
@@ -156,6 +159,9 @@ internal class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView
         }
     }
 
+    /**
+     * 回到用户设置的CurrentTime的Runnable
+     */
     private val mAfterUpBackCurrentTimeRun = object : Runnable {
         override fun run() {
             slowlyScrollTo(when (mData.mCenterTime) {

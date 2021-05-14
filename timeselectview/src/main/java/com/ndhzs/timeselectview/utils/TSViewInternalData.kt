@@ -98,7 +98,6 @@ internal class TSViewInternalData(context: Context, attrs: AttributeSet? = null)
         mDefaultTaskName = ty.getString(R.styleable.TimeSelectView_defaultTaskName).toString()
 
         mCardCornerRadius = ty.getDimension(R.styleable.TimeSelectView_cardRadius, 28F)
-//        mIntervalRight = (mCardCornerRadius - 0.5F).toInt()
         mIntervalRight = 10
 
         mTimeInterval = ty.getInt(R.styleable.TimeSelectView_timeInterval, 15)
@@ -145,7 +144,7 @@ internal class TSViewInternalData(context: Context, attrs: AttributeSet? = null)
                     val hours = times[it].split("-")
                     val startHour = hours[0].toInt()
                     var endHour = hours[1].toInt()
-                    if (startHour > 24 || endHour > 24) {
+                    if (startHour >= 24 || endHour >= 24) {
                         Log.e("TimeSelectView", "**********************************************************************************")
                         Log.e("TimeSelectView", "****  Your TimeSelectView of timeRangeArray's startHour or endHour is wrong!  ****")
                         Log.e("TimeSelectView", "**********************************************************************************")

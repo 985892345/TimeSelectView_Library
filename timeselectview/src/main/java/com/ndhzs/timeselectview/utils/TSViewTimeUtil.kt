@@ -26,12 +26,12 @@ internal class TSViewTimeUtil(data: TSViewInternalData) : ITSViewTimeUtil {
         const val DELAY_BACK_CURRENT_TIME = 10000L
 
         /**
-         * 回到中心值的mCenterTime值
+         * 回到中心值的CenterTime值
          */
         const val CENTER_TIME_CENTER = -1F
 
         /**
-         * 回到当前时间的mCenterTime值
+         * 回到目前时间的CenterTime值
          */
         const val CENTER_TIME_NOW_TIME = -2F
 
