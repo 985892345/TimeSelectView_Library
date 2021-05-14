@@ -4,8 +4,8 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.ndhzs.timeplan",
-  "variantName": "processDebugResources",
+  "applicationId": "com.ndhzs.demo",
+  "variantName": "debug",
   "elements": [
     {
       "type": "SINGLE",
