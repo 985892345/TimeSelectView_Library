@@ -27,6 +27,11 @@ dependencies {
 }
 ```
 
+### 用前需知
+1. 该控件已内置ViewPager2，用于控制不同的天数。如果外置有ViewPager2，解决滑动冲突请看[滑动冲突](#滑动冲突)
+2. 必须使用 initializeBean() 方法才会显示控件
+3. 如果在横屏中使用，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
+
 ### 普通使用  
 * 单个时间轴
 ```
@@ -52,156 +57,53 @@ dependencies {
         app:timelineInterval="10dp"/>  
 ```
 
-### 自定义属性  
+### Summary  
 
-| XML attributes     | |
-| :----------------- | ---------------------------------------- 
-| app:amount         | 时间轴个数（建议不超过3个，超过后经测试暂无bug） 
-| app:cardRadius     | 时间轴背景的圆角度数                         
-| app:centerTime     | 以输入时间线的为中心线，时间只能在第一个时间轴的范围内（支持小数）
-                     | 输入-1为以中心值为中心线  
-                     | 输入-2为以目前时间值为中心线  
-| app:timeRangeArray | 时间范围数组，格式为"2-18,12-4"（英文逗号，且逗号后没有空格）
+| XML attributes          | |
+| :---------------------- | :---------------------------------------
+| app:amount              | 时间轴个数（建议不超过3个，超过后经测试暂无bug） 
+| app:cardRadius          | 时间轴背景的圆角度数                         
+| app:centerTime          | 中心线时间（支持小数），输入-1为以中心值为中心线，-2为以目前时间值为中心线
+| app:timeRangeArray      | 时间范围数组，格式为"2-18,12-4"，允许出现重复时间段。**每个时间段的差值必须相等**
+| app:timelineWidth       | 时间轴宽度
+| app:timelineInterval    | 相邻时间轴间隔
+| app:timeInterval        | 时间间隔数，必须为60的因数，若不是，将以15为间隔数
+| app:intervalLeft        | 时间轴左侧的时间文字间隔宽度
+| app:intervalHeight      | 时间轴每小时间的间隔高度
+| app:defaultTaskName     | 默认任务名称
+| app:defaultBorderColor  | 默认任务边框颜色
+| app:defaultInsideColor  | 默认任务内部颜色
+| app:timeTextSize        | 时间轴左侧时间文字大小
+| app:taskTextSize        | 任务名称文字大小
+| app:isShowDiffTime      | 最终的任务区域是否显示时间差
+| app:isShowTopBottomTime | 最终的任务区域是否显示上下边界时间
 
-
-* amount  
-时间轴个数(建议不超过3个，超过后经测试暂无bug)  
-***注意：*** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
-
-* cardRadius  
-时间轴背景的圆角度数
-
-* centerTime  
-以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)  
-输入-1为以中心值为中心线  
-输入-2为以目前时间值为中心线  
- 
-* timeRangeArray  
-时间范围数组，格式为"2-18,12-4"(英文逗号，且逗号后没有空格)  
-***注意：***  
-时间都必须大于0且小于24  
-**每个时间段的差值必须相等**  
-允许出现重复时间段  
-
-* timelineWidth  
-时间轴宽度
-
-* timelineInterval  
-相邻时间轴间隔
-
-* timeInterval  
-时间默认间隔数，必须为60的因数，若不是，将以15为间隔数
-
-* intervalLeft  
-时间轴左侧的时间文字间隔宽度
-
-* intervalHeight  
-时间轴每小时间的间隔高度
-
-* defaultBorderColor  
-默认任务边框颜色
-
-* defaultInsideColor  
-默认任务内部颜色
-
-* defaultTaskName  
-默认任务名称
-
-* timeTextSize  
-时间轴左侧时间文字大小(任务文字大小随之改变)
-
-* taskTextSize  
-任务名称文字大小
-
-* isShowDiffTime  
-最终的任务区域是否显示时间差
-
-* isShowTopBottomTime  
-最终的任务区域是否显示上下边界时间  
+| Public methods | |
+| :--------------| :--------------------------
+| Unit           | [backCurrentTime](#backCurrentTime)()
+| Unit           | [cancelAutoBackCurrent](#cancelAutoBackCurrent)()
+| Int            | getCurrentItem()
+| boolean        | getIsLongClick()
+| Int            | getTimeLineScrollY()
+| Unit           | initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
+| Unit           | notifyAllItemRefresh()
+| Unit           | notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
+| Unit           | notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
+| Unit           | registerOnPageChangeCallback(callback: OnPageChangeCallback)
+| Unit           | setCurrentItem(item: Int, smoothScroll: Boolean = true)
+| Unit           | setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE)
+| Unit           | setIsShowDiffTime(boolean: Boolean)
+| Unit           | setIsShowTopBottomTime(boolean: Boolean)
+| Unit           | setOnDataListener(l: OnDataChangeListener)
+| Unit           | setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
+| Unit           | setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
+| Unit           | setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
+| Unit           | setTimeInterval(timeInterval: Int)
+| Unit           | timeLineScrollBy(dy: Int)
+| Unit           | timeLineScrollTo(scrollY: Int)
+| Unit           | timeLineSlowlyScrollTo(scrollY: Int)
 
 ### Public methods
-```kotlin
-fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
-```
-***注意: 上方方法必须调用***  
-
-```kotlin
-fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
-```
-
-```kotlin
-fun setTimeInterval(timeInterval: Int)
-```
-
-```kotlin
-fun setIsShowDiffTime(boolean: Boolean)
-```
-
-```kotlin
-fun setIsShowTopBottomTime(boolean: Boolean)
-```
-
-```kotlin
-fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
-```
-
-```kotlin
-fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit))
-```
-
-```kotlin
-fun setOnDataListener(l: OnDataChangeListener)
-```
-
-```kotlin
-fun setIsShowTopBottomTime(boolean: Boolean)
-```
-
-```kotlin
-fun getIsLongClick(): Boolean
-```
-
-```kotlin
-fun getTimeLineScrollY(): Int
-```
-
-```kotlin
-fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
-```
-
-```kotlin
-fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
-```
-
-```kotlin
-fun notifyAllItemRefresh()
-```
-
-```kotlin
-fun registerOnPageChangeCallback(callback: OnPageChangeCallback)
-```
-
-```kotlin
-fun timeLineSlowlyScrollTo(scrollY: Int)
-```
-
-```kotlin
-fun backCurrentTime()
-```
-
-```kotlin
-fun cancelAutoBackCurrent()
-```
-
-```kotlin
-fun setCurrentItem(item: Int, smoothScroll: Boolean = true)
-```
-
-```kotlin
-fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE)
-```
-
-```kotlin
-fun getCurrentItem(): Int
-```
-
+#### backCurrentTime
+#### cancelAutoBackCurrent
+## 滑动冲突
