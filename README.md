@@ -30,7 +30,7 @@ allprojects {
 ### Module build  
 ```
 dependencies {
-    implementation 'com.github.985892345:TimeSelectView_Library:0.9'
+    implementation 'com.github.985892345:TimeSelectView_Library:1.0.0'
 }
 ```
 
@@ -458,6 +458,6 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 
 ---
 # 更新日志
-* 1.0.0
+* 1.0.0  
 第一个稳定版  
 2020-5-14号发布  
