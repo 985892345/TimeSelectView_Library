@@ -1,7 +1,8 @@
 # TimeSelectView  
-项目TimePlan的TimeSelectView控件
+项目TimePlan的TimeSelectView控件  
 ##使用方法  
 ###Project build  
+
 ````
 buildscript {
     repositories {
