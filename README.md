@@ -1,6 +1,12 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
-[TSViewDayBean](#TSViewDayBean)、[TSViewTaskBean](#TSViewTaskBean)、[TSViewLongClick](#TSViewLongClick)
+* [参考格式](#普通使用)  
+* [XML attributes](#XML attributes)  
+* [Public methods](#Public methods)  
+* [滑动冲突的解决](#滑动冲突)  
+* [TSViewDayBean](#TSViewDayBean)   
+* [TSViewTaskBean](#TSViewTaskBean)  
+* [TSViewLongClick](#TSViewLongClick)  
 
 ## 使用方法  
 
