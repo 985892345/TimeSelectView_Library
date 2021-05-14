@@ -89,7 +89,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      *
-     * 注意：对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用notifyAllTaskRefresh()进行刷新
+     * 注意：对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用[notifyItemRefresh]进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
         mData.mOnClickListener = onClick
@@ -130,7 +130,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
      *
-     * 注意：在任务增加或被删掉时调用此方法并不会改变，请调用[notifyItemDataChanged]
+     * 注意：在任务增加或被删掉时调用此方法并不会有刷新作用，请调用[notifyItemDataChanged]
      * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
