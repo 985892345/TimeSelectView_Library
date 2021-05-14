@@ -1,9 +1,7 @@
 # TimeSelectView  
 项目TimePlan的TimeSelectView控件  
-##使用方法  
-
-###Project build  
-
+## 使用方法  
+### Project build  
 ```
 buildscript {
     repositories {
@@ -19,17 +17,13 @@ allprojects {
     }
 }
 ```
-
-###Module build  
-
+### Module build  
 ```
 dependencies {
     implementation 'com.github.985892345:TimeSelectView_Library:0.9'
 }
 ```
-
-###普通使用  
-
+### 普通使用  
 * 单个时间轴
 ```
 <com.ndhzs.timeselectview.TimeSelectView
@@ -53,9 +47,7 @@ dependencies {
         app:timelineWidth="160dp"
         app:timelineInterval="10dp"/>  
 ```
-
-###自定义属性  
-
+### 自定义属性  
 * app:amount  
 时间轴个数(建议不超过3个，超过后经测试暂无bug)  
 **注意：** 如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
@@ -95,70 +87,109 @@ dependencies {
 最终的任务区域是否显示时间差
 * app:isShowTopBottomTime  
 最终的任务区域是否显示上下边界时间  
-
-###Public fun 
- 
+### Public fun 
 ```kotlin
 fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false)
 ```
 **注意：** 上方方法必须调用  
+
+
 ```kotlin
 fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 ```
-``kotlin
+
+
+```kotlin
 fun setTimeInterval(timeInterval: Int)
 ```
+
+
 ```kotlin
 fun setIsShowDiffTime(boolean: Boolean)
 ```
+
+
 ```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
 ```
+
+
 ```kotlin
 fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 ```
+
+
 ```kotlin
 fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick)
 ```
+
+
 ```kotlin
 fun setOnDataListener(l: OnDataChangeListener)
 ```
+
+
 ```kotlin
 fun setIsShowTopBottomTime(boolean: Boolean)
 ```
+
+
 ```kotlin
 fun getIsLongClick(): Boolean
 ```
+
+
 ```kotlin
 fun getTimeLineScrollY(): Int
 ```
+
+
 ```kotlin
 fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
 ```
+
+
 ```kotlin
 fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false)
 ```
+
+
 ```kotlin
 fun notifyAllItemRefresh()
 ```
+
+
 ```kotlin
 fun registerOnPageChangeCallback(callback: OnPageChangeCallback)
 ```
+
+
 ```kotlin
 fun timeLineSlowlyScrollTo(scrollY: Int)
 ```
+
+
 ```kotlin
 fun backCurrentTime()
 ```
+
+
 ```kotlin
 fun cancelAutoBackCurrent()
 ```
+
+
 ```kotlin
 fun setCurrentItem(item: Int, smoothScroll: Boolean = true)
 ```
+
+
 ```kotlin
 fun setDragResistance(resistance: Int = RectImgView.DEFAULT_DRAG_RESISTANCE)
 ```
+
+
 ```kotlin
 fun getCurrentItem(): Int
 ```
+
