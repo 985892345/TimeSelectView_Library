@@ -144,14 +144,16 @@ backCurrentTime
 ````kotlin
 fun backCurrentTime()
 ````
-当前页面回到 xml 中设置的 app:centerTime 时间，若为-1以中心值为中心线，-2为以目前时间值为中心线
+当前页面回到 xml 中设置的 app:centerTime 时间，  
+若为-1以中心值为中心线，-2为以目前时间值为中心线
 
 cancelAutoBackCurrent
 ---
 ````kotlin
 fun cancelAutoBackCurrent()
 ````
-取消当前页面自动回到xml中设置的 CurrentTime 的延时。延时是在每次手指离开时间轴就会开启
+取消当前页面自动回到xml中设置的 CurrentTime 的延时。  
+延时是在每次手指离开时间轴就会开启
 
 getCurrentItem
 ---
@@ -165,7 +167,7 @@ getIsLongClick
 ````kotlin
 fun getIsLongClick(): Boolean
 ````
-得到当前页面的 TimeSelectView 是否处于长按状态。
+得到当前页面的 TimeSelectView 是否处于长按状态。  
 若你想得到软件中所有的 TimeSelectView 是否存在处于长按状态的，可以使用 [TSViewLongClick](#tsviewlongclick)#sHasLongClick
 
 getTimeLineScrollY
@@ -183,7 +185,8 @@ fun initializeBean(dayBeans: List<TSViewDayBean>,
                    currentItem: Int = 0, 
                    smoothScroll: Boolean = false)
 ````
-用于初始化数据，**注意：**必须调用，不调用将不会显示 View
+用于初始化数据  
+**注意：**必须调用，不调用将不会显示 View
 
 |     **Parameters**     | |
 | :--------------------- | :-----------|
@@ -305,7 +308,7 @@ setOnScrollListener
 ````kotlin
 fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit)
 ````
-当前页面时间轴的滑动回调
+当前页面时间轴的滑动回调  
 不是 ViewPager2 的滑动回调,若你想监听 ViewPager2 的滑动，请使用 [registerOnPageChangeCallback](#registeronpagechangecallback)
 
 |      **Parameters**      | |
@@ -479,11 +482,11 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 ---
 # 更新日志
 * 1.0.1
-  修改 [initializeBean](#initializebean) 的形参为 List
-  修改 [TSViewDayBean](#tsviewdaybean) 的 tSViewTaskBeans 为 MutableList
+  修改 [initializeBean](#initializebean) 的形参为 List  
+  修改 [TSViewDayBean](#tsviewdaybean) 的 tSViewTaskBeans 为 MutableList  
   修改 [TSViewDayBean](#tsviewdayBean) 的构造方法
 
 
 * 1.0.0
-  第一个稳定版
+  第一个稳定版  
   2021-5-14号发布
