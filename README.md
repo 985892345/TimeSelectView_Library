@@ -481,12 +481,12 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 
 ---
 # 更新日志
-* 1.0.1
+* 1.0.1  
   修改 [initializeBean](#initializebean) 的形参为 List  
   修改 [TSViewDayBean](#tsviewdaybean) 的 tSViewTaskBeans 为 MutableList  
   修改 [TSViewDayBean](#tsviewdayBean) 的构造方法
 
 
-* 1.0.0
+* 1.0.0  
   第一个稳定版  
   2021-5-14号发布
