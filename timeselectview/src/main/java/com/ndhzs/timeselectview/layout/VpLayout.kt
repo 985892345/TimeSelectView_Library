@@ -16,7 +16,7 @@ internal class VpLayout(context: Context, data: TSViewInternalData, viewPager2: 
      * 初始化
      */
     fun initialize(dayBeans: TSViewDayBean, vpPosition: Int) {
-        mIVpLayout.initializeBean(dayBeans.taskBeans)
+        mIVpLayout.initializeBean(dayBeans.tSViewTaskBeans)
         mObjectManger.mVpPosition = vpPosition
     }
 

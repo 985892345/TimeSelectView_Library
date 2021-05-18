@@ -12,19 +12,26 @@ import kotlin.collections.ArrayList
  */
 class TSViewDayBean {
 
-    val date: String
-    val taskBeans = ArrayList<TSViewTaskBean>()
+    var date: String
+    var tSViewTaskBeans: MutableList<TSViewTaskBean>
 
-    constructor(day: String) {
-        this.date = day
+    constructor(date: String) {
+        this.date = date
+        tSViewTaskBeans = LinkedList()
     }
 
     constructor(date: Date) {
         val sdf = SimpleDateFormat("yyyy-M-d")
         this.date = sdf.format(date)
+        tSViewTaskBeans = LinkedList()
+    }
+
+    constructor(day: String, taskBeans: MutableList<TSViewTaskBean>) {
+        this.date = day
+        this.tSViewTaskBeans = taskBeans
     }
 
     fun size(): Int {
-        return taskBeans.size
+        return tSViewTaskBeans.size
     }
 }

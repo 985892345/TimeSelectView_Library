@@ -70,14 +70,21 @@ enum class TSViewLongClick {
 
     companion object {
         /**
-         * 这个可得到软件中全部的TimeSelectView是否存在处于长按状态的
+         * 这个可得到软件中全部的TimeSelectView是否存在正处于长按状态的
          */
+        @JvmStatic
         val sHasLongClick
             get() = sIsLongClickCount > 0
 
         /**
          * 这个可得到全部的TimeSelectView中处于长按状态的数量
          */
-        var sIsLongClickCount = 0
+        internal var sIsLongClickCount = 0
+
+        @JvmStatic
+        internal fun getIsLongClickCount(): Int {
+            return sIsLongClickCount
+        }
     }
 }
+

@@ -33,7 +33,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * @param currentItem 内部 ViewPager2 的 item 位置，默认值为0
      * @param smoothScroll 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为false
      */
-    fun initializeBean(dayBeans: ArrayList<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
+    fun initializeBean(dayBeans: List<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
             mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, showNowTimeLinePosition)
             mViewPager2.adapter = mVpAdapter
@@ -234,8 +234,10 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
 
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (childCount == 0) {
+            Log.e("TimeSelectView", "You must invoke function of initializeBean!")
+        }
         val minWidth = mData.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2
         var newWidthMS = widthMeasureSpec
         var newHeightMS = heightMeasureSpec

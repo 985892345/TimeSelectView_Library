@@ -15,7 +15,7 @@ import kotlin.collections.ArrayList
  * @date 2021/4/24
  * @description
  */
-internal class TSViewVpAdapter(dayBeans: ArrayList<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, showNowTimeLinePosition: Int) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
+internal class TSViewVpAdapter(dayBeans: List<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, showNowTimeLinePosition: Int) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
 
 
     /**
