@@ -390,7 +390,7 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 * 处于 ViewPager2 中   
 因为 ViewPager2 是 final 无法被重写，所以修改 ViewPager2 的父 View#onInterceptTouchEvent() 方法
 或父视图为 Activity 时的 dispatchTouchEvent()。（暂不支持 ViewPager，建议使用 ViewPager2）  
-具体实现可也看 demo 中的样例代码
+具体实现也可看 demo 中的样例代码
 ````kotlin
 // 重写 ViewPager2 的父 View#onInterceptTouchEvent()方法
 // 或父视图为 Activity 时的 dispatchTouchEvent()，写法一样
