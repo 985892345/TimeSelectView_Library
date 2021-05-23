@@ -3,6 +3,7 @@ package com.ndhzs.timeselectview.layout
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.viewpager2.widget.ViewPager2
+import com.ndhzs.timeselectview.TimeSelectView
 import com.ndhzs.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.utils.TSViewLongClick.*
@@ -19,7 +20,12 @@ import kotlin.math.min
  * @description [com.ndhzs.timeselectview.TimeSelectView]之下，[ScrollLayout]之上
  */
 @SuppressLint("ViewConstructor")
-internal class TimeScrollView(context: Context, iTimeScrollView: ITimeScrollView, data: TSViewInternalData, time: ITSViewTimeUtil, rectManger: IRectManger) : TScrollViewTouchEvent(context) {
+internal class TimeScrollView(
+    context: Context,
+    iTimeScrollView: ITimeScrollView,
+    data: TSViewInternalData,
+    time: ITSViewTimeUtil,
+    rectManger: IRectManger) : TScrollViewTouchEvent(context, TimeSelectView.LONG_CLICK_TIMEOUT) {
 
     /**
      * 解决与ViewPager2的同向滑动冲突

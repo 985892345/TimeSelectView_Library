@@ -1,9 +1,13 @@
 package com.ndhzs.timeselectview
 
 import android.content.Context
+import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MotionEvent
+import android.view.View
 import android.widget.FrameLayout
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.ndhzs.timeselectview.adapter.TSViewVpAdapter
@@ -14,7 +18,7 @@ import com.ndhzs.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeselectview.utils.TSViewInternalData
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.utils.tscrollview.TScrollViewTouchEvent
-import kotlin.collections.ArrayList
+import kotlin.math.abs
 
 /**
  * @author 985892345
@@ -26,12 +30,14 @@ import kotlin.collections.ArrayList
 class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
 
     /**
-     * 初始化数据，传入TSViewDayBean的数组
+     * 初始化数据，传入 TSViewDayBean 的数组
      *
-     * 以beans的一维长度为ViewPager2的item数
+     * **注意：** 暂不支持嵌套在竖向的 ViewPager2 中，但支持横向 ViewPager2，且解决滑动冲突请使用 [isDealWithTouchEvent]；
+     * 也不支持镶嵌在 RecyclerView 中；嵌套在 ViewPager 中可能也会出现问题
+     * @param dayBeans 以 beans 的一维长度为 ViewPager2 的 item 数
      * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
      * @param currentItem 内部 ViewPager2 的 item 位置，默认值为0
-     * @param smoothScroll 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为false
+     * @param smoothScroll 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为 false
      */
     fun initializeBean(dayBeans: List<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
@@ -40,6 +46,38 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
             mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
             setCurrentItem(currentItem, smoothScroll)
             addView(mViewPager2)
+            post {
+                val location = IntArray(2)
+                getLocationOnScreen(location)
+                mOnScreenRect.left = location[0]
+                mOnScreenRect.top = location[1]
+                mOnScreenRect.right = location[0] + width
+                mOnScreenRect.bottom = location[1] + height
+                var viewParent = parent
+                var distance = 0
+                while (viewParent is View) {
+                    if (viewParent is ViewPager2) {
+                        mOuterViewPager2 = viewParent
+                        // 因为镶嵌在 ViewPager2 中，会出现滑动时调用 getLocationOnScreen() 方法
+                        // 而出现左右值偏差
+                        mOuterViewPager2.getLocationOnScreen(location)
+                        mOnScreenRect.left = distance + location[0]
+                        mOnScreenRect.right = distance + width + location[0]
+                        break
+                    }
+                    if (viewParent.getParent() !is RecyclerView) {
+                        /*
+                        * RecyclerView 的下一层还有一个 ViewGroup。如果 TimeSelectView 镶嵌在 ViewPager2 中，
+                        * 且你设置了 ViewPager2#setOffscreenPageLimit，这时会使 TimeSelectView#getLocationOnScreen
+                        * 的左右值出现问题，具体问题就出现在 RecyclerView 下一层的 ViewGroup 中，因为此时它的 left 值会把
+                        * 前一页加载 width 值加上。所以，如果下一层的 ViewParent 是 RecyclerView，就不能加上此时 ViewParent
+                        * 的 left 值
+                        * */
+                        distance += viewParent.left
+                    }
+                    viewParent = viewParent.getParent()
+                }
+            }
         }else {
             throw Exception("TimeSelectView has been initialized!")
         }
@@ -89,7 +127,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      *
-     * 注意：对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用[notifyItemRefresh]进行刷新
+     * **注意：** 对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用[notifyItemRefresh]进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
         mData.mOnClickListener = onClick
@@ -106,7 +144,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 对数据改变进行监听
      *
-     * 注意：在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
+     * **注意：** 在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
      */
     fun setOnDataListener(l: OnDataChangeListener) {
         mData.mDataChangeListener = l
@@ -130,7 +168,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
      *
-     * 注意：在任务增加或被删掉时调用此方法并不会有刷新作用，请调用[notifyItemDataChanged]
+     * **注意：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用[notifyItemDataChanged]
      * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
@@ -218,6 +256,55 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
         return mViewPager2.currentItem
     }
 
+    /**
+     * 返回 TimeSelectView 是否要处理触摸事件，只能用于 HorizontalScrollView 中，
+     * 解决滑动冲突问题，具体如何解决请看 README
+     */
+    fun isDealWithTouchEvent(ev: MotionEvent): Boolean {
+        val rawX = ev.rawX.toInt()
+        val rawY = ev.rawY.toInt()
+        when (ev.action) {
+            MotionEvent.ACTION_DOWN -> {
+                if (mOnScreenRect.contains(rawX, rawY)) {
+                    postDelayed({
+                        isLongClickTimeOut = true
+                    }, LONG_CLICK_TIMEOUT + 10)
+                    mInitialRawX = rawX
+                    mInitialRawY = rawY
+                    return false
+                }
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!isLongClickTimeOut) {
+                    if (abs(rawX - mInitialRawX) <= MOVE_THRESHOLD
+                        || abs(rawY - mInitialRawY) <= MOVE_THRESHOLD) {
+                        return true
+                    }
+                }else {
+                    return getIsLongClick()
+                }
+            }
+        }
+        return false
+    }
+    private var mInitialRawX = 0
+    private var mInitialRawY = 0
+    private var isLongClickTimeOut = false
+    private lateinit var mOuterViewPager2: ViewPager2
+
+    /**
+     * 返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为横向 ViewPager2 中，
+     * 解决滑动冲突问题，具体如何解决请看 README
+     *
+     * @param myItemPosition 表示 TimeSelectView 在 ViewPager2 中的页面 position
+     */
+    fun isDealWithTouchEvent(ev: MotionEvent, myItemPosition: Int): Boolean {
+        if (mOuterViewPager2.currentItem == myItemPosition) {
+            return isDealWithTouchEvent(ev)
+        }
+        return false
+    }
+
     companion object {
         /**
          * 识别是长按而能移动的阈值
@@ -228,11 +315,18 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
          * 在多个时间轴中左右拖动时的默认阻力值
          */
         const val DEFAULT_DRAG_RESISTANCE = RectImgView.DEFAULT_DRAG_RESISTANCE
+
+        /**
+         * 判定为长按所需要的时间，默认为300毫秒，暂不支持修改
+         */
+        const val LONG_CLICK_TIMEOUT = 300L
     }
 
     private val mData = TSViewInternalData(context, attrs)
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
+
+    private val mOnScreenRect = Rect()
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         if (childCount == 0) {

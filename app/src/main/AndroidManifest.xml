@@ -9,6 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TimeSelectViewLibrary">
+        <activity android:name=".ViewPager2Activity4"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -16,19 +17,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
         <activity
-            android:name="com.ndhzs.demo.MainActivity3"
-            android:screenOrientation="landscape">
-        </activity>
-
+            android:name=".MainActivity3"
+            android:screenOrientation="landscape"></activity>
         <activity
-            android:name="com.ndhzs.demo.MainActivity2"
-            android:screenOrientation="portrait"/>
+            android:name=".MainActivity2"
+            android:screenOrientation="portrait" />
         <activity
-            android:name="com.ndhzs.demo.MainActivity1"
-            android:screenOrientation="portrait"/>
-
+            android:name=".MainActivity1"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

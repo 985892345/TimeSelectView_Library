@@ -99,7 +99,7 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
         /**
          * 识别是长按而能移动的阈值
          */
-        const val MOVE_THRESHOLD = 5
+        const val MOVE_THRESHOLD = 3
     }
 
     private var mLinkViewPager2: ViewPager2? = null

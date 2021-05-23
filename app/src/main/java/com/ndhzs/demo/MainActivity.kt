@@ -4,7 +4,6 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-import com.ndhzs.timeselectview.utils.TSViewLongClick
 
 /**
  * @author 985892345
@@ -30,6 +29,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<Button>(R.id.button3).setOnClickListener {
             val intent = Intent(this, MainActivity3::class.java)
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.button4).setOnClickListener {
+            val intent = Intent(this, ViewPager2Activity4::class.java)
             startActivity(intent)
         }
     }

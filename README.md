@@ -30,7 +30,7 @@ allprojects {
 ### Module build  
 ```
 dependencies {
-    implementation 'com.github.985892345:TimeSelectView_Library:1.0.0'
+    implementation 'com.github.985892345:TimeSelectView_Library:1.0.2'
 }
 ```
 
@@ -39,6 +39,7 @@ dependencies {
 1. 该控件内部整合了 ViewPager2，用于控制不同的天数。如果外置有 ViewPager2，解决滑动冲突请看 [滑动冲突的解决](#滑动冲突的解决)
 2. 必须使用 initializeBean(...) 方法才会显示控件
 3. 如果在横屏中使用，请在 theme 中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
+4. 不建议嵌套在 ViewPager 中，建议使用 ViewPager2，暂未对 ViewPager 做滑动冲突处理
 
 ### 参考格式
 
@@ -106,6 +107,10 @@ dependencies {
 |            | 得到当前页面的时间轴的 ScrollY|
 |    Unit    | [initializeBean](#initializebean) ( dayBeans: ArrayList<[TSViewDayBean](#tsviewdaybean)>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false )|
 |            | 初始化数据|
+|  boolean   | [isDealWithTouchEvent](#isdealwithtouchevent) ( ev: MotionEvent )|
+|            | 解决与 HorizontalScrollView 的滑动冲突|
+|  boolean   | [isDealWithTouchEvent](#isdealwithtouchevent) ( ev: MotionEvent, myItemPosition: Int )|
+|            | 解决与横向的 ViewPager2 的滑动冲突|
 |    Unit    | [notifyAllItemRefresh](#notifyallitemrefresh) ()|
 |            | 通知所有 item 刷新|
 |    Unit    | [notifyItemDataChanged](#notifyitemdatachanged) ( position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false )|
@@ -194,6 +199,22 @@ fun initializeBean(dayBeans: List<TSViewDayBean>,
 | showNowTimeLinePosition| Int = -1: 显示时间线的位置，从0开始，传入负数将不会显示 |
 | currentItem            | Int = 0: 内部 ViewPager2 的 item 位置，默认值为0 |
 | smoothScroll           | Boolean = false: 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为 false |
+
+isDealWithTouchEvent
+---
+````kotlin
+fun isDealWithTouchEvent(ev: MotionEvent): Boolean
+````
+返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为 HorizontalScrollView 中，
+解决滑动冲突问题，具体如何解决请看 [滑动冲突的解决](#滑动冲突的解决)  
+
+````kotlin
+fun isDealWithTouchEvent(ev: MotionEvent, myItemPosition: Int): Boolean
+````
+返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为横向 ViewPager2 中，
+解决滑动冲突问题，具体如何解决请看 [滑动冲突的解决](#滑动冲突的解决)  
+**注意：** 该方法用于横向 ViewPager2，不是用于 ViewPager 中
+
 notifyAllItemRefresh
 ---
 ````kotlin
@@ -350,87 +371,38 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 使时间轴较缓慢地滑动，并有回弹动画
 
 
-
 ## 滑动冲突的解决
 
-如果在本控件处于 ViewPager2 或其他滑动控件以内，请在这些控件的 onInterceptTouchEvent() 中这样设置
-* 因为 ViewPager2 是 final 无法被重写，所以推荐下面写法
+如果在本控件处于 ViewPager2 或 HorizontalScrollView 以内，请使用下面设置。（其他滑动控件可能不能通用）
+
+* 处于 HorizontalScrollView 中  
 ````kotlin
-//重写ViewPager2的父View或者无父View时的Activity     的dispatchTouchEvent()方法
-private var mInitialRawX = 0
-private var mInitialRawY = 0
-//使用mTimeSelectView.getLocationOnScreen(timeViewLocation)得到，记得用post()
-//注意：如果你的ViewPager2设置了offscreenPageLimit，那么getLocationOnScreen()得到的left、right可能出现偏差
-private var timeViewLocation = Rect() 
-override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-    val x = ev.rawX.toInt()
-    val y = ev.rawY.toInt()
-    when (ev.action) {
-        MotionEvent.ACTION_DOWN -> {
-            mInitialRawX = x
-            mInitialRawY = y
-            mFgViewPager.isUserInputEnabled = true
-        }
-        MotionEvent.ACTION_MOVE -> {
-            when (mViewPager2.currentItem) {
-                //把0替换为TimeSelectView在ViewPager2中的页面
-                0 -> {
-                    //判断触摸是否在控件以内
-                    if (timeViewLocation.contains(mInitialRawX, mInitialRawY)) {
-                        //如果移动的距离在TimeSelectView认为是长按的阈值以内，先交给TimeSelectView判断
-                        if (abs(x - mInitialRawX) <= TimeSelectView.MOVE_THRESHOLD + 3 
-                            || abs(y - mInitialRawY) <= TimeSelectView.MOVE_THRESHOLD + 3) {
-                            mFgViewPager.isUserInputEnabled = false
-                        }else {
-                            //如果TimeSelectView处于长按就不拦截，不处于就拦截
-                            mFgViewPager.isUserInputEnabled = !TSViewLongClick.sHasLongClick
-                        }
-                    }
-                }
-            }
-        }
+//重写这个滑动控件的 onInterceptTouchEvent() 方法
+private lateinit var mTimeSelectView: TimeselectView
+override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
+    if (mTimeSelectView.isDealWithTouchEvent(ev)) {
+        return false
     }
+    return super.onInterceptTouchEvent(ev)
+}
+````
+
+* 处于 ViewPager2 中   
+因为 ViewPager2 是 final 无法被重写，所以修改 ViewPager2 的父 View#onInterceptTouchEvent() 方法
+或父视图为 Activity 时的 dispatchTouchEvent()。（暂不支持 ViewPager，建议使用 ViewPager2）  
+具体实现可也看 demo 中的样例代码
+````kotlin
+// 重写 ViewPager2 的父 View#onInterceptTouchEvent()方法
+// 或父视图为 Activity 时的 dispatchTouchEvent()，写法一样
+private lateinit var mTimeSelectView: TimeselectView
+private lateinit var mViewPager2: ViewPager2
+override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+    // 1 表示 TimeSelectView 在 ViewPager2 中的页面 position 为 1
+    mViewPager2.isUserInputEnabled = !mTimeSelectView.isDealWithTouchEvent(ev, 1)
     return super.dispatchTouchEvent(ev)
 }
 ````
-* 处于其他滑动控件中
-````kotlin
-//重写这个滑动控件的onInterceptTouchEvent()方法
-private var mInitialRawX = 0
-private var mInitialRawY = 0
-//使用mTimeSelectView.getLocationOnScreen(timeViewLocation)得到，记得用post()
-//可能getLocationOnScreen()得到的值会有偏差，请留意
-private var timeViewLocation = Rect()
-override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-    val x = ev.rawX.toInt()
-    val y = ev.rawY.toInt()
-    when (ev.action) {
-        MotionEvent.ACTION_DOWN -> {
-            mInitialRawX = x
-            mInitialRawY = y
-        }
-        MotionEvent.ACTION_MOVE -> {
-            when (mViewPager2.currentItem) {
-                //把0替换为TimeSelectView在ViewPager2中的页面
-                0 -> {
-                    //判断触摸是否在控件以内
-                    if (timeViewLocation.contains(mInitialRawX, mInitialRawY)) {
-                        //如果移动的距离在TimeSelectView认为是长按的阈值以内，先交给TimeSelectView判断
-                        return if (abs(x - mInitialRawX) <= TimeSelectView.MOVE_THRESHOLD + 3 
-                            || abs(y - mInitialRawY) <= TimeSelectView.MOVE_THRESHOLD + 3) {
-                            false
-                        }else {
-                            //如果TimeSelectView处于长按就不拦截，不处于就拦截
-                            !TSViewLongClick.sHasLongClick
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return false
-}
-````
+
 
 # TSViewDayBean
 用于存储每天的所有任务
@@ -464,29 +436,32 @@ override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
 | sHasLongClick     | Boolean: 这个可得到软件中全部的 TimeSelectView 是否存在处于长按状态|
 
 | **enum** | |
-| :----------------------------- | ----------|
-| NULL                           | 不处于长按状态|
-| TOP                             | 长按的任务顶部|
-| TOP_SLIDE_UP          | 长按的任务顶部且处于向上滑的状态|
+| :---------------- | -----------|
+| NULL              | 不处于长按状态|
+| TOP               | 长按的任务顶部|
+| TOP_SLIDE_UP      | 长按的任务顶部且处于向上滑的状态|
 | TOP_SLIDE_DOWN    | 长按的任务顶部且处于向下滑的状态|
-| BOTTOM                      | 长按的任务底部|
+| BOTTOM            | 长按的任务底部|
 | BOTTOM_SLIDE_UP   | 按的任务底部且处于向上滑的状态|
 | BOTTOM_SLIDE_DOWN | 长按的任务底部且处于向下滑的状态|
-| INSIDE                              | 长按的任务内部|
-| INSIDE_SLIDE_UP           | 长按的任务内部且处于向上滑的状态|
-| INSIDE_SLIDE_DOWN    | 长按的任务内部且处于向下滑的状态|
-| EMPTY_AREA                  | 长按的空白区域|
-| EMPTY_SLIDE_UP          | 长按的空白区域且处于向上滑的状态|
-| EMPTY_SLIDE_DOWN    | 长按的空白区域且处于向下滑的状态|
+| INSIDE            | 长按的任务内部|
+| INSIDE_SLIDE_UP   | 长按的任务内部且处于向上滑的状态|
+| INSIDE_SLIDE_DOWN | 长按的任务内部且处于向下滑的状态|
+| EMPTY_AREA        | 长按的空白区域|
+| EMPTY_SLIDE_UP    | 长按的空白区域且处于向上滑的状态|
+| EMPTY_SLIDE_DOWN  | 长按的空白区域且处于向下滑的状态|
 
 ---
 # 更新日志
+* 1.0.2  
+  增加 [isDealWithTouchEvent](#isdealwithtouchevent) 方法，可快速处理滑动冲突  
+  demo 增加 ViewPager2 情况下的滑动冲突解决样例代码
+
 * 1.0.1  
   修改 [initializeBean](#initializebean) 的形参为 List  
   修改 [TSViewDayBean](#tsviewdaybean) 的 tSViewTaskBeans 为 MutableList  
-  修改 [TSViewDayBean](#tsviewdayBean) 的构造方法
-
+  修改 [TSViewDayBean](#tsviewdaybean) 的构造方法  
 
 * 1.0.0  
   第一个稳定版  
-  2021-5-14号发布
+  2021-5-14号发布  
