@@ -22,14 +22,14 @@ allprojects {
 ### Module build  
 ```groovy
 dependencies {
-    implementation 'com.github.985892345:TimeSelectView_Library:1.0.2'
+    implementation 'com.github.985892345:TimeSelectView_Library:1.1.0'
 }
 ```
 
 ### 用前需知
 
 1. 该控件内部整合了 ViewPager2，用于控制不同的天数。如果外置有 ViewPager2
-2. 必须使用 initializeBean(...) 方法才会显示控件
+2. 必须使用 [initializeBean](#initializebean) 方法才会显示控件
 3. 如果在横屏中使用，请在 theme 中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
 
 ### 参考格式
@@ -409,4 +409,4 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 
 * 1.0.0  
   第一个稳定版  
-  2021-5-14号发布  
+  2021-5-14发布  
