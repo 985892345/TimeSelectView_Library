@@ -1,6 +1,7 @@
 package com.ndhzs.timeselectview.viewinterface
 
-import android.view.ViewGroup
+import com.ndhzs.timeselectview.layout.view.RectView
+import com.ndhzs.timeselectview.layout.view.SeparatorLineView
 
 /**
  * @author 985892345
@@ -9,6 +10,6 @@ import android.view.ViewGroup
  * @description [com.ndhzs.timeselectview.layout.ChildLayout]
  */
 internal interface IChildLayout {
-    fun addRectView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int)
-    fun addSeparatorLineView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int)
+    fun getRectView(position: Int): RectView
+    fun getSeparatorLineView(position: Int): SeparatorLineView
 }

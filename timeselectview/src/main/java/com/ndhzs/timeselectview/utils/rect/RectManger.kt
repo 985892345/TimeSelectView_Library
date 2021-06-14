@@ -1,9 +1,11 @@
 package com.ndhzs.timeselectview.utils.rect
 
 import android.graphics.Rect
+import androidx.collection.ArrayMap
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeselectview.layout.view.SeparatorLineView
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
+import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeselectview.viewinterface.IRectViewRectManger
@@ -14,32 +16,54 @@ import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
  * @date 2021/3/22
  * @description 用来专门管理与Rect相关的计算，比如求上下其他的Rect的边界
  */
-internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
-                 /**
-                  * 第一个Int为开始点击的Rect的高度值，第二个Int为RectView的position值
-                  * @param initialSideY 开始点击的Rect的高度值
-                  * @param upperLimit 上限值
-                  * @param lowerLimit 下限值
-                  * @param position RectView的position值
-                  */
-                 clickEmptyCallBacks: (initialSideY: Int, upperLimit: Int, lowerLimit: Int, position: Int) -> Unit,
-                 /**
-                  * Int为开始点击的Rect的高度值
-                  * @param deletedRect 被删掉的矩形
-                  * @param deletedBean 被删掉的bean
-                  * @param position RectView的position值
-                  */
-                 clickInsideCallbacks: (deletedRect: Rect, deletedTaskBean: TSViewTaskBean, position: Int) -> Unit,
-                 /**
-                  * 第一个Int为开始点击的Rect的高度值，第二个Int为上限值，第三个Int为下限值
-                  * @param deletedRect 被删掉的矩形
-                  * @param deletedBean 被删掉的bean
-                  * @param initialSideY 开始点击的Rect的高度值
-                  * @param upperLimit 上限值
-                  * @param lowerLimit 下限值
-                  */
-                 clickTopBottomCallbacks: (deletedRect: Rect, deletedTaskBean: TSViewTaskBean,
-                                           initialSideY: Int, upperLimit: Int, lowerLimit: Int, position: Int) -> Unit) : IRectManger {
+internal class RectManger(
+        private val attrs: TSViewAttrs,
+        private val listeners: TSViewListeners,
+        private val time: ITSViewTimeUtil,
+
+        /**
+         * 第一个Int为开始点击的Rect的高度值，第二个Int为RectView的position值
+         * @param initialSideY 开始点击的Rect的高度值
+         * @param upperLimit 上限值
+         * @param lowerLimit 下限值
+         * @param position RectView的position值
+         */
+        private val clickEmptyCallBacks: (
+                initialSideY: Int,
+                upperLimit: Int,
+                lowerLimit: Int,
+                position: Int
+        ) -> Unit,
+
+        /**
+         * Int为开始点击的Rect的高度值
+         * @param deletedRect 被删掉的矩形
+         * @param deletedBean 被删掉的bean
+         * @param position RectView的position值
+         */
+        private val clickInsideCallbacks: (
+                deletedRect: Rect,
+                deletedTaskBean: TSViewTaskBean,
+                position: Int
+        ) -> Unit,
+
+        /**
+         * 第一个Int为开始点击的Rect的高度值，第二个Int为上限值，第三个Int为下限值
+         * @param deletedRect 被删掉的矩形
+         * @param deletedBean 被删掉的bean
+         * @param initialSideY 开始点击的Rect的高度值
+         * @param upperLimit 上限值
+         * @param lowerLimit 下限值
+         */
+        private val clickTopBottomCallbacks: (
+                deletedRect: Rect,
+                deletedTaskBean: TSViewTaskBean,
+                initialSideY: Int,
+                upperLimit: Int,
+                lowerLimit: Int,
+                position: Int
+        ) -> Unit
+) : IRectManger {
 
     /**
      * 初始化Bean
@@ -49,9 +73,9 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
         mAllRectWithBean.clear()
         taskBeans.forEach {
             val rect = Rect(0,
-                    mTime.getCorrectTopHeight(it.startTime, 0, 0, 1),
-                    mData.mRectViewWidth,
-                    mTime.getCorrectBottomHeight(it.endTime, Int.MAX_VALUE, 0, 1))
+                    time.getCorrectTopHeight(it.startTime, 0, 0, 1),
+                    attrs.mRectViewWidth,
+                    time.getCorrectBottomHeight(it.endTime, Int.MAX_VALUE, 0, 1))
             mAllRectWithBean[rect] = it
         }
     }
@@ -67,16 +91,11 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
         private const val TOP_BOTTOM_WIDTH = 27 //长按响应顶部和底部的宽度
     }
 
-    private val mData = data
-    private val mTime = time
-    private val mClickEmptyCallBacks = clickEmptyCallBacks
-    private val mClickInsideCallBacks = clickInsideCallbacks
-    private val mClickTopBottomCallbacks = clickTopBottomCallbacks
-    private var mClickUpperLimit = mData.mRectViewTop
-    private var mClickLowerLimit = mData.mRectViewBottom
-    private lateinit var mTaskBeans: MutableList<TSViewTaskBean>
-    private val mAllRectWithBean = HashMap<Rect, TSViewTaskBean>()
+    private var mClickUpperLimit = this.attrs.mRectViewTop
+    private var mClickLowerLimit = this.attrs.mRectViewBottom
+    private val mAllRectWithBean = ArrayMap<Rect, TSViewTaskBean>()
     private var mDeletedRect = Rect()
+    private lateinit var mTaskBeans: MutableList<TSViewTaskBean>
     private lateinit var mDeletedTaskBean: TSViewTaskBean
 
     private val mMyIRectViews = ArrayList<MyIRectViewRectManger>()
@@ -107,13 +126,13 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
 
     override fun addBean(taskBean: TSViewTaskBean) {
         mTaskBeans.add(taskBean)
-        mData.mDataChangeListener?.onDataAdd(taskBean)
+        listeners.mOnDataChangeListener?.onDataAdd(taskBean)
     }
 
 
     override fun deleteBean(taskBean: TSViewTaskBean) {
         mTaskBeans.remove(taskBean)
-        mData.mDataChangeListener?.onDataDelete(mDeletedTaskBean)
+        listeners.mOnDataChangeListener?.onDataDelete(mDeletedTaskBean)
     }
 
 
@@ -136,31 +155,31 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
 
         override fun addNewRect(rect: Rect, taskBean: TSViewTaskBean) {
             val newRect = Rect(rect.left,
-                    rect.top + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
+                    rect.top + (attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight,
                     rect.right,
-                    rect.bottom + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
+                    rect.bottom + (attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight)
             mAllRectWithBean[newRect] = taskBean
             addBean(taskBean)
         }
 
         override fun addRectFromDeleted(rect: Rect) {
             val newRect = Rect(rect.left,
-                    rect.top + (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
+                    rect.top + (attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight,
                     rect.right,
-                    rect.bottom +(mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
-            mDeletedTaskBean.startTime = mTime.getTime(rect.top, mPosition)
-            mDeletedTaskBean.endTime = mTime.getTime(rect.bottom, mPosition)
+                    rect.bottom +(attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight)
+            mDeletedTaskBean.startTime = time.getTime(rect.top, mPosition)
+            mDeletedTaskBean.endTime = time.getTime(rect.bottom, mPosition)
             mAllRectWithBean[newRect] = mDeletedTaskBean
         }
 
         override fun getRectWithBeanMap(): Map<Rect, TSViewTaskBean> {
-            val rectWithBean = HashMap<Rect, TSViewTaskBean>()
+            val rectWithBean = ArrayMap<Rect, TSViewTaskBean>()
             mAllRectWithBean.forEach {
                 val rect = it.key
                 val newRect = Rect(rect.left,
-                        rect.top - (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight,
+                        rect.top - (attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight,
                         rect.right,
-                        rect.bottom - (mData.mTimeRangeArray[mPosition][0] - mData.mTimeRangeArray[0][0]) * mData.mIntervalHeight)
+                        rect.bottom - (attrs.mTimelineRangeArray[mPosition][0] - attrs.mTimelineRangeArray[0][0]) * attrs.mIntervalHeight)
                 rectWithBean[newRect] = it.value
             }
             return rectWithBean
@@ -183,10 +202,10 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
                 }
             }
             return if (bottoms.maxOrNull() == null) {
-                mData.mRectViewTop
+                attrs.mRectViewTop
             }else {
-                if (bottoms.maxOrNull()!! < mData.mRectViewTop) {
-                    mData.mRectViewTop
+                if (bottoms.maxOrNull()!! < attrs.mRectViewTop) {
+                    attrs.mRectViewTop
                 }else {
                     bottoms.maxOrNull()!!
                 }
@@ -202,10 +221,10 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
                 }
             }
             return if (tops.minOrNull() == null) {
-                mData.mRectViewBottom
+                attrs.mRectViewBottom
             }else {
-                if (tops.minOrNull()!! > mData.mRectViewBottom) {
-                    mData.mRectViewBottom
+                if (tops.minOrNull()!! > attrs.mRectViewBottom) {
+                    attrs.mRectViewBottom
                 }else {
                     tops.minOrNull()!!
                 }
@@ -248,7 +267,7 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
                     mDeletedRect.set(rect)
                     mDeletedTaskBean = it.value
                     //先在mAllRectWithBean中移去点击的矩形
-                    if (mData.mTSViewAmount == 1) {
+                    if (attrs.mTSViewAmount == 1) {
                         mAllRectWithBean.remove(rect)
                     }else {
                         for (i in mAllRectWithBean) {
@@ -259,22 +278,38 @@ internal class RectManger(data: TSViewInternalData, time: ITSViewTimeUtil,
                         }
                     }
                     if (insideY - (rect.top - TOP_BOTTOM_WIDTH/3) < TOP_BOTTOM_WIDTH) {
-                        mData.mCondition = TSViewLongClick.TOP
-                        mClickTopBottomCallbacks.invoke(mDeletedRect, mDeletedTaskBean,
-                                rect.bottom, mClickUpperLimit, mClickLowerLimit, mPosition)
+                        attrs.mCondition = TSViewLongClick.TOP
+                        clickTopBottomCallbacks
+                                .invoke(mDeletedRect, mDeletedTaskBean,
+                                        rect.bottom,
+                                        mClickUpperLimit,
+                                        mClickLowerLimit,
+                                        mPosition)
                     }else if ((rect.bottom + TOP_BOTTOM_WIDTH/3 - insideY) < TOP_BOTTOM_WIDTH) {
-                        mData.mCondition = TSViewLongClick.BOTTOM
-                        mClickTopBottomCallbacks.invoke(mDeletedRect, mDeletedTaskBean,
-                                rect.top, mClickUpperLimit, mClickLowerLimit, mPosition)
+                        attrs.mCondition = TSViewLongClick.BOTTOM
+                        clickTopBottomCallbacks
+                                .invoke(mDeletedRect,
+                                        mDeletedTaskBean,
+                                        rect.top,
+                                        mClickUpperLimit,
+                                        mClickLowerLimit,
+                                        mPosition)
                     }else {
-                        mData.mCondition = TSViewLongClick.INSIDE
-                        mClickInsideCallBacks.invoke(mDeletedRect, mDeletedTaskBean, mPosition)
+                        attrs.mCondition = TSViewLongClick.INSIDE
+                        clickInsideCallbacks
+                                .invoke(mDeletedRect,
+                                        mDeletedTaskBean,
+                                        mPosition)
                     }
                     return
                 }
             }
-            mData.mCondition = TSViewLongClick.EMPTY_AREA
-            mClickEmptyCallBacks.invoke(insideY, mClickUpperLimit, mClickLowerLimit, mPosition)
+            attrs.mCondition = TSViewLongClick.EMPTY_AREA
+            clickEmptyCallBacks
+                    .invoke(insideY,
+                            mClickUpperLimit,
+                            mClickLowerLimit,
+                            mPosition)
         }
     }
 }

@@ -11,14 +11,14 @@
         android:layout_height="0dp"
         app:amount="1"
         app:cardRadius="8dp"
-        app:centerTime="-2"
+        app:centerTime="now_time"
         app:intervalHeight="100dp"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:timeRangeArray="6-6"
+        app:timeRangeString="6-6"
         app:timelineWidth="160dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

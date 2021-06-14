@@ -14,14 +14,14 @@
         android:layout_marginBottom="8dp"
         app:amount="6"
         app:cardRadius="8dp"
-        app:centerTime="-1"
+        app:centerTime="center"
         app:intervalHeight="110dp"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:timeRangeArray="0-4,4-8,8-12,12-16,16-20,20-0"
+        app:timeRangeString="0-4,4-8,8-12,12-16,16-20,20-0"
         app:timelineInterval="6dp"
         app:timelineWidth="116dp" />
 

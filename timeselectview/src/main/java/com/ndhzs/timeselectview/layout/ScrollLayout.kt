@@ -6,35 +6,41 @@ import android.graphics.Rect
 import android.view.Gravity
 import android.view.MotionEvent
 import android.widget.FrameLayout
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
+import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeselectview.viewinterface.IRectManger
 import com.ndhzs.timeselectview.viewinterface.IScrollLayout
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
+ * 处理整体移动，一旦触发整体移动，触摸事件都会在此被拦截
+ *
+ * [TimeScrollView]之下，
+ * [ParentLayout]、[StickerLayout]之上
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/6
- * @description 处理整体移动，一旦触发整体移动，触摸事件都会在此被拦截
- * [TimeScrollView]之下，
- * [ParentLayout]、[StickerLayout]之上
  */
 @SuppressLint("ViewConstructor")
-internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data: TSViewInternalData, time: ITSViewTimeUtil, rectManger: IRectManger) : FrameLayout(context) {
+internal class ScrollLayout(
+        context: Context,
+        private val iScrollLayout: IScrollLayout,
+        private val attrs: TSViewAttrs,
+        private val listeners: TSViewListeners,
+        private val time: ITSViewTimeUtil,
+        private val rectManger: IRectManger
+) : FrameLayout(context) {
 
     init {
-        val lp1 = LayoutParams(data.mAllTimelineWidth, LayoutParams.MATCH_PARENT)
+        val lp1 = LayoutParams(attrs.mAllTimelineWidth, LayoutParams.MATCH_PARENT)
         lp1.gravity = Gravity.CENTER
-        iScrollLayout.addParentLayout(lp1, this)
-        val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
-        iScrollLayout.addStickerLayout(lp2, this)
-    }
+        attachViewToParent(iScrollLayout.getParentLayout(), -1, lp1)
 
-    private val mData = data
-    private val mTime = time
-    private val mRectManger = rectManger
-    private val mIScrollLayout = iScrollLayout
+        val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
+        attachViewToParent(iScrollLayout.getStickerLayout(), -1, lp2)
+
+    }
 
     private var mInitialX = 0
     private var mInitialY = 0
@@ -46,7 +52,7 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
                 mInitialY = ev.y.toInt()
             }
             MotionEvent.ACTION_MOVE -> {
-                when (mData.mCondition) {
+                when (attrs.mCondition) {
                     INSIDE, INSIDE_SLIDE_DOWN, INSIDE_SLIDE_UP -> {
                         return true
                     }
@@ -66,27 +72,27 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
         val y = event.y.toInt()
         when (event.action) {
             MotionEvent.ACTION_MOVE -> {
-                when (mData.mCondition) {
+                when (attrs.mCondition) {
                     INSIDE -> {
-                        mIScrollLayout.slideRectImgView(x - mInitialX, y - mInitialY)
+                        iScrollLayout.slideRectImgView(x - mInitialX, y - mInitialY)
                     }
                     else -> {}
                 }
             }
             MotionEvent.ACTION_UP -> {
-                mIScrollLayout.setIsCanLongClick(false)
-                val inWindowRect = mIScrollLayout.getRectImgViewInWindowRect()
-                mNowPosition = mIScrollLayout.getRectViewPosition(inWindowRect.centerX())
-                val isOverLeft = inWindowRect.right < mIScrollLayout.getChildLayoutInWindowLeftRight(0)[0]
-                val isOverRight = inWindowRect.left > mIScrollLayout.getChildLayoutInWindowLeftRight(mData.mTSViewAmount - 1)[1]
+                iScrollLayout.setIsCanLongClick(false)
+                val inWindowRect = iScrollLayout.getRectImgViewInWindowRect()
+                mNowPosition = iScrollLayout.getRectViewPosition(inWindowRect.centerX())
+                val isOverLeft = inWindowRect.right < iScrollLayout.getChildLayoutInWindowLeftRight(0)[0]
+                val isOverRight = inWindowRect.left > iScrollLayout.getChildLayoutInWindowLeftRight(attrs.mTSViewAmount - 1)[1]
                 if (isOverLeft || isOverRight || mNowPosition == null) {
-                    mIScrollLayout.setIsCanLongClick(true)
-                    mIScrollLayout.deleteRectImgView()
-                    mRectManger.deleteBean(mRectManger.getDeletedBean())
+                    iScrollLayout.setIsCanLongClick(true)
+                    iScrollLayout.deleteRectImgView()
+                    rectManger.deleteBean(rectManger.getDeletedBean())
                 }else {
                     putDownRectJudgeAndProcess(inWindowRect, y)
                 }
-                mData.mCondition = NULL
+                attrs.mCondition = NULL
             }
         }
         return true
@@ -96,42 +102,42 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
      * 能否放下矩形的判断和处理
      */
     private fun putDownRectJudgeAndProcess(inWindowRect: Rect, y: Int) {
-        val prePosition = mIScrollLayout.getPreRectViewPosition()
+        val prePosition = iScrollLayout.getPreRectViewPosition()
         val inWindowLeftAndInsideTop = getRawLeftAndInsideTop(inWindowRect, prePosition, mNowPosition!!, y)
         val inWindowFinalLeft = inWindowLeftAndInsideTop[0]
         val insideFinalTop = inWindowLeftAndInsideTop[1]
         val position = inWindowLeftAndInsideTop[2]
-        mIScrollLayout.slideEndRectImgView(inWindowFinalLeft, insideFinalTop) {
-            val topBottom = if (y <= mInitialY + mIScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动
-                mTime.getCorrectTopHeight(insideFinalTop,
+        iScrollLayout.slideEndRectImgView(inWindowFinalLeft, insideFinalTop) {
+            val topBottom = if (y <= mInitialY + iScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动
+                time.getCorrectTopHeight(insideFinalTop,
                         insideFinalTop,
-                        mRectManger.getLowerLimit(insideFinalTop, position),
+                        rectManger.getLowerLimit(insideFinalTop, position),
                         position,
-                        mRectManger.getDeletedBean().diffTime)
+                        rectManger.getDeletedBean().diffTime)
             }else { //说明矩形向下移动
                 //因为是向下滑动的，所以之前计算的是正确的bottom值
                 val correctBottom = insideFinalTop + inWindowRect.height()
-                mTime.getCorrectBottomHeight(correctBottom,
-                        mRectManger.getUpperLimit(correctBottom, position),
+                time.getCorrectBottomHeight(correctBottom,
+                        rectManger.getUpperLimit(correctBottom, position),
                         correctBottom,
                         position,
-                        mRectManger.getDeletedBean().diffTime)
+                        rectManger.getDeletedBean().diffTime)
             }
-            val times = mIScrollLayout.getStartEndDTime(topBottom[0], topBottom[1], position)
-            val bean = mRectManger.getDeletedBean()
+            val times = iScrollLayout.getStartEndDTime(topBottom[0], topBottom[1], position)
+            val bean = rectManger.getDeletedBean()
             bean.startTime = times[0]
             bean.endTime = times[1]
             bean.diffTime = times[2]
-            mData.mDataChangeListener?.onDataAlter(bean)
+            listeners.mOnDataChangeListener?.onDataAlter(bean)
             val rect2 = Rect(0, topBottom[0], inWindowRect.width(), topBottom[1])
-            mIScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
-            mIScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：这条语句位置必须在通知RectView后调用
+            iScrollLayout.notifyRectViewAddRectFromDeleted(rect2, position)
+            iScrollLayout.setIsCanLongClick(true) //设置为true后只要仍满足长按条件，则可以重启长按。注意：这条语句位置必须在通知RectView后调用
         }
 
         if (mIsBack) { //抬起手后，回到原位置的时候通知TimeScrollView滑到原来矩形的中心高度
-            mIScrollLayout.notifyTimeScrollViewScrollToInitialHeight(mIScrollLayout.getRectImgViewInitialRect().centerY())
+            iScrollLayout.notifyTimeScrollViewScrollToInitialHeight(iScrollLayout.getRectImgViewInitialRect().centerY())
         }else { //抬起手后，在没有回到原位置的时候通知TimeScrollView自动滑到适宜的高度
-            mIScrollLayout.notifyTimeScrollViewScrollToSuitableHeight()
+            iScrollLayout.notifyTimeScrollViewScrollToSuitableHeight()
         }
     }
 
@@ -146,11 +152,11 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
             val top = inWindowRect.top
             val bottom = inWindowRect.bottom
             val rectHeight = inWindowRect.height()
-            val initialRect = mIScrollLayout.getRectImgViewInitialRect()
-            val preUpperLimit = mRectManger.getClickUpperLimit()
-            val preLowerLimit = mRectManger.getClickLowerLimit()
-            val nowUpperLimit = mRectManger.getUpperLimit(bottom, nowPosition)
-            val nowLowerLimit = mRectManger.getLowerLimit(top, nowPosition)
+            val initialRect = iScrollLayout.getRectImgViewInitialRect()
+            val preUpperLimit = rectManger.getClickUpperLimit()
+            val preLowerLimit = rectManger.getClickLowerLimit()
+            val nowUpperLimit = rectManger.getUpperLimit(bottom, nowPosition)
+            val nowLowerLimit = rectManger.getLowerLimit(top, nowPosition)
             val prePositionLeft = getInWindowLeft(prePosition)
             val nowPositionLeft = getInWindowLeft(nowPosition)
             return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
@@ -161,12 +167,12 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
                     mIsBack = false
                     intArrayOf(nowPositionLeft, nowUpperLimit, nowPosition)
                 }else { //包括了3、4、5、6、7
-                    if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
+                    if (bottom < attrs.mRectViewTop || top > attrs.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
                         mIsBack = true
                         val correctTop = getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, prePosition, insideUpY)
                         intArrayOf(prePositionLeft, correctTop, prePosition)
                     }else {
-                        val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, nowPosition)
+                        val lowerLimit = rectManger.getLowerLimit(nowUpperLimit, nowPosition)
                         if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
                             mIsBack = false
                             val correctTop = getCorrectTopHeight(inWindowRect, nowUpperLimit, nowLowerLimit, nowPosition, insideUpY)
@@ -190,7 +196,7 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
      * 返回整体移动放手后矩形该放置的位置的左边值
      */
     private fun getInWindowLeft(position: Int): Int {
-        return mIScrollLayout.getRectViewInWindowLeftRight(position)[0]
+        return iScrollLayout.getRectViewInWindowLeftRight(position)[0]
     }
 
     /**
@@ -204,11 +210,11 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
         val top = rawRect.top
         val bottom = rawRect.bottom
         val rectHeight = rawRect.height()
-        val initialRect = mIScrollLayout.getRectImgViewInitialRect()
-        val preUpperLimit = mRectManger.getClickUpperLimit()
-        val preLowerLimit = mRectManger.getClickLowerLimit()
-        val nowUpperLimit = mRectManger.getUpperLimit(bottom, position)
-        val nowLowerLimit = mRectManger.getLowerLimit(top, position)
+        val initialRect = iScrollLayout.getRectImgViewInitialRect()
+        val preUpperLimit = rectManger.getClickUpperLimit()
+        val preLowerLimit = rectManger.getClickLowerLimit()
+        val nowUpperLimit = rectManger.getUpperLimit(bottom, position)
+        val nowLowerLimit = rectManger.getLowerLimit(top, position)
         //每个if对应了一种情况，具体请以序号看纸上的草图
         return if (rectHeight <= nowLowerLimit - nowUpperLimit) {
             if (nowLowerLimit in top..bottom) { //1
@@ -218,11 +224,11 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
                 mIsBack = false
                 nowUpperLimit
             }else { //包括了3、4、5、6、7
-                if (bottom < mData.mRectViewTop || top > mData.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
+                if (bottom < attrs.mRectViewTop || top > attrs.mRectViewBottom) { //在RectViewTop以上或mRectViewBottom以下
                     mIsBack = true
                     getCorrectTopHeight(initialRect, preUpperLimit, preLowerLimit, position, insideUpY)
                 }else {
-                    val lowerLimit = mRectManger.getLowerLimit(nowUpperLimit, position)
+                    val lowerLimit = rectManger.getLowerLimit(nowUpperLimit, position)
                     if (lowerLimit == nowLowerLimit) { //3、5-1、7-1
                         mIsBack = false
                         getCorrectTopHeight(rawRect, nowUpperLimit, nowLowerLimit, position, insideUpY)
@@ -240,12 +246,12 @@ internal class ScrollLayout(context: Context, iScrollLayout: IScrollLayout, data
 
     private fun getCorrectTopHeight(rect: Rect, upperLimit: Int, lowerLimit: Int, position: Int, insideUpY: Int): Int {
         //以下用来判断是否上下移动后而用时间间隔数计算得出正确的top值
-        return if (insideUpY < mInitialY - mIScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动了
-            mTime.getCorrectTopHeight(rect.top, upperLimit, position, mData.mTimeInterval)
-        }else if (insideUpY > mInitialY + mIScrollLayout.getUnconstrainedDistance()){ //说明矩形向下移动了
-            mTime.getCorrectBottomHeight(rect.bottom, lowerLimit, position, mData.mTimeInterval) - rect.height()
+        return if (insideUpY < mInitialY - iScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动了
+            time.getCorrectTopHeight(rect.top, upperLimit, position, attrs.mTimeInterval)
+        }else if (insideUpY > mInitialY + iScrollLayout.getUnconstrainedDistance()){ //说明矩形向下移动了
+            time.getCorrectBottomHeight(rect.bottom, lowerLimit, position, attrs.mTimeInterval) - rect.height()
         }else {
-            mTime.getCorrectTopHeight(rect.top, upperLimit, position, 1)
+            time.getCorrectTopHeight(rect.top, upperLimit, position, 1)
         }
     }
 }

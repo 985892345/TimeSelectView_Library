@@ -2,7 +2,6 @@ package com.ndhzs.timeselectview.utils
 
 import android.content.Context
 import android.graphics.Rect
-import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeselectview.layout.*
@@ -18,41 +17,44 @@ import kotlin.collections.ArrayList
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description 所有View的管理工具
+ * @description 所有内部 View 对象的管理工具
  */
-internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, firstDay: String) {
+internal class TSViewObjectsManger(
+        private val context: Context,
+        private val attrs: TSViewAttrs,
+        private val listeners: TSViewListeners,
+        private val firstDay: String
+) {
 
     var mVpPosition = -1
-    private val mFirstDay = firstDay
 
-    private val mContext = context
-    private val mData = data
-    private val mTime = TSViewTimeUtil(data)
-    private val mRectDraw = RectDraw(data)
-    private val mRectManger = RectManger(data, mTime, { initialSideY, upperLimit, lowerLimit, position ->
-        mRectViews[position].clickEmptyStart(initialSideY, upperLimit, lowerLimit)
-
-    }, { rect, bean, position ->
-        mRectImgView.start(rect, bean, position)
-        notifyAllRectViewRedraw()
-
-    }, { rect, bean, initialSideY, upperLimit, lowerLimit, position ->
-        mRectViews[position].clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
-    })
+    private val mTime = TSViewTimeUtil(attrs)
+    private val mRectDraw = RectDraw(attrs)
+    private val mRectManger = RectManger(attrs, listeners, mTime,
+            clickEmptyCallBacks = { initialSideY, upperLimit, lowerLimit, position ->
+                mRectViews[position].clickEmptyStart(initialSideY, upperLimit, lowerLimit)
+            },
+            clickInsideCallbacks = { rect, bean, position ->
+                mRectImgView.start(rect, bean, position)
+                notifyAllRectViewRedraw()
+            },
+            clickTopBottomCallbacks = { rect, bean, initialSideY, upperLimit, lowerLimit, position ->
+                mRectViews[position].clickTopAndBottomStart(rect, bean, initialSideY, upperLimit, lowerLimit)
+            })
 
     private val mChildLayouts = ArrayList<ChildLayout>()
     private val mRectViews = ArrayList<RectView>()
     private val mSeparatorLineViews = ArrayList<SeparatorLineView>()
 
-    private val mParentLayout = ParentLayout(context, My4IParentLayout(), data)
-    private val mRectImgView = RectImgView(context, My5IRectImgView(), data, mTime, mRectDraw)
+    private val mParentLayout = ParentLayout(context, My4IParentLayout(), attrs)
+    private val mRectImgView = RectImgView(context, My5IRectImgView(), attrs, mTime, mRectDraw)
 
-    private val mStickerLayout = StickerLayout(context, My4IStickerLayout(), data, mTime)
+    private val mStickerLayout = StickerLayout(context, My4IStickerLayout(), attrs, mTime)
 
-    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), data, mTime, mRectManger)
-    private val mBackCardView = BackCardView(context, data)
+    private val mScrollLayout = ScrollLayout(context, My3IScrollLayout(), attrs, listeners, mTime, mRectManger)
+    private val mBackCardView = BackCardView(context, attrs)
 
-    private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), data, mTime, mRectManger)
+    private val mTimeScrollView = TimeScrollView(context, My2ITimeScrollView(), attrs, listeners, mTime, mRectManger)
 
     private fun getChildLayoutInWindowLeftRight(position: Int): IntArray {
         val location = IntArray(2)
@@ -69,7 +71,7 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
     }
 
     private fun getRectViewPosition(inWindowX: Int): Int? {
-        for (i in 0 until mData.mTSViewAmount) {
+        for (i in 0 until attrs.mTSViewAmount) {
             val leftRight = getRectViewInWindowLeftRight(i)
             if (inWindowX < leftRight[0]) {
                 return null
@@ -106,15 +108,13 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
 
 
     inner class My1IVpLayout : IVpLayout {
-        override fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mBackCardView, lp)
+        override fun getBackCardView(): BackCardView {
+            return mBackCardView
         }
 
-        override fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?) {
-            v.addView(mTimeScrollView, lp)
-            if (viewPager2 != null) {
-                mTimeScrollView.setLinkedViewPager2(viewPager2)
-            }
+        override fun getTimeScrollView(viewPager2: ViewPager2): TimeScrollView {
+            mTimeScrollView.setLinkViewPager2(viewPager2)
+            return mTimeScrollView
         }
 
         override fun showNowTimeLine() {
@@ -161,8 +161,8 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
     }
 
     inner class My2ITimeScrollView : ITimeScrollView {
-        override fun addScrollLayout(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mScrollLayout, lp)
+        override fun getScrollLayout(): ScrollLayout {
+            return mScrollLayout
         }
 
         override fun slideDrawRect(insideY: Int, position: Int) {
@@ -195,17 +195,17 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
         }
 
         override fun onScrollChanged(scrollY: Int) {
-            mRectImgView.boundaryRefresh(scrollY, mData.mInsideTotalHeight, mTimeScrollView.height)
+            mRectImgView.boundaryRefresh(scrollY, attrs.mInsideTotalHeight, mTimeScrollView.height)
         }
     }
 
     inner class My3IScrollLayout : IScrollLayout {
-        override fun addParentLayout(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mParentLayout, lp)
+        override fun getParentLayout(): ParentLayout {
+            return mParentLayout
         }
 
-        override fun addStickerLayout(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mStickerLayout, lp)
+        override fun getStickerLayout(): StickerLayout {
+            return mStickerLayout
         }
 
         override fun getRectViewPosition(inWindowX: Int): Int? {
@@ -277,16 +277,16 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
     }
 
     inner class My4IParentLayout : IParentLayout {
-        override fun addChildLayout(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val childLayout = ChildLayout(mContext, My5IChildLayout(), mData, position)
+        override fun getChildLayout(position: Int): ChildLayout {
+            val childLayout = ChildLayout(context, My5IChildLayout(), attrs, position)
             mChildLayouts.add(childLayout)
-            v.addView(childLayout, lp)
+            return childLayout
         }
     }
     
     inner class My4IStickerLayout : IStickerLayout {
-        override fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup) {
-            v.addView(mRectImgView, lp)
+        override fun getRectImgView(): RectImgView {
+            return mRectImgView
         }
 
         override fun getChildLayoutWidth(): Int {
@@ -312,7 +312,7 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
         }
 
         override fun getRectViewInterval(): Int {
-            return if (mData.mTSViewAmount == 1) {
+            return if (attrs.mTSViewAmount == 1) {
                 Int.MAX_VALUE
             }else {
                 getRectViewInWindowLeftRight(1)[0] - getRectViewInWindowLeftRight(0)[0]
@@ -321,16 +321,24 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
     }
 
     inner class My5IChildLayout : IChildLayout {
-        override fun addRectView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val rectView = RectView(mContext, mData, mTime, mRectDraw, mRectManger.MyIRectViewRectManger(), My6IRectView(), position)
+        override fun getRectView(position: Int): RectView {
+            val rectView = RectView(
+                    context,
+                    attrs,
+                    listeners,
+                    mTime,
+                    mRectDraw,
+                    mRectManger.MyIRectViewRectManger(),
+                    My6IRectView(),
+                    position)
             mRectViews.add(rectView)
-            v.addView(rectView, lp)
+            return rectView
         }
 
-        override fun addSeparatorLineView(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int) {
-            val separatorLineView = SeparatorLineView(mContext, mData, position)
+        override fun getSeparatorLineView(position: Int): SeparatorLineView {
+            val separatorLineView = SeparatorLineView(context, attrs, position)
             mSeparatorLineViews.add(separatorLineView)
-            v.addView(separatorLineView, lp)
+            return separatorLineView
         }
     }
 
@@ -349,7 +357,7 @@ internal class TSViewObjectsManger(context: Context, data: TSViewInternalData, f
         }
 
         override fun getDay(): String {
-            return TSViewTimeUtil.getDay(mFirstDay, mVpPosition)
+            return TSViewTimeUtil.getDay(firstDay, mVpPosition)
         }
     }
 }

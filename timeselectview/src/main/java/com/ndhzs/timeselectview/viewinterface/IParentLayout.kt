@@ -1,6 +1,6 @@
 package com.ndhzs.timeselectview.viewinterface
 
-import android.view.ViewGroup
+import com.ndhzs.timeselectview.layout.ChildLayout
 
 /**
  * @author 985892345
@@ -9,5 +9,5 @@ import android.view.ViewGroup
  * @description [com.ndhzs.timeselectview.layout.ParentLayout]
  */
 internal interface IParentLayout {
-    fun addChildLayout(lp: ViewGroup.LayoutParams, v: ViewGroup, position: Int)
+    fun getChildLayout(position: Int): ChildLayout
 }

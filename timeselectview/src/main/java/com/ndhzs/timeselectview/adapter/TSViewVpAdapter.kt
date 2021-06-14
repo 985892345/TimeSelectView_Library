@@ -6,8 +6,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeselectview.layout.VpLayout
-import com.ndhzs.timeselectview.utils.TSViewInternalData
-import kotlin.collections.ArrayList
+import com.ndhzs.timeselectview.utils.TSViewAttrs
+import com.ndhzs.timeselectview.utils.TSViewListeners
 
 /**
  * @author 985892345
@@ -15,14 +15,20 @@ import kotlin.collections.ArrayList
  * @date 2021/4/24
  * @description
  */
-internal class TSViewVpAdapter(dayBeans: List<TSViewDayBean>, data: TSViewInternalData, viewPager2: ViewPager2, showNowTimeLinePosition: Int) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
+internal class TSViewVpAdapter(
+        private val dayBeans: List<TSViewDayBean>,
+        private val attrs: TSViewAttrs,
+        private val listeners: TSViewListeners,
+        private val viewPager2: ViewPager2,
+        private val showNowTimeLinePosition: Int
+) : RecyclerView.Adapter<TSViewVpAdapter.ViewHolder>() {
 
 
     /**
      * 设置内部ScrollView的滑动监听
      */
     fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit) {
-        mData.mOnScrollListener = {scrollY, vpPosition ->
+        listeners.mOnScrollListener = { scrollY, vpPosition ->
             mScrollY = scrollY
             l.invoke(scrollY, vpPosition)
         }
@@ -57,28 +63,28 @@ internal class TSViewVpAdapter(dayBeans: List<TSViewDayBean>, data: TSViewIntern
      * 使内部的ScrollView直接瞬移，调用的ScrollView的scrollTo方法
      */
     fun timeLineScrollTo(scrollY: Int) {
-        notifyItemChanged(mViewPager2.currentItem, listOf(NOTIFY_ITEM_SCROLL_TO, scrollY))
+        notifyItemChanged(viewPager2.currentItem, listOf(NOTIFY_ITEM_SCROLL_TO, scrollY))
     }
 
     /**
      * 使内部的ScrollView较缓慢地滑动，并有回弹动画
      */
     fun timeLineSlowlyScrollTo(scrollY: Int) {
-        notifyItemChanged(mViewPager2.currentItem, listOf(NOTIFY_ITEM_SLOWLY_SCROLL_TO, scrollY))
+        notifyItemChanged(viewPager2.currentItem, listOf(NOTIFY_ITEM_SLOWLY_SCROLL_TO, scrollY))
     }
 
     /**
      * 手动调用当前页面的时间轴回到xml中设置的CurrentTime
      */
     fun backCurrentTime() {
-        notifyItemChanged(mViewPager2.currentItem, NOTIFY_ITEM_BACK_CURRENT_ITEM)
+        notifyItemChanged(viewPager2.currentItem, NOTIFY_ITEM_BACK_CURRENT_ITEM)
     }
 
     /**
      * 取消当前页面的时间轴自动回到xml中设置的CurrentTime的延时，延时是在每次手指离开时间轴就会开启
      */
     fun cancelAutoBackCurrent() {
-        notifyItemChanged(mViewPager2.currentItem, NOTIFY_ITEM_CANCEL_AUTO_BACK_CURRENT_ITEM)
+        notifyItemChanged(viewPager2.currentItem, NOTIFY_ITEM_CANCEL_AUTO_BACK_CURRENT_ITEM)
     }
 
     companion object {
@@ -125,15 +131,10 @@ internal class TSViewVpAdapter(dayBeans: List<TSViewDayBean>, data: TSViewIntern
 
     }
 
-    private val mDayBeans = dayBeans
-    private val mData = data
-    private val mViewPager2 = viewPager2
-    private val mShowNowTimeLinePosition = showNowTimeLinePosition
-
     private var mScrollY = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = VpLayout(parent.context, mData, mViewPager2, mDayBeans[0].date, viewType == SHOW_NOW_TIME_LINE_POSITION)
+        val view = VpLayout(parent.context, attrs, listeners, viewPager2, dayBeans[0].date, viewType == SHOW_NOW_TIME_LINE_POSITION)
         view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         return ViewHolder(view)
     }
@@ -176,15 +177,15 @@ internal class TSViewVpAdapter(dayBeans: List<TSViewDayBean>, data: TSViewIntern
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val vpLayout = holder.mVpLayout
-        vpLayout.initialize(mDayBeans[position], position)
+        vpLayout.initialize(dayBeans[position], position)
     }
 
     override fun getItemCount(): Int {
-        return mDayBeans.size
+        return dayBeans.size
     }
 
     override fun getItemViewType(position: Int): Int {
-        if (position == mShowNowTimeLinePosition) {
+        if (position == showNowTimeLinePosition) {
             return SHOW_NOW_TIME_LINE_POSITION
         }
         return NOT_SHOW

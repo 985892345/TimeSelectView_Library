@@ -5,7 +5,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 
 /**
  * @author 985892345
@@ -13,7 +13,11 @@ import com.ndhzs.timeselectview.utils.TSViewInternalData
  * @description [com.ndhzs.timeselectview.layout.ChildLayout]之下
  */
 @SuppressLint("ViewConstructor")
-internal class SeparatorLineView(context: Context, data: TSViewInternalData, position: Int) : View(context) {
+internal class SeparatorLineView(
+        context: Context,
+        private val attrs: TSViewAttrs,
+        private val position: Int
+) : View(context) {
     companion object {
         /**
          * 垂直分割线厚度
@@ -26,8 +30,6 @@ internal class SeparatorLineView(context: Context, data: TSViewInternalData, pos
         const val HORIZONTAL_LINE_WIDTH = 1
     }
 
-    private val mData = data
-    private val mPosition = position
     private val mVLinePaint = Paint() //Vertical Line 垂直线画笔
     private val mHLinePaint = Paint() //Horizontal Line 水平线画笔
     private val mLeftTimePaint = Paint() //左侧时间画笔
@@ -46,20 +48,20 @@ internal class SeparatorLineView(context: Context, data: TSViewInternalData, pos
         mLeftTimePaint.color = 0xFF505050.toInt()
         mLeftTimePaint.isAntiAlias = true
         mLeftTimePaint.textAlign = Paint.Align.CENTER
-        mLeftTimePaint.textSize = mData.mTimeTextSize
+        mLeftTimePaint.textSize = this.attrs.mTimeTextSize
         val fontMetrics = mLeftTimePaint.fontMetrics
         mLeftTimeCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
     }
 
     override fun onDraw(canvas: Canvas) {
-        val startHour = mData.mTimeRangeArray[mPosition][0]
-        val extraHeight = mData.mExtraHeight.toFloat()
-        val intervalLeft = mData.mIntervalLeft.toFloat()
-        val intervalRight = mData.mIntervalRight.toFloat()
-        val intervalHeight = mData.mIntervalHeight.toFloat()
+        val startHour = attrs.mTimelineRangeArray[position][0]
+        val extraHeight = attrs.mExtraHeight.toFloat()
+        val intervalLeft = attrs.mIntervalLeft.toFloat()
+        val intervalRight = attrs.mIntervalRight.toFloat()
+        val intervalHeight = attrs.mIntervalHeight.toFloat()
         val verticalLineX = intervalLeft - VERTICAL_LINE_WIDTH/2
-        canvas.drawLine(verticalLineX, 0F, verticalLineX, mData.mInsideTotalHeight.toFloat(), mVLinePaint)
-        for (i in mData.mTimeRangeArray[mPosition][0]..mData.mTimeRangeArray[mPosition][1]) {
+        canvas.drawLine(verticalLineX, 0F, verticalLineX, attrs.mInsideTotalHeight.toFloat(), mVLinePaint)
+        for (i in attrs.mTimelineRangeArray[position][0]..attrs.mTimelineRangeArray[position][1]) {
             val hour = when {
                 i < 10 -> {
                     "0$i:00"

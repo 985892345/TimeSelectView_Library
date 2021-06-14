@@ -11,13 +11,13 @@
         android:layout_height="0dp"
         app:amount="2"
         app:cardRadius="8dp"
-        app:centerTime="-1"
+        app:centerTime="center"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:timeRangeArray="0-12,12-0"
+        app:timeRangeString="0-12,12-0"
         app:timelineInterval="10dp"
         app:timelineWidth="160dp" />
 

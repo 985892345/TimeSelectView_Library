@@ -1,7 +1,8 @@
 package com.ndhzs.timeselectview.viewinterface
 
 import android.graphics.Rect
-import android.view.ViewGroup
+import com.ndhzs.timeselectview.layout.ParentLayout
+import com.ndhzs.timeselectview.layout.StickerLayout
 
 /**
  * @author 985892345
@@ -10,8 +11,8 @@ import android.view.ViewGroup
  * @description [com.ndhzs.timeselectview.layout.ScrollLayout]
  */
 internal interface IScrollLayout {
-    fun addParentLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun addStickerLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
+    fun getParentLayout(): ParentLayout
+    fun getStickerLayout(): StickerLayout
     fun getRectViewPosition(inWindowX: Int): Int?
     fun getPreRectViewPosition(): Int
     fun getRectViewInWindowLeftRight(position: Int): IntArray

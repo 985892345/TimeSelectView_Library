@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="TimeSelectView">
-        <!--时间轴个数(建议不超过3个，超过后经测试暂无bug。
-        注意：如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差)-->
+
+        <!--时间轴个数(建议不超过3个
+            注意：如果在横屏中，请在theme中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差)-->
         <attr name="amount" format="integer"/>
+
         <!--时间轴背景的圆角度数-->
         <attr name="cardRadius" format="dimension"/>
 
         <!--以输入时间线的为中心线，时间只能在第一个时间轴的范围内(支持小数)。
-        输入-1为以中心值为中心线，
-        输入-2为以当前时间值为中心线-->
-        <attr name="centerTime" format="float"/>
+            输入 center 为以中心值为中心线，
+            输入 now_time 为以当前时间值为中心线-->
+        <attr name="centerTime" format="float">
+            <enum name="center" value="-1"/>
+            <enum name="now_time" value="-2"/>
+        </attr>
 
-        <!--时间范围数组。格式为"2-18,12-4"(逗号后没有空格)，
-                注意：
-                时间都必须大于0且小于24；
-                每个时间段的差值必须相等；
-                允许出现重复时间段；-->
-        <attr name="timeRangeArray" format="string"/>
+        <!--时间范围。格式为"2-18,12-4"(逗号后没有空格)，
+            注意：
+            时间都必须大于0且小于或等于24；
+            每个时间段的差值必须相等；
+            允许出现重复时间段；-->
+        <attr name="timeRangeString" format="string"/>
 
         <!--时间轴宽度-->
         <attr name="timelineWidth" format="dimension"/>
-        <!--相邻时间轴间隔-->
+        <!--相邻时间轴间隔宽度-->
         <attr name="timelineInterval" format="dimension"/>
         <!--时间默认间隔数，必须为60的因数，若不是，将以15为间隔数-->
         <attr name="timeInterval" format="integer"/>
@@ -38,14 +43,15 @@
         <!--默认任务名称-->
         <attr name="defaultTaskName" format="string"/>
 
-        <!--时间轴左侧时间文字大小(任务文字大小随之改变)-->
+        <!--时间轴左侧时间文字大小-->
         <attr name="timeTextSize" format="dimension"/>
-        <!--任务名称文字大小-->
+        <!--任务名称文字大小(不设置的情况下随时间轴左侧时间文字大小改变)-->
         <attr name="taskTextSize" format="dimension"/>
 
         <!--最终的任务区域是否显示时间差-->
         <attr name="isShowDiffTime" format="boolean"/>
         <!--最终的任务区域是否显示上下边界时间-->
         <attr name="isShowTopBottomTime" format="boolean"/>
+
     </declare-styleable>
 </resources>

@@ -1,17 +1,19 @@
 package com.ndhzs.timeselectview.utils.rect
 
 import android.graphics.*
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.viewinterface.IRectDraw
-import com.ndhzs.timeselectview.utils.TSViewInternalData
 
 /**
  * @author 985892345
  * @date 2021/3/20
  * @description 用来绘制任务的类
  */
-internal class RectDraw(data: TSViewInternalData) : IRectDraw {
+internal class RectDraw(
+        attrs: TSViewAttrs
+) : IRectDraw {
 
-    private val mData = data
+    private val mData = attrs
     private val mTextPaint: Paint //任务名称画笔
     private val mDTimePaint: Paint //时间差值画笔
     private val mInsidePaint: Paint //圆角矩形内部画笔
@@ -32,8 +34,8 @@ internal class RectDraw(data: TSViewInternalData) : IRectDraw {
     companion object {
         private const val BORDER_WIDTH = 4 //圆角矩形边框厚度
         private const val BORDER_RADIUS = 8F //圆角矩形的圆角半径
-        private const val DIFF_TIME_MULTIPLE = 0.75F //右侧时间差的文字相对于TimeTextSize的倍数
-        private const val START_END_TIME_MULTIPLE = 0.8F //开始结束时间的文字相对于TimeTextSize的倍数
+        private const val DIFF_TIME_MULTIPLE = 0.75F //右侧时间差的文字相对于 TimeTextSize 的倍数
+        private const val START_END_TIME_MULTIPLE = 0.8F //开始结束时间的文字相对于 TimeTextSize 的倍数
     }
 
     init {

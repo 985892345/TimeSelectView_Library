@@ -9,7 +9,7 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.OvershootInterpolator
 import androidx.core.animation.addListener
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.viewinterface.IRectDraw
 import com.ndhzs.timeselectview.viewinterface.IRectImgView
@@ -23,7 +23,13 @@ import kotlin.math.sqrt
  * @description [com.ndhzs.timeselectview.layout.ScrollLayout]之下
  */
 @SuppressLint("ViewConstructor")
-internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: TSViewInternalData, time: ITSViewTimeUtil, draw: IRectDraw) : View(context) {
+internal class RectImgView(
+        context: Context,
+        private val iRectImgView: IRectImgView,
+        private val attrs: TSViewAttrs,
+        private val time: ITSViewTimeUtil,
+        private val draw: IRectDraw
+) : View(context) {
 
     /**
      * 整体移动开始时调用
@@ -31,7 +37,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
      */
     fun start(rect: Rect, taskBean: TSViewTaskBean, position: Int) {
         mPosition = position
-        mRectViewInterval = mIRectImgView.getRectViewInterval()
+        mRectViewInterval = iRectImgView.getRectViewInterval()
         val distance = mRectViewToRectImgViewDistances[position]
         mRect.left = rect.left + distance
         mRect.top = rect.top
@@ -97,15 +103,15 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
             mRect.top = rectCenterY - height/2
             mRect.right = rectCenterX + width/2
             mRect.bottom = rectCenterY + height/2
-            mTimeSize = width / rectWidth.toFloat() * mData.mTimeTextSize
-            mTaskNameSize = width / rectWidth.toFloat() * mData.mTaskTextSize
+            mTimeSize = width / rectWidth.toFloat() * attrs.mTimeTextSize
+            mTaskNameSize = width / rectWidth.toFloat() * attrs.mTaskTextSize
             invalidate()
         }
         animator.addListener(onEnd = {
             onEndListener.invoke()
             mRect.setEmpty()
-            mTimeSize = mData.mTimeTextSize
-            mTaskNameSize = mData.mTaskTextSize
+            mTimeSize = attrs.mTimeTextSize
+            mTaskNameSize = attrs.mTaskTextSize
             invalidate()
         })
         animator.duration = 350
@@ -171,13 +177,13 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
      * 因为CardView的圆角问题，上下滑动时，边界的显示区域会覆盖圆角，所以提供此方法在ScrollView滑动时调用刷新
      */
     fun boundaryRefresh(scrollY: Int, insideHeight: Int, outerHeight: Int) {
-        if (scrollY !in mData.mExtraHeight..insideHeight - mData.mExtraHeight - outerHeight) { //只有能显示边界时才刷新
-            mDrawBoundaryDiffHeight = if (scrollY in 0..mData.mExtraHeight) { //说明时间轴处于顶部
+        if (scrollY !in attrs.mExtraHeight..insideHeight - attrs.mExtraHeight - outerHeight) { //只有能显示边界时才刷新
+            mDrawBoundaryDiffHeight = if (scrollY in 0..attrs.mExtraHeight) { //说明时间轴处于顶部
                 scrollY
             }else { //说明时间轴处于底部
                 insideHeight - scrollY - outerHeight
             }
-            when (mData.mCondition) { //除了整体移动以外，其他情况都可以刷新，原因是整体移动已经被其他方法调用刷新
+            when (attrs.mCondition) { //除了整体移动以外，其他情况都可以刷新，原因是整体移动已经被其他方法调用刷新
                 TSViewLongClick.INSIDE, TSViewLongClick.INSIDE_SLIDE_UP, TSViewLongClick.INSIDE_SLIDE_DOWN -> {}
                 else -> {
                     invalidate()
@@ -193,31 +199,27 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
     private var mDrawBoundaryDiffHeight = 0
 
 
-    private val mData = data
-    private val mDraw = draw
-    private val mTime = time
-    private val mIRectImgView = iRectImgView
     private val mRect = Rect()
     private val mInitialRect = Rect()
     private var mPosition = 0
-    private lateinit var mTaskBean: TSViewTaskBean
     private var mRectViewInterval = 0
+    private lateinit var mTaskBean: TSViewTaskBean
 
-    private var mTimeSize = mData.mTimeTextSize
-    private var mTaskNameSize = mData.mTaskTextSize
+    private var mTimeSize = attrs.mTimeTextSize
+    private var mTaskNameSize = attrs.mTaskTextSize
 
     companion object {
         /**
          * 在多个时间轴中左右拖动时的默认阻力值
          */
-        const val DEFAULT_DRAG_RESISTANCE = 17
+        const val DEFAULT_DRAG_RESISTANCE = 20
     }
 
     private val mBoundaryPath1 = Path() //上下边界区域路1，与区域2取交集
     private val mBoundaryPath2 = Path() //上下边界区域路径2，与区域1取交集
     private val mBoundaryPaint = Paint() //上下边界区域画笔
-    private val mDividerLines = IntArray(data.mTSViewAmount + 1) //分割线的距离值，用于整体移动到另一个时间轴时改变时间
-    private val mRectViewToRectImgViewDistances = IntArray(data.mTSViewAmount) //每个RectView的left到自身left的距离
+    private val mDividerLines = IntArray(attrs.mTSViewAmount + 1) //分割线的距离值，用于整体移动到另一个时间轴时改变时间
+    private val mRectViewToRectImgViewDistances = IntArray(attrs.mTSViewAmount) //每个RectView的left到自身left的距离
 
     init {
         //上下边界区域画笔
@@ -225,7 +227,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
         mBoundaryPaint.style = Paint.Style.FILL
 
         post {
-            repeat(data.mTSViewAmount) { //计算每个RectView的left到自身left的距离
+            repeat(attrs.mTSViewAmount) { //计算每个RectView的left到自身left的距离
                 mRectViewToRectImgViewDistances[it] = iRectImgView.getRectViewToRectImgViewDistance(it)
             }
             for (i in mDividerLines.indices) { //计算除了第0个以外的每个ChildLayout的left到自身的距离，第一个值为无穷小，最后一个值为无穷大
@@ -234,7 +236,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
                 }else if (i == mDividerLines.size - 1) {
                     mDividerLines[i] = Int.MAX_VALUE
                 }else {
-                    mDividerLines[i] = mRectViewToRectImgViewDistances[i] - mData.mIntervalLeft
+                    mDividerLines[i] = mRectViewToRectImgViewDistances[i] - this.attrs.mIntervalLeft
                 }
             }
             invalidate()
@@ -243,26 +245,26 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
 
     override fun onDraw(canvas: Canvas) {
         if (!mRect.isEmpty) {
-            mDraw.drawRect(canvas, mRect, mTaskBean.name, mTaskBean.borderColor, mTaskBean.insideColor, mTaskNameSize)
+            draw.drawRect(canvas, mRect, mTaskBean.name, mTaskBean.borderColor, mTaskBean.insideColor, mTaskNameSize)
             val top = mRect.top
             val bottom = mRect.bottom
             for (i in 0 until mDividerLines.size - 1) {
                 if (mRect.left in mDividerLines[i]..mDividerLines[i + 1]) {
-                    mDraw.drawStartEndTime(canvas, mRect, mTime.getTime(top, i), mTime.getTime(bottom + 1, i), mTimeSize)
+                    draw.drawStartEndTime(canvas, mRect, time.getTime(top, i), time.getTime(bottom + 1, i), mTimeSize)
                 }
             }
-            if (mData.mIsShowDiffTime) {
-                mDraw.drawArrows(canvas, mRect, mTaskBean.diffTime, mTimeSize)
+            if (attrs.mIsShowDiffTime) {
+                draw.drawArrows(canvas, mRect, mTaskBean.diffTime, mTimeSize)
             }
         }
 
         if (mRectViewToRectImgViewDistances[0] != 0) {
             //绘制顶部与底部的灰色区域
-            repeat(mData.mTSViewAmount) {
+            repeat(attrs.mTSViewAmount) {
                 val left = mRectViewToRectImgViewDistances[it].toFloat()
-                val right = mRectViewToRectImgViewDistances[it].toFloat() + mData.mRectViewWidth + mData.mIntervalRight
-                val height = mData.mExtraHeight.toFloat() + SeparatorLineView.HORIZONTAL_LINE_WIDTH
-                val radius = mData.mCardCornerRadius
+                val right = mRectViewToRectImgViewDistances[it].toFloat() + attrs.mRectViewWidth + attrs.mIntervalRight
+                val height = attrs.mExtraHeight.toFloat() + SeparatorLineView.HORIZONTAL_LINE_WIDTH
+                val radius = attrs.mCardCornerRadius
                 //绘制上方边界
                 mBoundaryPath1.moveTo(right - radius, mDrawBoundaryDiffHeight.toFloat())
                 mBoundaryPath1.lineTo(left, mDrawBoundaryDiffHeight.toFloat())
@@ -277,7 +279,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
                 mBoundaryPath1.reset()
                 mBoundaryPath2.reset()
 
-                val top = this.height - mData.mExtraHeight.toFloat()
+                val top = this.height - attrs.mExtraHeight.toFloat()
                 val bottom = top + height - SeparatorLineView.HORIZONTAL_LINE_WIDTH
                 //绘制下方边界
                 mBoundaryPath1.moveTo(right - radius, bottom - mDrawBoundaryDiffHeight)
@@ -303,12 +305,12 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
         if (dx == 0) {
             return 0
         }
-        val dragResistance = mData.mDragResistance
+        val dragResistance = attrs.mDragResistance
         if (dx > 0) {
             if (dx < dragResistance) { //先判断自身
                 return 0
             }else { //再判断右边相邻的一个
-                return if (position < mData.mTSViewAmount - 1) {
+                return if (position < attrs.mTSViewAmount - 1) {
                     if (dx - dragResistance >= mRectViewInterval && dx - 3 * dragResistance <= mRectViewInterval) {
                         mRectViewInterval
                     }else if (dx - dragResistance < mRectViewInterval) {
@@ -324,7 +326,7 @@ internal class RectImgView(context: Context, iRectImgView: IRectImgView, data: T
                 }
             }
         }else {
-            return -getCorrectDx(-dx, mData.mTSViewAmount - 1 - position)
+            return -getCorrectDx(-dx, attrs.mTSViewAmount - 1 - position)
         }
     }
 }

@@ -4,8 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeselectview.TimeSelectView
-import com.ndhzs.timeselectview.utils.TSViewInternalData
-import com.ndhzs.timeselectview.utils.TSViewLongClick
+import com.ndhzs.timeselectview.utils.*
 import com.ndhzs.timeselectview.utils.TSViewLongClick.*
 import com.ndhzs.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeselectview.utils.tscrollview.TScrollViewTouchEvent
@@ -21,20 +20,13 @@ import kotlin.math.min
  */
 @SuppressLint("ViewConstructor")
 internal class TimeScrollView(
-    context: Context,
-    iTimeScrollView: ITimeScrollView,
-    data: TSViewInternalData,
-    time: ITSViewTimeUtil,
-    rectManger: IRectManger) : TScrollViewTouchEvent(context, TimeSelectView.LONG_CLICK_TIMEOUT) {
-
-    /**
-     * 解决与ViewPager2的同向滑动冲突
-     * @param viewPager2 传入ViewPager2，不是ViewPager
-     */
-    fun setLinkedViewPager2(viewPager2: ViewPager2, onVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null) {
-        mLinkedViewPager2 = viewPager2
-        super.setLinkViewPager2(viewPager2, onVpInterceptionStart)
-    }
+        context: Context,
+        private val iTimeScrollView: ITimeScrollView,
+        private val attrs: TSViewAttrs,
+        private val listeners: TSViewListeners,
+        private val time: ITSViewTimeUtil,
+        private val rectManger: IRectManger
+) : TScrollViewTouchEvent(context, TimeSelectView.LONG_CLICK_TIMEOUT) {
 
     /**
      * 设置能否长按，如果设置为了false，手指又触摸了屏幕，则会停止长按的判断，此时如果仍符合长按的条件，可以设置true后重启长按
@@ -52,22 +44,22 @@ internal class TimeScrollView(
      */
     fun backCurrentTime() {
         removeCallbacks(mAfterUpBackCurrentTimeRun)
-        post(mAfterUpBackCurrentTimeRun)
+        mRunnableManger.post(mAfterUpBackCurrentTimeRun)
     }
 
     /**
      * 快速地回到CurrentTime
      */
     fun fastBackCurrentTime() {
-        scrollY = when (mData.mCenterTime) {
+        scrollY = when (attrs.mCenterTime) {
             TSViewTimeUtil.CENTER_TIME_NOW_TIME -> { //以当前时间线为中线
-                mTime.getNowTimeHeight() - height / 2
+                time.getNowTimeHeight() - height / 2
             }
             TSViewTimeUtil.CENTER_TIME_CENTER -> { //以中心值为中线
-                mData.mInsideTotalHeight / 2 - height / 2
+                attrs.mInsideTotalHeight / 2 - height / 2
             }
             else -> { //以你设定的时间为中线
-                mTime.getTimeHeight(mData.mCenterTime) - height / 2
+                time.getTimeHeight(attrs.mCenterTime) - height / 2
             }
         }
     }
@@ -88,7 +80,7 @@ internal class TimeScrollView(
         if (height == -1) {
             var dy = 0
             //以下为自动滑到适当位置的判断
-            when (mData.mCondition) {
+            when (attrs.mCondition) {
                 TOP_SLIDE_DOWN, BOTTOM_SLIDE_DOWN, EMPTY_SLIDE_DOWN -> { //时间轴向上滑
                     dy = mOuterUpY - (this.height - AUTO_MOVE_THRESHOLD) + 10
                 }
@@ -96,11 +88,11 @@ internal class TimeScrollView(
                     dy = mOuterUpY - AUTO_MOVE_THRESHOLD - 10
                 }
                 INSIDE_SLIDE_DOWN -> { //时间轴向上滑
-                    val bottom = mITimeScrollView.getOuterBottom()
+                    val bottom = iTimeScrollView.getOuterBottom()
                     dy = bottom - (this.height - AUTO_MOVE_THRESHOLD) + 10
                 }
                 INSIDE_SLIDE_UP -> { //时间轴向下滑
-                    val top = mITimeScrollView.getOuterTop()
+                    val top = iTimeScrollView.getOuterTop()
                     dy = top - AUTO_MOVE_THRESHOLD - 10
                 }
                 else -> {
@@ -118,38 +110,34 @@ internal class TimeScrollView(
         private const val MULTIPLE = MAX_AUTO_SLIDE_VELOCITY / AUTO_MOVE_THRESHOLD
     }
 
-    private val mData = data
-    private val mTime = time
-    private val mRectManger = rectManger
-    private val mITimeScrollView = iTimeScrollView
+    private val mRunnableManger = RunnableManger(this)
     private var mLinkedViewPager2: ViewPager2? = null
-
     private var mIsCanLongClick = true
     var mClickRectViewPosition: Int? = null
 
     init {
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, data.mInsideTotalHeight)
-        iTimeScrollView.addScrollLayout(lp, this)
-        data.setOnConditionEndListener {
+        val lp = LayoutParams(LayoutParams.MATCH_PARENT, attrs.mInsideTotalHeight)
+        attachViewToParent(iTimeScrollView.getScrollLayout(), -1, lp)
+
+        attrs.setOnConditionEndListener {
             onLongClickEnd(it)
         }
-        scrollToCenterTime()
         isVerticalScrollBarEnabled = false //取消滚动条
         overScrollMode = OVER_SCROLL_NEVER //取消滑到边界的上下虚影
     }
 
     private fun scrollToCenterTime() {
-        post {
-            scrollY = when (mData.mCenterTime) { //以当前时间线为中线
+        mRunnableManger.post {
+            scrollY = when (attrs.mCenterTime) { //以当前时间线为中线
                 TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
-                    postDelayed(mBackNowTimeRun, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
-                    mTime.getNowTimeHeight() - height / 2
+                    mRunnableManger.postDelayed(TSViewTimeUtil.DELAY_NOW_TIME_REFRESH, mBackNowTimeRun)
+                    time.getNowTimeHeight() - height / 2
                 }
                 TSViewTimeUtil.CENTER_TIME_CENTER -> { //以中心值为中线
-                    mData.mInsideTotalHeight / 2 - height / 2
+                    attrs.mInsideTotalHeight / 2 - height / 2
                 }
                 else -> { //以你设定的时间为中线，不随时间移动
-                    mTime.getTimeHeight(mData.mCenterTime) - height / 2
+                    time.getTimeHeight(attrs.mCenterTime) - height / 2
                 }
             }
         }
@@ -160,7 +148,7 @@ internal class TimeScrollView(
      */
     private val mBackNowTimeRun = object : Runnable {
         override fun run() {
-            slowlyScrollTo(mTime.getNowTimeHeight() - height / 2)
+            slowlyScrollTo(this@TimeScrollView.time.getNowTimeHeight() - height / 2)
             postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
         }
     }
@@ -170,30 +158,31 @@ internal class TimeScrollView(
      */
     private val mAfterUpBackCurrentTimeRun = object : Runnable {
         override fun run() {
-            slowlyScrollTo(when (mData.mCenterTime) {
+            slowlyScrollTo(when (this@TimeScrollView.attrs.mCenterTime) {
                 TSViewTimeUtil.CENTER_TIME_NOW_TIME -> {
                     postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
-                    mTime.getNowTimeHeight() - height / 2
+                    this@TimeScrollView.time.getNowTimeHeight() - height / 2
                 }
                 TSViewTimeUtil.CENTER_TIME_CENTER -> {
-                    mData.mInsideTotalHeight / 2 - height / 2
+                    this@TimeScrollView.attrs.mInsideTotalHeight / 2 - height / 2
                 }
                 else -> {
-                    mTime.getTimeHeight(mData.mCenterTime) - height / 2
+                    this@TimeScrollView.time.getTimeHeight(this@TimeScrollView.attrs.mCenterTime) - height / 2
                 }
             })
         }
     }
 
-    override fun dispatchTouchEventDown(outerX: Int, outerY: Int) {
+    override fun dispatchTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int) {
         removeCallbacks(mAfterUpBackCurrentTimeRun)
         removeCallbacks(mBackNowTimeRun)
+        mClickRectViewPosition = iTimeScrollView.getRectViewPosition(onScreenX)
     }
 
     private var mOuterUpY = 0
-    override fun dispatchTouchEventUp(outerX: Int, outerY: Int) {
+    override fun dispatchTouchEventUp(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int) {
         mOuterUpY = outerY
-        postDelayed(mAfterUpBackCurrentTimeRun, TSViewTimeUtil.DELAY_BACK_CURRENT_TIME)
+        mRunnableManger.postDelayed(TSViewTimeUtil.DELAY_BACK_CURRENT_TIME, mAfterUpBackCurrentTimeRun)
         if (mStartRun) {
             mStartRun = false
             removeCallbacks(mSlideRunnable)
@@ -212,12 +201,11 @@ internal class TimeScrollView(
             mIsCloseLongClickJudge = true
             closeLongClickJudge()
         }
-        mClickRectViewPosition = mITimeScrollView.getRectViewPosition(onScreenX)
         return if (mClickRectViewPosition == null) {
             true
         }else {
             //只对RectView的位置内的外部大小的RectView实际绘制区域不拦截
-            outerY !in mData.mRectViewTop..mData.mRectViewBottom
+            outerY !in attrs.mRectViewTop..attrs.mRectViewBottom
         }
     }
 
@@ -226,32 +214,32 @@ internal class TimeScrollView(
     }
 
     override fun onLongClickStartButNotMove(): Boolean {
-        mITimeScrollView.onLongClickStartButNotMove(mClickRectViewPosition!!)
+        iTimeScrollView.onLongClickStartButNotMove(mClickRectViewPosition!!)
         return true
     }
 
     override fun onClick(insideX: Int, insideY: Int): Boolean {
         if (mClickRectViewPosition != null) {
-            val bean = mRectManger.getBean(insideY, mClickRectViewPosition!!)
+            val bean = rectManger.getBean(insideY, mClickRectViewPosition!!)
             if (bean != null) {
-                mData.mOnClickListener?.invoke(bean)
+                listeners.mOnClickListener?.invoke(bean)
             }
         }
         return true
     }
 
     override fun onLongClickStart(insideX: Int, insideY: Int, onScreenX: Int, onScreenY: Int) {
-        mData.mIsLongClick = true
-        mRectManger.longClickConditionJudge(insideY, mClickRectViewPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
-        mUpperLimit = mRectManger.getClickUpperLimit()
-        mLowerLimit = mRectManger.getClickLowerLimit()
+        attrs.mIsLongClick = true
+        rectManger.longClickConditionJudge(insideY, mClickRectViewPosition!!) //对于刷新所有的RectView我放在了ScrollLayout中
+        mUpperLimit = rectManger.getClickUpperLimit()
+        mLowerLimit = rectManger.getClickLowerLimit()
         mForbidSlideCenter = insideY - scrollY
-        mData.mOnLongClickStartListener?.invoke(mData.mCondition)
+        listeners.mOnLongClickStartListener?.invoke(attrs.mCondition)
     }
 
     private fun onLongClickEnd(condition: TSViewLongClick) {
-        mData.mIsLongClick = false
-        mData.mOnLongClickEndListener?.invoke(condition)
+        attrs.mIsLongClick = false
+        listeners.mOnLongClickEndListener?.invoke(condition)
     }
 
     private var mOuterX = 0
@@ -265,7 +253,7 @@ internal class TimeScrollView(
     private val mSlideRunnable = object: Runnable {
         override fun run() {
             scrollBy(0, mVelocity)
-            when (mData.mCondition) {
+            when (this@TimeScrollView.attrs.mCondition) {
                 TOP_SLIDE_UP, TOP_SLIDE_DOWN,
                 BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN,
                 EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
@@ -284,7 +272,7 @@ internal class TimeScrollView(
     override fun automaticSlide(outerX: Int, outerY: Int, insideX: Int, insideY: Int) {
         mOuterX = outerX
         mOuterY = outerY
-        when (mData.mCondition) {
+        when (attrs.mCondition) {
             TOP, TOP_SLIDE_UP, TOP_SLIDE_DOWN,
             BOTTOM, BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN,
             EMPTY_AREA, EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
@@ -294,19 +282,19 @@ internal class TimeScrollView(
                 //50为一个上下的阈值，只有移动超过了这个阈值，才可以自动滑动
                 val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 10)..(mForbidSlideCenter + 10)
                 if (!isTopSlide && !isBottomSlide || !isInCanSlideLimit || isInForbidSlideLimit ||
-                        scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
+                        scrollY == 0 && isTopSlide || scrollY + height == attrs.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
                     mStartRun = false
-                    mData.mStartAutoSlide = false
-                    when (mData.mCondition) {
+                    attrs.mStartAutoSlide = false
+                    when (attrs.mCondition) {
                         TOP_SLIDE_UP, TOP_SLIDE_DOWN -> {
-                            mData.mCondition = TOP
+                            attrs.mCondition = TOP
                         }
                         BOTTOM_SLIDE_UP, BOTTOM_SLIDE_DOWN -> {
-                            mData.mCondition = BOTTOM
+                            attrs.mCondition = BOTTOM
                         }
                         EMPTY_SLIDE_UP, EMPTY_SLIDE_DOWN -> {
-                            mData.mCondition = EMPTY_AREA
+                            attrs.mCondition = EMPTY_AREA
                         }
                         else -> {
                         }
@@ -319,15 +307,15 @@ internal class TimeScrollView(
                             return
                         }
                         mVelocity = -min((AUTO_MOVE_THRESHOLD - outerY) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
-                        when (mData.mCondition) {
+                        when (attrs.mCondition) {
                             TOP -> {
-                                mData.mCondition = TOP_SLIDE_UP
+                                attrs.mCondition = TOP_SLIDE_UP
                             }
                             BOTTOM -> {
-                                mData.mCondition = BOTTOM_SLIDE_UP
+                                attrs.mCondition = BOTTOM_SLIDE_UP
                             }
                             EMPTY_AREA -> {
-                                mData.mCondition = EMPTY_SLIDE_UP
+                                attrs.mCondition = EMPTY_SLIDE_UP
                             }
                             else -> {
                             }
@@ -339,15 +327,15 @@ internal class TimeScrollView(
                             return
                         }
                         mVelocity = min((outerY - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
-                        when (mData.mCondition) {
+                        when (attrs.mCondition) {
                             TOP -> {
-                                mData.mCondition = TOP_SLIDE_DOWN
+                                attrs.mCondition = TOP_SLIDE_DOWN
                             }
                             BOTTOM -> {
-                                mData.mCondition = BOTTOM_SLIDE_DOWN
+                                attrs.mCondition = BOTTOM_SLIDE_DOWN
                             }
                             EMPTY_AREA -> {
-                                mData.mCondition = EMPTY_SLIDE_DOWN
+                                attrs.mCondition = EMPTY_SLIDE_DOWN
                             }
                             else -> {
                             }
@@ -355,25 +343,25 @@ internal class TimeScrollView(
                     }
                     if (!mStartRun) {
                         mStartRun = true
-                        mData.mStartAutoSlide = true
+                        attrs.mStartAutoSlide = true
                         mPreOuterY = outerY
                         post(mSlideRunnable)
                     }
                 }
             }
             INSIDE, INSIDE_SLIDE_UP, INSIDE_SLIDE_DOWN -> {
-                val top = mITimeScrollView.getOuterTop()
-                val bottom = mITimeScrollView.getOuterBottom()
+                val top = iTimeScrollView.getOuterTop()
+                val bottom = iTimeScrollView.getOuterBottom()
                 val isTopSlide = top < AUTO_MOVE_THRESHOLD * 0.4F
                 val isBottomSlide = bottom > height - AUTO_MOVE_THRESHOLD * 0.4F
                 //20为一个上下的阈值，只有移动超过了这个阈值，才可以自动滑动
                 val isInForbidSlideLimit = outerY in (mForbidSlideCenter - 20)..(mForbidSlideCenter + 20)
                 if (!isTopSlide && !isBottomSlide || isInForbidSlideLimit ||
-                        scrollY == 0 && isTopSlide || scrollY + height == mData.mInsideTotalHeight && isBottomSlide) {
+                        scrollY == 0 && isTopSlide || scrollY + height == attrs.mInsideTotalHeight && isBottomSlide) {
                     removeCallbacks(mSlideRunnable)
                     mStartRun = false
-                    mData.mStartAutoSlide = false
-                    mData.mCondition = INSIDE
+                    attrs.mStartAutoSlide = false
+                    attrs.mCondition = INSIDE
                 }else {
                     if (isTopSlide) { //时间轴往下滑
                         if (outerY > mPreOuterY + 5) { //时间轴往下滑中，突然你也向下滑，此时禁止自动滑动
@@ -382,7 +370,7 @@ internal class TimeScrollView(
                             return
                         }
                         mVelocity = -min((AUTO_MOVE_THRESHOLD - top) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
-                        mData.mCondition = INSIDE_SLIDE_UP
+                        attrs.mCondition = INSIDE_SLIDE_UP
                     }else { //时间轴往上滑
                         if (outerY < mPreOuterY - 5) { //时间轴往上滑中，突然你也向上滑，此时禁止自动滑动
                             mPreOuterY = outerY
@@ -390,11 +378,11 @@ internal class TimeScrollView(
                             return
                         }
                         mVelocity = min((bottom - (height - AUTO_MOVE_THRESHOLD)) * MULTIPLE, MAX_AUTO_SLIDE_VELOCITY).toInt()
-                        mData.mCondition = INSIDE_SLIDE_DOWN
+                        attrs.mCondition = INSIDE_SLIDE_DOWN
                     }
                     if (!mStartRun) {
                         mStartRun = true
-                        mData.mStartAutoSlide = true
+                        attrs.mStartAutoSlide = true
                         mPreOuterY = outerY
                         mForbidSlideCenter = height / 2
                         post(mSlideRunnable)
@@ -409,10 +397,20 @@ internal class TimeScrollView(
         super.onScrollChanged(l, t, oldl, oldt)
         mLinkedViewPager2?.let {
             val currentItem = it.currentItem
-            if (currentItem == mITimeScrollView.getVpPosition()) {
-                mITimeScrollView.onScrollChanged(t)
-                mData.mOnScrollListener?.invoke(t, currentItem)
+            if (currentItem == iTimeScrollView.getVpPosition()) {
+                iTimeScrollView.onScrollChanged(t)
+                listeners.mOnScrollListener?.invoke(t, currentItem)
             }
         }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        scrollToCenterTime()
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mRunnableManger.destroy()
     }
 }

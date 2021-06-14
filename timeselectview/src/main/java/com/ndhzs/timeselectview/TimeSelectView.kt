@@ -1,24 +1,24 @@
 package com.ndhzs.timeselectview
 
 import android.content.Context
-import android.graphics.Rect
 import android.util.AttributeSet
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
-import androidx.recyclerview.widget.RecyclerView
+import androidx.core.view.NestedScrollingParent2
+import androidx.core.view.NestedScrollingParentHelper
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.ndhzs.timeselectview.adapter.TSViewVpAdapter
 import com.ndhzs.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeselectview.layout.BackCardView
+import com.ndhzs.timeselectview.layout.TimeScrollView
 import com.ndhzs.timeselectview.layout.view.RectImgView
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
+import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.utils.tscrollview.TScrollViewTouchEvent
-import kotlin.math.abs
 
 /**
  * @author 985892345
@@ -27,7 +27,18 @@ import kotlin.math.abs
  * @description 顶层View，依次包含[BackCardView]、
  * [com.ndhzs.timeselectview.layout.TimeScrollView]
  */
-class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayout(context, attrs) {
+class TimeSelectView : FrameLayout {
+
+    private val mAttrs: TSViewAttrs
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
+        mAttrs = TSViewAttrs.Builder().build()
+        mAttrs.initialize(context, attrs)
+    }
+
+    constructor(context: Context, attrs: TSViewAttrs) : super(context) {
+        mAttrs = attrs
+        attrs.setAttrs()
+    }
 
     /**
      * 初始化数据，传入 TSViewDayBean 的数组
@@ -41,45 +52,13 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      */
     fun initializeBean(dayBeans: List<TSViewDayBean>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false) {
         if (childCount == 0) {
-            mVpAdapter = TSViewVpAdapter(dayBeans, mData, mViewPager2, showNowTimeLinePosition)
+            mVpAdapter = TSViewVpAdapter(dayBeans, mAttrs, mListeners, mViewPager2, showNowTimeLinePosition)
             mViewPager2.adapter = mVpAdapter
             mViewPager2.orientation = ViewPager2.ORIENTATION_VERTICAL
             setCurrentItem(currentItem, smoothScroll)
-            addView(mViewPager2)
-            post {
-                val location = IntArray(2)
-                getLocationOnScreen(location)
-                mOnScreenRect.left = location[0]
-                mOnScreenRect.top = location[1]
-                mOnScreenRect.right = location[0] + width
-                mOnScreenRect.bottom = location[1] + height
-                var viewParent = parent
-                var distance = 0
-                while (viewParent is View) {
-                    if (viewParent is ViewPager2) {
-                        mOuterViewPager2 = viewParent
-                        // 因为镶嵌在 ViewPager2 中，会出现滑动时调用 getLocationOnScreen() 方法
-                        // 而出现左右值偏差
-                        mOuterViewPager2.getLocationOnScreen(location)
-                        mOnScreenRect.left = distance + location[0]
-                        mOnScreenRect.right = distance + width + location[0]
-                        break
-                    }
-                    if (viewParent.getParent() !is RecyclerView) {
-                        /*
-                        * RecyclerView 的下一层还有一个 ViewGroup。如果 TimeSelectView 镶嵌在 ViewPager2 中，
-                        * 且你设置了 ViewPager2#setOffscreenPageLimit，这时会使 TimeSelectView#getLocationOnScreen
-                        * 的左右值出现问题，具体问题就出现在 RecyclerView 下一层的 ViewGroup 中，因为此时它的 left 值会把
-                        * 前一页加载 width 值加上。所以，如果下一层的 ViewParent 是 RecyclerView，就不能加上此时 ViewParent
-                        * 的 left 值
-                        * */
-                        distance += viewParent.left
-                    }
-                    viewParent = viewParent.getParent()
-                }
-            }
+            attachViewToParent(mViewPager2, 0, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
         }else {
-            throw Exception("TimeSelectView has been initialized!")
+            throw IllegalAccessException("${TSViewAttrs.Library_name}: ${TSViewAttrs.Library_name} has been initialized!")
         }
     }
 
@@ -98,9 +77,9 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      */
     fun setTimeInterval(timeInterval: Int) {
         if (60 % timeInterval == 0) {
-            mData.mTimeInterval = timeInterval
+            mAttrs.mTimeInterval = timeInterval
         }else {
-            mData.mTimeInterval = 15
+            mAttrs.mTimeInterval = 15
         }
     }
 
@@ -108,8 +87,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 最终的任务区域是否显示时间差
      */
     fun setIsShowDiffTime(boolean: Boolean) {
-        if (mData.mIsShowDiffTime != boolean) {
-            mData.mIsShowDiffTime = boolean
+        if (mAttrs.mIsShowDiffTime != boolean) {
+            mAttrs.mIsShowDiffTime = boolean
             notifyAllItemRefresh()
         }
     }
@@ -118,8 +97,8 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 最终的任务区域是否显示上下边界时间
      */
     fun setIsShowTopBottomTime(boolean: Boolean) {
-        if (mData.mIsShowStartEndTime != boolean) {
-            mData.mIsShowStartEndTime = boolean
+        if (mAttrs.mIsShowStartEndTime != boolean) {
+            mAttrs.mIsShowStartEndTime = boolean
             notifyAllItemRefresh()
         }
     }
@@ -127,18 +106,18 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      *
-     * **注意：** 对[TSViewTaskBean]修改数据后并不会自己刷新，请手动调用[notifyItemRefresh]进行刷新
+     * **注意：** 对 [TSViewTaskBean] 修改数据后并不会自己刷新，请手动调用 [notifyItemRefresh] 进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
-        mData.mOnClickListener = onClick
+        mListeners.mOnClickListener = onClick
     }
 
     /**
      * 设置长按监听接口
      */
     fun setOnTSVLongClickListener(onStart: ((condition: TSViewLongClick) -> Unit), onEnd: ((condition: TSViewLongClick) -> Unit)) {
-        mData.mOnLongClickStartListener = onStart
-        mData.mOnLongClickEndListener = onEnd
+        mListeners.mOnLongClickStartListener = onStart
+        mListeners.mOnLongClickEndListener = onEnd
     }
 
     /**
@@ -147,15 +126,15 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * **注意：** 在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
      */
     fun setOnDataListener(l: OnDataChangeListener) {
-        mData.mDataChangeListener = l
+        mListeners.mOnDataChangeListener = l
     }
 
     /**
-     * 得到当前页面的TimeSelectView是否处于长按状态。
-     * 若你想得到软件中所有的TimeSelectView是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
+     * 得到当前页面的 TimeSelectView 是否处于长按状态。
+     * 若你想得到软件中所有的 TimeSelectView 是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
      */
     fun getIsLongClick(): Boolean {
-        return mData.mIsLongClick
+        return mAttrs.mIsLongClick
     }
 
     /**
@@ -169,7 +148,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
      *
      * **注意：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用[notifyItemDataChanged]
-     * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
+     * @param isBackToCurrentTime 是否回到 xml 中设置的 CurrentTime
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
         mVpAdapter.notifyItemRefresh(position, isBackToCurrentTime)
@@ -178,7 +157,7 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     /**
      * 该方法用于任务在外面被增加或删除时提醒控件重新读取数据
      *
-     * @param isBackToCurrentTime 是否回到xml中设置的CurrentTime
+     * @param isBackToCurrentTime 是否回到 xml 中设置的 CurrentTime
      */
     fun notifyItemDataChanged(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
         mVpAdapter.notifyItemDataChanged(position, isBackToCurrentTime)
@@ -192,21 +171,21 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 设置内部ViewPager2的OnPageChangeCallback
+     * 设置内部 ViewPager2 的 OnPageChangeCallback
      */
     fun registerOnPageChangeCallback(callback: OnPageChangeCallback) {
         mViewPager2.registerOnPageChangeCallback(callback)
     }
 
     /**
-     * 使时间轴瞬移，与ScrollTo相同
+     * 使时间轴瞬移，与 ScrollTo 类似
      */
     fun timeLineScrollTo(scrollY: Int) {
         mVpAdapter.timeLineScrollTo(scrollY)
     }
 
     /**
-     * 与ScrollBy相同
+     * 与 ScrollBy 类似
      * @param dy dy > 0，向上瞬移；dy < 0，向下瞬移
      */
     fun timeLineScrollBy(dy: Int) {
@@ -221,21 +200,21 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
     }
 
     /**
-     * 当前页面回到xml中设置的CurrentTime
+     * 当前页面回到 xml 中设置的 CurrentTime
      */
     fun backCurrentTime() {
         mVpAdapter.backCurrentTime()
     }
 
     /**
-     * 取消当前页面自动回到xml中设置的CurrentTime的延时。延时是在每次手指离开时间轴就会开启
+     * 取消当前页面自动回到 xml 中设置的 CurrentTime 的延时。延时是在每次手指离开时间轴就会开启
      */
     fun cancelAutoBackCurrent() {
         mVpAdapter.cancelAutoBackCurrent()
     }
 
     /**
-     * 设置内部ViewPager2显示的页面位置
+     * 设置内部 ViewPager2 显示的页面位置
      */
     fun setCurrentItem(item: Int, smoothScroll: Boolean = true) {
         mViewPager2.setCurrentItem(item, smoothScroll)
@@ -246,93 +225,44 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
      * @param resistance 不填入值时还原为初始化值
      */
     fun setDragResistance(resistance: Int = DEFAULT_DRAG_RESISTANCE) {
-        mData.mDragResistance = resistance
+        mAttrs.mDragResistance = resistance
     }
 
     /**
-     * 得到内部ViewPager2的当前item索引
+     * 得到内部 ViewPager2 的当前 item 索引
      */
     fun getCurrentItem(): Int {
         return mViewPager2.currentItem
     }
 
-    /**
-     * 返回 TimeSelectView 是否要处理触摸事件，只能用于 HorizontalScrollView 中，
-     * 解决滑动冲突问题，具体如何解决请看 README
-     */
-    fun isDealWithTouchEvent(ev: MotionEvent): Boolean {
-        val rawX = ev.rawX.toInt()
-        val rawY = ev.rawY.toInt()
-        when (ev.action) {
-            MotionEvent.ACTION_DOWN -> {
-                if (mOnScreenRect.contains(rawX, rawY)) {
-                    postDelayed({
-                        isLongClickTimeOut = true
-                    }, LONG_CLICK_TIMEOUT + 10)
-                    mInitialRawX = rawX
-                    mInitialRawY = rawY
-                    return false
-                }
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (!isLongClickTimeOut) {
-                    if (abs(rawX - mInitialRawX) <= MOVE_THRESHOLD
-                        || abs(rawY - mInitialRawY) <= MOVE_THRESHOLD) {
-                        return true
-                    }
-                }else {
-                    return getIsLongClick()
-                }
-            }
-        }
-        return false
-    }
-    private var mInitialRawX = 0
-    private var mInitialRawY = 0
-    private var isLongClickTimeOut = false
-    private lateinit var mOuterViewPager2: ViewPager2
-
-    /**
-     * 返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为横向 ViewPager2 中，
-     * 解决滑动冲突问题，具体如何解决请看 README
-     *
-     * @param myItemPosition 表示 TimeSelectView 在 ViewPager2 中的页面 position
-     */
-    fun isDealWithTouchEvent(ev: MotionEvent, myItemPosition: Int): Boolean {
-        if (mOuterViewPager2.currentItem == myItemPosition) {
-            return isDealWithTouchEvent(ev)
-        }
-        return false
-    }
-
     companion object {
         /**
-         * 识别是长按而能移动的阈值
+         * 识别是长按而能移动的阈值，默认为5
          */
         const val MOVE_THRESHOLD = TScrollViewTouchEvent.MOVE_THRESHOLD
 
         /**
-         * 在多个时间轴中左右拖动时的默认阻力值
+         * 在多个时间轴中左右拖动时的默认阻力值，默认为20
          */
         const val DEFAULT_DRAG_RESISTANCE = RectImgView.DEFAULT_DRAG_RESISTANCE
 
         /**
-         * 判定为长按所需要的时间，默认为300毫秒，暂不支持修改
+         * 判定为长按所需要的时间，默认为300毫秒
          */
-        const val LONG_CLICK_TIMEOUT = 300L
+        @JvmStatic
+        var LONG_CLICK_TIMEOUT = TScrollViewTouchEvent.LONG_CLICK_TIMEOUT
+            set(value) {
+                TScrollViewTouchEvent.LONG_CLICK_TIMEOUT = value
+                field = value
+            }
     }
 
-    private val mData = TSViewInternalData(context, attrs)
+    private val mListeners = TSViewListeners()
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
 
-    private val mOnScreenRect = Rect()
-
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        if (childCount == 0) {
-            Log.e("TimeSelectView", "You must invoke function of initializeBean!")
-        }
-        val minWidth = mData.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2
+        val minWidth = mAttrs.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2
         var newWidthMS = widthMeasureSpec
         var newHeightMS = heightMeasureSpec
         when (MeasureSpec.getMode(widthMeasureSpec)) {
@@ -340,11 +270,6 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
                 newWidthMS = MeasureSpec.makeMeasureSpec(minWidth, MeasureSpec.EXACTLY)
             }
             MeasureSpec.EXACTLY -> {
-                if (MeasureSpec.getSize(widthMeasureSpec) < minWidth) {
-                    Log.e("TimeSelectView", "Your layout_width of TimeSelectView is too small to include timeline!!!!!")
-                    Log.e("TimeSelectView", "Please enlarge the layout_width or shrink the timelineWidth of attrs.")
-                }
-                newWidthMS = widthMeasureSpec
             }
         }
 
@@ -355,7 +280,6 @@ class TimeSelectView(context: Context, attrs: AttributeSet? = null) : FrameLayou
             MeasureSpec.EXACTLY -> {
             }
         }
-
         super.onMeasure(newWidthMS, newHeightMS)
     }
 

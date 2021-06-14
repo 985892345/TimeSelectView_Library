@@ -2,7 +2,6 @@ package com.ndhzs.demo
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.MotionEvent
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.demo.adapter.VpAdapter
@@ -38,16 +37,6 @@ class ViewPager2Activity4 : AppCompatActivity() {
     private fun initViewpager2() {
         mViewPager2 = findViewById(R.id.viewPager2)
         mViewPager2.adapter = VpAdapter(this, mFragments)
-    }
-
-    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-        /*
-        * 解决 TimeSelectView 与 ViewPager2 的滑动冲突
-        * */
-        when (mViewPager2.currentItem) {
-            0 -> mFirstFg.touchEvent(ev, mViewPager2)
-            1 -> mSecondFg.touchEvent(ev, mViewPager2)
-        }
-        return super.dispatchTouchEvent(ev)
+//        mViewPager2.offscreenPageLimit = 1
     }
 }

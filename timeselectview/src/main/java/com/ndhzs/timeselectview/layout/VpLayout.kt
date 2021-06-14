@@ -6,11 +6,19 @@ import android.view.Gravity
 import android.widget.FrameLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeselectview.bean.TSViewDayBean
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
+import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewObjectsManger
 
 @SuppressLint("ViewConstructor")
-internal class VpLayout(context: Context, data: TSViewInternalData, viewPager2: ViewPager2, firstDate: String, isShowNowTimeLine: Boolean) : FrameLayout(context) {
+internal class VpLayout(
+        context: Context,
+        attrs: TSViewAttrs,
+        listeners: TSViewListeners,
+        viewPager2: ViewPager2,
+        firstDate: String,
+        isShowNowTimeLine: Boolean
+) : FrameLayout(context) {
 
     /**
      * 初始化
@@ -77,18 +85,20 @@ internal class VpLayout(context: Context, data: TSViewInternalData, viewPager2: 
         mIVpLayout.notifyRectViewDataChanged()
     }
 
-    private val mObjectManger = TSViewObjectsManger(context, data, firstDate)
+    private val mObjectManger = TSViewObjectsManger(context, attrs, listeners, firstDate)
     private val mIVpLayout = mObjectManger.My1IVpLayout()
 
     init {
         val lp1 = LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
         lp1.gravity = Gravity.CENTER
-        mIVpLayout.addBackCardView(lp1, this)
+        attachViewToParent(mIVpLayout.getBackCardView(), -1, lp1)
+
 
         val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         lp2.topMargin = BackCardView.TOP_BOTTOM_MARGIN
         lp2.bottomMargin = BackCardView.TOP_BOTTOM_MARGIN
-        mIVpLayout.addTimeScrollView(lp2, this, viewPager2)
+        attachViewToParent(mIVpLayout.getTimeScrollView(viewPager2), -1, lp2)
+
 
         if (isShowNowTimeLine) {
             mIVpLayout.showNowTimeLine()

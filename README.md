@@ -3,7 +3,6 @@
 * [参考格式](#参考格式)
 * [XML属性](#xml属性)
 * [Public方法](#public方法)
-* [滑动冲突的解决](#滑动冲突的解决)
 * [TSViewDayBean](#tsviewdaybean)
 * [TSViewTaskBean](#tsviewtaskbean)
 * [TSViewLongClick](#tsviewlongclick)
@@ -12,13 +11,6 @@
 
 ### Project build
 ```
-buildscript {
-    repositories {
-        ......
-        maven { url 'https://jitpack.io' }
-    }
-}
-
 allprojects {
     repositories {
         ......
@@ -36,10 +28,9 @@ dependencies {
 
 ### 用前需知
 
-1. 该控件内部整合了 ViewPager2，用于控制不同的天数。如果外置有 ViewPager2，解决滑动冲突请看 [滑动冲突的解决](#滑动冲突的解决)
+1. 该控件内部整合了 ViewPager2，用于控制不同的天数。如果外置有 ViewPager2
 2. 必须使用 initializeBean(...) 方法才会显示控件
 3. 如果在横屏中使用，请在 theme 中适配全面屏，务必将刘海区域进行填充，不然点击区域可能出现偏差
-4. 不建议嵌套在 ViewPager 中，建议使用 ViewPager2，暂未对 ViewPager 做滑动冲突处理
 
 ### 参考格式
 
@@ -77,7 +68,7 @@ dependencies {
 | app:amount              | 时间轴个数（建议不超过3个，超过后经测试暂无bug）|
 | app:cardRadius          | 时间轴背景的圆角度数|
 | app:centerTime          | 中心线时间（支持小数），输入-1以中心值为中心线，-2以目前时间值为中心线|
-| app:timeRangeArray      | 时间范围数组，格式为"2-18,12-4"，允许出现重复时间段。  **每个时间段的差值必须相等**|
+| app:timeRangeString     | 时间范围，格式为"2-18,12-4"，允许出现重复时间段。  **每个时间段的差值必须相等**|
 | app:timelineWidth       | 时间轴宽度|
 | app:timelineInterval    | 相邻时间轴间隔|
 | app:timeInterval        | 时间间隔数，必须为60的因数，若不是，将以15为间隔数|
@@ -107,10 +98,6 @@ dependencies {
 |            | 得到当前页面的时间轴的 ScrollY|
 |    Unit    | [initializeBean](#initializebean) ( dayBeans: ArrayList<[TSViewDayBean](#tsviewdaybean)>, showNowTimeLinePosition: Int = -1, currentItem: Int = 0, smoothScroll: Boolean = false )|
 |            | 初始化数据|
-|  boolean   | [isDealWithTouchEvent](#isdealwithtouchevent) ( ev: MotionEvent )|
-|            | 解决与 HorizontalScrollView 的滑动冲突|
-|  boolean   | [isDealWithTouchEvent](#isdealwithtouchevent) ( ev: MotionEvent, myItemPosition: Int )|
-|            | 解决与横向的 ViewPager2 的滑动冲突|
 |    Unit    | [notifyAllItemRefresh](#notifyallitemrefresh) ()|
 |            | 通知所有 item 刷新|
 |    Unit    | [notifyItemDataChanged](#notifyitemdatachanged) ( position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false )|
@@ -199,21 +186,6 @@ fun initializeBean(dayBeans: List<TSViewDayBean>,
 | showNowTimeLinePosition| Int = -1: 显示时间线的位置，从0开始，传入负数将不会显示 |
 | currentItem            | Int = 0: 内部 ViewPager2 的 item 位置，默认值为0 |
 | smoothScroll           | Boolean = false: 设置上方的 currentItem 后，在初始化时是否显示移动动画，默认值为 false |
-
-isDealWithTouchEvent
----
-````kotlin
-fun isDealWithTouchEvent(ev: MotionEvent): Boolean
-````
-返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为 HorizontalScrollView 中，
-解决滑动冲突问题，具体如何解决请看 [滑动冲突的解决](#滑动冲突的解决)  
-
-````kotlin
-fun isDealWithTouchEvent(ev: MotionEvent, myItemPosition: Int): Boolean
-````
-返回 TimeSelectView 是否要处理触摸事件，只能用于父 View 为横向 ViewPager2 中，
-解决滑动冲突问题，具体如何解决请看 [滑动冲突的解决](#滑动冲突的解决)  
-**注意：** 该方法用于横向 ViewPager2，不是用于 ViewPager 中
 
 notifyAllItemRefresh
 ---
@@ -370,40 +342,6 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 ````
 使时间轴较缓慢地滑动，并有回弹动画
 
-
-## 滑动冲突的解决
-
-如果在本控件处于 ViewPager2 或 HorizontalScrollView 以内，请使用下面设置。（其他滑动控件可能不能通用）
-
-* 处于 HorizontalScrollView 中  
-````kotlin
-//重写这个滑动控件的 onInterceptTouchEvent() 方法
-private lateinit var mTimeSelectView: TimeselectView
-override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-    if (mTimeSelectView.isDealWithTouchEvent(ev)) {
-        return false
-    }
-    return super.onInterceptTouchEvent(ev)
-}
-````
-
-* 处于 ViewPager2 中   
-因为 ViewPager2 是 final 无法被重写，所以修改 ViewPager2 的父 View#onInterceptTouchEvent() 方法
-或父视图为 Activity 时的 dispatchTouchEvent()。（暂不支持 ViewPager，建议使用 ViewPager2）  
-具体实现也可看 demo 中的样例代码
-````kotlin
-// 重写 ViewPager2 的父 View#onInterceptTouchEvent()方法
-// 或父视图为 Activity 时的 dispatchTouchEvent()，写法一样
-private lateinit var mTimeSelectView: TimeselectView
-private lateinit var mViewPager2: ViewPager2
-override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
-    // 1 表示 TimeSelectView 在 ViewPager2 中的页面 position 为 1
-    mViewPager2.isUserInputEnabled = !mTimeSelectView.isDealWithTouchEvent(ev, 1)
-    return super.dispatchTouchEvent(ev)
-}
-````
-
-
 # TSViewDayBean
 用于存储每天的所有任务
 
@@ -453,6 +391,12 @@ override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
 
 ---
 # 更新日志
+* 1.1.0 
+  更改事件分发的解决方案，删除 isDealWithTouchEvent 方法，目前可解决大部分 View 的滑动冲突
+  增加 TSViewAttrs 类，可用于用代码动态添加 TimeSelectView
+  支持修改判定为长按所需要的时间，使用方式：TimeSelectView#LONG_CLICK_TIMEOUT
+  解决内存泄露问题
+
 * 1.0.2  
   增加 [isDealWithTouchEvent](#isdealwithtouchevent) 方法，可快速处理滑动冲突  
   demo 增加 ViewPager2 情况下的滑动冲突解决样例代码

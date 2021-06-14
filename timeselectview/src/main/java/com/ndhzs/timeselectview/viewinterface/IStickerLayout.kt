@@ -1,6 +1,6 @@
 package com.ndhzs.timeselectview.viewinterface
 
-import android.view.ViewGroup
+import com.ndhzs.timeselectview.layout.view.RectImgView
 
 /**
  *@author 985892345
@@ -9,7 +9,7 @@ import android.view.ViewGroup
  *@description
  */
 internal interface IStickerLayout {
-    fun addRectImgView(lp: ViewGroup.LayoutParams, v: ViewGroup)
+    fun getRectImgView(): RectImgView
     fun getChildLayoutWidth(): Int
     fun getChildLayoutToStickerLayoutDistance(position: Int): Int
 }

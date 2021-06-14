@@ -5,7 +5,8 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.RunnableManger
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.utils.TSViewTimeUtil
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
 
@@ -15,34 +16,31 @@ import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
  * @description
  */
 @SuppressLint("ViewConstructor")
-internal class NowTimeLineView(context: Context, data: TSViewInternalData, time: ITSViewTimeUtil, position: Int) : View(context) {
+internal class NowTimeLineView(
+        context: Context,
+        private val attrs: TSViewAttrs,
+        private val time: ITSViewTimeUtil,
+        private val position: Int
+) : View(context) {
 
-    private val mData = data
     private val mLineWidth = 3F
     private val mBallRadius = 7
-    private val mTime = time
-    private val mPosition = position
-    private val mIntervalLeft = data.mIntervalLeft
-    private val mTimeLinePaint: Paint = Paint()
+    private val mIntervalLeft = attrs.mIntervalLeft
+    private val mTimeLinePaint = Paint()
+    private val mRunnableManger = RunnableManger(this)
 
     init {
         mTimeLinePaint.color = 0xFFE40000.toInt()
         mTimeLinePaint.isAntiAlias = true
         mTimeLinePaint.strokeWidth = mLineWidth
         mTimeLinePaint.style = Paint.Style.FILL
-        postDelayed(object : Runnable {
-            override fun run() {
-                layout(left, 0, right, 0)
-                postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
-            }
-        }, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
     }
 
     override fun layout(l: Int, t: Int, r: Int, b: Int) {
         /*
         * 为了防止因父布局调用addView()后重新layout()而回到原位置
         * */
-        var nowTimeHeight = mTime.getNowTimeHeight(mPosition)
+        var nowTimeHeight = time.getNowTimeHeight(position)
         if (nowTimeHeight == -1) {
             nowTimeHeight = -100
         }
@@ -57,8 +55,23 @@ internal class NowTimeLineView(context: Context, data: TSViewInternalData, time:
     override fun onDraw(canvas: Canvas) {
         val cx = mIntervalLeft - SeparatorLineView.VERTICAL_LINE_WIDTH/2F
         val cy = mBallRadius.toFloat()
-        val stopX = (width - mData.mIntervalRight).toFloat()
+        val stopX = (width - attrs.mIntervalRight).toFloat()
         canvas.drawCircle(cx, cy, cy, mTimeLinePaint)
         canvas.drawLine(cx, cy, stopX, cy, mTimeLinePaint)
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        mRunnableManger.postDelayed(TSViewTimeUtil.DELAY_NOW_TIME_REFRESH, object : Runnable {
+            override fun run() {
+                layout(left, 0, right, 0)
+                postDelayed(this, TSViewTimeUtil.DELAY_NOW_TIME_REFRESH)
+            }
+        })
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        mRunnableManger.destroy()
     }
 }

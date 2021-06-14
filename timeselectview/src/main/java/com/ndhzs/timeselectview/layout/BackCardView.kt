@@ -4,16 +4,19 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.LinearLayout
 import androidx.cardview.widget.CardView
-import com.ndhzs.timeselectview.utils.TSViewInternalData
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 
 /**
+ * [com.ndhzs.timeselectview.TimeSelectView]之下，里面是CardView
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/4
- * @description [com.ndhzs.timeselectview.TimeSelectView]之下，里面是CardView
  */
 @SuppressLint("ViewConstructor")
-internal class BackCardView(context: Context, private val data: TSViewInternalData) : LinearLayout(context) {
+internal class BackCardView(
+        context: Context,
+        attrs: TSViewAttrs,
+) : LinearLayout(context) {
 
     companion object {
         /**
@@ -30,19 +33,19 @@ internal class BackCardView(context: Context, private val data: TSViewInternalDa
     init {
         orientation = HORIZONTAL
         val cardView = CardView(context)
-        val lp = LayoutParams(data.mTimelineWidth, LayoutParams.MATCH_PARENT)
+        val lp = LayoutParams(attrs.mTimelineWidth, LayoutParams.MATCH_PARENT)
         lp.topMargin = TOP_BOTTOM_MARGIN
         lp.bottomMargin = TOP_BOTTOM_MARGIN
         lp.leftMargin = LEFT_RIGHT_MARGIN
         lp.rightMargin = LEFT_RIGHT_MARGIN
-        cardView.radius = data.mCardCornerRadius
-        addView(cardView, lp)
+        cardView.radius = attrs.mCardCornerRadius
+        attachViewToParent(cardView, -1, lp)
         val lp2 = LayoutParams(lp)
-        lp2.leftMargin += data.mTimelineInterval - LEFT_RIGHT_MARGIN * 2
-        repeat(data.mTSViewAmount - 1) {
+        lp2.leftMargin += attrs.mTimelineInterval - LEFT_RIGHT_MARGIN * 2
+        repeat(attrs.mTSViewAmount - 1) {
             val cardView2 = CardView(context)
-            cardView2.radius = data.mCardCornerRadius
-            addView(cardView2, lp2)
+            cardView2.radius = attrs.mCardCornerRadius
+            attachViewToParent(cardView2, -1, lp2)
         }
     }
 }

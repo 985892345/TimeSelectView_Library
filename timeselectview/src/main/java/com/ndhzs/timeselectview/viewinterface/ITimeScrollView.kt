@@ -1,6 +1,6 @@
 package com.ndhzs.timeselectview.viewinterface
 
-import android.view.ViewGroup
+import com.ndhzs.timeselectview.layout.ScrollLayout
 
 /**
  * @author 985892345
@@ -9,7 +9,7 @@ import android.view.ViewGroup
  * @description [com.ndhzs.timeselectview.layout.TimeScrollView]
  */
 internal interface ITimeScrollView {
-    fun addScrollLayout(lp: ViewGroup.LayoutParams, v: ViewGroup)
+    fun getScrollLayout(): ScrollLayout
     fun slideDrawRect(insideY: Int, position: Int)
     fun slideRectImgView(dx: Int, dy: Int)
     fun getOuterTop(): Int

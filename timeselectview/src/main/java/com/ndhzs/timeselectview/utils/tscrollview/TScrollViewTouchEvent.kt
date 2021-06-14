@@ -3,10 +3,14 @@ package com.ndhzs.timeselectview.utils.tscrollview
 import android.animation.ValueAnimator
 import android.content.Context
 import android.os.Vibrator
+import android.util.Log
 import android.view.MotionEvent
 import android.view.animation.OvershootInterpolator
 import android.widget.ScrollView
 import androidx.core.animation.addListener
+import androidx.core.view.NestedScrollingChild2
+import androidx.core.view.NestedScrollingChildHelper
+import androidx.core.widget.NestedScrollView
 import androidx.viewpager2.widget.ViewPager2
 import kotlin.math.abs
 import kotlin.math.pow
@@ -17,7 +21,10 @@ import kotlin.math.pow
  * @description 处理[com.ndhzs.timeselectview.layout.TimeScrollView]的触摸事件
  * @param delayMillis 判定为长按所需要的时间，默认为300毫秒
  */
-internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Long = 300) : ScrollView(context) {
+internal abstract class TScrollViewTouchEvent(
+        context: Context,
+        delayMillis: Long = 300
+) : ScrollView(context) {
 
     private var mAnimator: ValueAnimator? = null
     /**
@@ -90,21 +97,28 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
      * 只要不松手，之后的所有滑动都只会引起ViewPager2滑动，此问题暂无法解决
      * @param onVpInterceptionStart 当开始让ViewPager2拦截时的回调
      */
-    fun setLinkViewPager2(viewPager2: ViewPager2, onVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null) {
+    fun setLinkViewPager2(viewPager2: ViewPager2) {
         mLinkViewPager2 = viewPager2
-        mOnVpInterceptionStart = onVpInterceptionStart
     }
 
     companion object {
+
         /**
          * 识别是长按而能移动的阈值
          */
-        const val MOVE_THRESHOLD = 3
+        const val MOVE_THRESHOLD = 5
+
+        /**
+         * 判定为长按所需要的时间，默认为300毫秒
+         */
+        var LONG_CLICK_TIMEOUT = 300L
+    }
+
+    init {
+        LONG_CLICK_TIMEOUT = delayMillis
     }
 
     private var mLinkViewPager2: ViewPager2? = null
-    private var mOnVpInterceptionStart: ((linkedViewPager2: ViewPager2, rawY: Float) -> Unit)? = null
-
     private var mIsLongClick = false
     private var mIsMatchLongClick = true
     private var mOuterInitialX = 0
@@ -119,7 +133,6 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
         onLongClickStart(mOuterInitialX + scrollX, mOuterInitialY + scrollY, mInitialRawX, mInitialRawY)
     }
 
-    private val mDelayMillis = delayMillis
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
         val x = ev.x.toInt()
         val y = ev.y.toInt()
@@ -133,27 +146,33 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
                 mInitialRawY = rawY
                 mIsLongClick = false
                 mIsMatchLongClick = true
-                postDelayed(mLongClickRun, mDelayMillis)
-                dispatchTouchEventDown(x, y)
+                postDelayed(mLongClickRun, LONG_CLICK_TIMEOUT)
+                dispatchTouchEventDown(x, y, rawX, rawY)
             }
             MotionEvent.ACTION_MOVE -> {
-                if (!mIsLongClick) {
+                if (mIsMatchLongClick) {
                     if (isInLongClickArea(x, y, rawX, rawY)) {
-                        if (abs(rawX - mInitialRawX) > MOVE_THRESHOLD || abs(rawY - mInitialRawY) > MOVE_THRESHOLD) {
+                        if (abs(rawX - mInitialRawX) > MOVE_THRESHOLD
+                                || abs(rawY - mInitialRawY) > MOVE_THRESHOLD) {
                             removeCallbacks(mLongClickRun)
                             mIsMatchLongClick = false
                         }else {
+                            if (mLinkViewPager2 != null) {
+                                mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(true)
+                            }else {
+                                parent.requestDisallowInterceptTouchEvent(true)
+                            }
                             /*
-                            * 这里return true可以终止事件向下传递，意思就是MOVE事件会一直卡在这里
-                            * onInterceptTouchEvent和onTouchEvent将会收不到MOVE这个事件，将不会被调用
+                            * 这里 return true 可以终止事件向下传递，意思就是 MOVE 事件会一直卡在这里
+                            * onInterceptTouchEvent 和 onTouchEvent 将会收不到 MOVE 这个事件，将不会被调用
                             * 所以这里可以用来等待长按时间结束。
                             *
-                            * 如果你想在子View的onTouchEvent中判断是否是长按，就会出一个问题
-                            * 一旦子View的onTouchEvent的DOWN事件return true，而你在子View的MOVE事件中又不想拦截，
-                            * 想把事件给ScrollView处理，那么理所当然你想的是在子View的MOVE事件中return false，
-                            * 你会以为这样ScrollView就会收到子View传来的MOVE事件，那你就大错特错了，如果在
-                            * 子View的onTouchEvent的DOWN事件return true的前提下，又在子View的MOVE事件中return false，
-                            * 这样的结果是MOVE事件会直接越级传递给Activity，不会再经过ScrollView
+                            * 如果你想在子 View 的 onTouchEvent 中判断是否是长按，就会出一个问题
+                            * 一旦子 View 的 onTouchEvent 的 DOWN 事件 return true，而你在子 View 的 MOVE事件中又不想拦截，
+                            * 想把事件给 ScrollView 处理，那么理所当然你想的是在子 View的 MOVE 事件中 return false，
+                            * 你会以为这样 ScrollView 就会收到子 View 传来的 MOVE 事件，那你就大错特错了，如果在
+                            * 子 View 的 onTouchEvent 的 DOWN 事件 return true 的前提下，又在子 View 的 MOVE 事件中
+                            * return false，这样的结果是 MOVE 事件会直接越级传递给 Activity，不会再经过 ScrollView
                             * */
                             return true
                         }
@@ -161,11 +180,17 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
                         removeCallbacks(mLongClickRun)
                         mIsMatchLongClick = false
                     }
+                }else {
+                    if (mLinkViewPager2 != null) {
+                        mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(true)
+                    }else {
+                        parent.requestDisallowInterceptTouchEvent(true)
+                    }
                 }
             }
             MotionEvent.ACTION_UP -> {
                 mIsMatchLongClick = false
-                dispatchTouchEventUp(x, y)
+                dispatchTouchEventUp(x, y, rawX, rawY)
             }
         }
         return super.dispatchTouchEvent(ev)
@@ -186,24 +211,27 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
                     return true
                 }else {
                     /*
-                    * 如果不在DOWN事件手动调用onTouchEvent(), ScrollView就不会移动,
-                    * 因为子View的onTouchEvent()已经把DOWN事件拦截了, ScrollView中
-                    * 不执行onTouchEvent()的DOWN事件，将不会滑动
+                    * 如果不在 DOWN 事件手动调用 onTouchEvent(), ScrollView 就不会移动,
+                    * 因为子 View 的 onTouchEvent() 已经把 DOWN 事件拦截了, ScrollView 中
+                    * 不执行 onTouchEvent() 的 DOWN 事件，将不会滑动
                     * */
                     onTouchEvent(ev)
                 }
             }
             /*
-            * onInterceptTouchEvent中一旦有一步return true，后面的所有事件都不会在接受
-            * 比如，我在onInterceptTouchEvent的DOWN中return true，则onInterceptTouchEvent的MOVE、UP中就不会再接受到事件，
-            * 事件会从dispatchTouchEvent的MOVE直接传递到onTouchEvent，不会再经过onInterceptTouchEvent的MOVE
-            * 一句话总结就是onInterceptTouchEvent一旦return true，就不会再调用
+            * onInterceptTouchEvent 只有一次 return true 的机会，一旦使用后，后面的所有事件在
+            * onInterceptTouchEvent 都不会再被调用
             *
-            * 所以这里的MOVE只有在完全分辨出是否是长按后才会被调用，因为前面的dispatchTouchEvent在完全判断是长按前MOVE一直
-            * return true，将事件一直不向下传递
+            * 比如，我在 onInterceptTouchEvent 的 DOWN 中 return true，则 onInterceptTouchEvent
+            * 的 MOVE、UP 中就不会再接受到事件，事件会从 dispatchTouchEvent 的 MOVE 直接传递到
+            * onTouchEvent，不会再经过 onInterceptTouchEvent 的 MOVE 一句话总结就是 onInterceptTouchEvent
+            * 一旦 return true，就不会再被调用
+            *
+            * 所以这里的 MOVE 只有在完全分辨出是长按且没有在 onInterceptTouchEvent 的 Down 事件中被 return true
+            * 才会被调用
             * */
             MotionEvent.ACTION_MOVE -> {
-                mIsMove = true //只有在大于了移动阈值后才会调用
+                mIsMove = true // 只有在大于了移动阈值后才会调用
                 if (mIsLongClick) {
                     automaticSlide(x, y, x + scrollX, y + scrollY)
                 }else {
@@ -211,7 +239,7 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
                 }
             }
             /*
-            * 根据上面写的注释，可得到这里的UP事件只有在DOWN、MOVE都return false的情况下才会调用
+            * 根据上面写的注释，可得到这里的 UP 事件只有在 DOWN、MOVE 都 return false 的情况下才会调用
             * */
             MotionEvent.ACTION_UP -> {
                 if (abs(x - mOuterInitialX) < MOVE_THRESHOLD && abs(y - mOuterInitialY) < MOVE_THRESHOLD){
@@ -220,7 +248,7 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
                         return onClick(x + scrollX, y + scrollY)
                     }else {
                         if (!mIsMove) { //长按却没有移动
-                            return onLongClickStartButNotMove()
+                            onLongClickStartButNotMove()
                         }
                     }
                 }
@@ -230,22 +258,35 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
     }
 
     override fun onTouchEvent(ev: MotionEvent): Boolean {
-        mLinkViewPager2?.let {
+        val x = ev.x.toInt()
+        val y = ev.y.toInt()
+        when (ev.action) {
+            MotionEvent.ACTION_MOVE -> {
+                if (abs(x - mOuterInitialX) > abs(y - mOuterInitialY)) {
+                    if (mLinkViewPager2 != null) {
+                        mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(false)
+                    }else {
+                        parent.requestDisallowInterceptTouchEvent(false)
+                    }
+                    return false
+                }
+            }
+        }
+        if (mLinkViewPager2 != null) {
             when (ev.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    it.isUserInputEnabled = false
+                    mLinkViewPager2!!.isUserInputEnabled = false
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (scrollY == 0 && ev.y > mOuterInitialY) {
                         //一旦设置成true后，所有的事件都将会被ViewPager2拦截，再设置成false将无法被调用
                         //除非能在ViewPager2的父布局进行单独控制
-                        it.isUserInputEnabled = true
-                        mOnVpInterceptionStart?.invoke(it, ev.rawY)
+                        mLinkViewPager2!!.isUserInputEnabled = true
                         return false
                     }
                     if (scrollY + height == getChildAt(0).height && ev.y < mOuterInitialY) {
-                        it.isUserInputEnabled = true
-                        mOnVpInterceptionStart?.invoke(it, ev.rawY)
+
+                        mLinkViewPager2!!.isUserInputEnabled = true
                         return false
                     }
                 }
@@ -257,22 +298,22 @@ internal abstract class TScrollViewTouchEvent(context: Context, delayMillis: Lon
     /**
      * 事件分发中的DOWN事件处理
      */
-    protected open fun dispatchTouchEventDown(outerX: Int, outerY: Int) {}
+    protected open fun dispatchTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int) {}
 
     /**
      * 事件分发中的UP事件处理
      */
-    protected open fun dispatchTouchEventUp(outerX: Int, outerY: Int) {}
-
-    /**
-     * 在onInterceptTouchEvent的Down事件直接拦截并移除长按延时Runnable
-     */
-    protected open fun onInterceptTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean = false
+    protected open fun dispatchTouchEventUp(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int) {}
 
     /**
      * 如果是长按区域，则在dispatchTouchEvent的Move事件中会进行判断，要么到长按的时间成为长按，要么滑动的距离超过阈值不为长按，不然Move事件将一直不向下分发
      */
     protected open fun isInLongClickArea(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean = false
+
+    /**
+     * 在onInterceptTouchEvent的Down事件直接拦截并移除长按延时Runnable
+     */
+    protected open fun onInterceptTouchEventDown(outerX: Int, outerY: Int, onScreenX: Int, onScreenY: Int): Boolean = false
 
     /**
      * 调用此方法说明长按已经发生，但手指却没有移动或移动距离在阈值以内，如果你在[onLongClickStart]调用了一些东西，可以在这里取消他们

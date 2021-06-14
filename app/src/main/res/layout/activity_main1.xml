@@ -15,13 +15,13 @@
         android:layout_marginBottom="80dp"
         app:amount="1"
         app:cardRadius="8dp"
-        app:centerTime="-2"
+        app:centerTime="now_time"
         app:isShowDiffTime="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:timeRangeArray="6-6"
+        app:timeRangeString="6-6"
         app:timelineWidth="160dp"
         app:intervalHeight="100dp"/>
 
@@ -36,7 +36,8 @@
         app:layout_constraintEnd_toStartOf="@+id/button_1_1"
         app:layout_constraintHorizontal_chainStyle="packed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/time_view_1" />
+        app:layout_constraintTop_toBottomOf="@+id/time_view_1"
+        tools:ignore="HardcodedText" />
 
     <Button
         android:id="@+id/button_1_1"

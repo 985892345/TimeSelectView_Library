@@ -3,6 +3,8 @@ package com.ndhzs.timeselectview.viewinterface
 import android.view.ViewGroup
 import androidx.viewpager2.widget.ViewPager2
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
+import com.ndhzs.timeselectview.layout.BackCardView
+import com.ndhzs.timeselectview.layout.TimeScrollView
 
 /**
  * @author 985892345
@@ -11,8 +13,8 @@ import com.ndhzs.timeselectview.bean.TSViewTaskBean
  * @description [com.ndhzs.timeselectview.TimeSelectView]
  */
 internal interface IVpLayout {
-    fun addBackCardView(lp: ViewGroup.LayoutParams, v: ViewGroup)
-    fun addTimeScrollView(lp: ViewGroup.LayoutParams, v: ViewGroup, viewPager2: ViewPager2?)
+    fun getBackCardView(): BackCardView
+    fun getTimeScrollView(viewPager2: ViewPager2): TimeScrollView
     fun showNowTimeLine()
     fun onViewDetachedFromWindow()
     fun onViewRecycled()
