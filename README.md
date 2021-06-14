@@ -2,7 +2,7 @@
 一个用于滑动选取时间段的控件，可用于任务清单等软件中  
 
 * [参考格式](#参考格式)
-* [XML属性](#xml)
+* [XML属性](#xml属性)
 * [Public方法](#public方法)
 * [TSViewDayBean](#tsviewdaybean)
 * [TSViewTaskBean](#tsviewtaskbean)
