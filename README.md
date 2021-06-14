@@ -10,17 +10,17 @@
 ## 使用方法
 
 ### Project build
-```
+```groovy
 allprojects {
     repositories {
-        ......
+        //......
         maven { url 'https://jitpack.io' }
     }
 }
 ```
 
 ### Module build  
-```
+```groovy
 dependencies {
     implementation 'com.github.985892345:TimeSelectView_Library:1.0.2'
 }
@@ -35,25 +35,25 @@ dependencies {
 ### 参考格式
 
 * 单个时间轴
-```
+```xml
 <com.ndhzs.timeselectview.TimeSelectView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:amount="1"                
         app:centerTime="-1"           
         app:cardRadius="8dp"
-        app:timeRangeArray="2-2"      
+        app:timeRangeString="2-2"      
         app:timelineWidth="160dp"/>
 ```
 * 多个时间轴
-```
+```xml
 <com.ndhzs.timeselectview.TimeSelectView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:amount="2"                
         app:centerTime="9"
         app:cardRadius="8dp"
-        app:timeRangeArray="2-16,12-2"  
+        app:timeRangeString="2-16,12-2"  
         app:timelineWidth="160dp"
         app:timelineInterval="10dp"/>  
 ```
@@ -396,6 +396,7 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
   增加 TSViewAttrs 类，可用于用代码动态添加 TimeSelectView
   支持修改判定为长按所需要的时间，使用方式：TimeSelectView#LONG_CLICK_TIMEOUT
   解决内存泄露问题
+  2021-6-14发布
 
 * 1.0.2  
   增加 [isDealWithTouchEvent](#isdealwithtouchevent) 方法，可快速处理滑动冲突  
