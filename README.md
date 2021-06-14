@@ -391,16 +391,16 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 
 ---
 # 更新日志
-* 1.1.0 
-  更改事件分发的解决方案，删除 isDealWithTouchEvent 方法，目前可解决大部分 View 的滑动冲突
-  增加 TSViewAttrs 类，可用于用代码动态添加 TimeSelectView
-  支持修改判定为长按所需要的时间，使用方式：TimeSelectView#LONG_CLICK_TIMEOUT
-  解决内存泄露问题
-  2021-6-14发布
+* 1.1.0  
+  更改事件分发的解决方案，删除 isDealWithTouchEvent 方法，目前可解决大部分 View 的滑动冲突  
+  增加 TSViewAttrs 类，可用于用代码动态添加 TimeSelectView  
+  支持修改判定为长按所需要的时间，使用方式：TimeSelectView#LONG_CLICK_TIMEOUT  
+  解决内存泄露问题  
+  2021-6-14发布  
 
 * 1.0.2  
   增加 [isDealWithTouchEvent](#isdealwithtouchevent) 方法，可快速处理滑动冲突  
-  demo 增加 ViewPager2 情况下的滑动冲突解决样例代码
+  demo 增加 ViewPager2 情况下的滑动冲突解决样例代码  
 
 * 1.0.1  
   修改 [initializeBean](#initializebean) 的形参为 List  
