@@ -7,10 +7,10 @@ import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.viewinterface.IParentLayout
 
 /**
+ * [ScrollLayout]之下，[ChildLayout]之上
  * @author 985892345
  * @email 2767465918@qq.com
  * @date 2021/4/12
- * @description [ScrollLayout]之下，[ChildLayout]之上
  */
 @SuppressLint("ViewConstructor")
 internal class ParentLayout(

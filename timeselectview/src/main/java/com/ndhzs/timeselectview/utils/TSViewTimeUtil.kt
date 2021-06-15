@@ -157,7 +157,7 @@ internal class TSViewTimeUtil(
         if (minute == 60) {
             return getMinuteTopHeight(0)
         }
-        //ceil为取大于等于它的最小整数，如：12.5则取13
+        //ceil为取大于或等于它的最小整数，如：12.5 则取 13
         return ceil(mEveryMinuteHeight[minute]).toInt()
     }
 
@@ -171,13 +171,28 @@ internal class TSViewTimeUtil(
         }
     }
 
+    /**
+     * 该方法只能获取到分钟的第一根线的位置高度
+     */
     private fun getCorrectHeight(hour: Int, minute: Int, position: Int): Int {
         val h = if (hour < attrs.mTimelineRangeArray[position][0]) hour + 24 else hour
         return getMinuteTopHeight(minute) + (h - attrs.mTimelineRangeArray[position][0]) * mIntervalHeight + mExtraHeight
     }
 
     /**
-     * 根据时间间隔数来返回正确的高度
+     *                                       /--------0分钟的起始点，也为 ExtraHeight 高度，也为 bottom 值
+     *                                     /
+     *  两条线是时间的水平分界线   -------------------------------   ------------
+     *  且距离相差 1 像素         -------------------------------   *
+     *                                /                           *
+     *  这里的计算值也为 0 分钟 -------/                            *
+     *                                                            --->高度相差 IntervalHeight
+     *                                                            *
+     *  60分钟点，但它的上一格为59分钟---------\                     *
+     *                                       \                    *
+     *                           -------------------------------  ---------------
+     *                           -------------------------------
+     * @return 根据时间间隔数来返回正确的高度
      */
     override fun getCorrectTopHeight(insideTopY: Int, upperLimit: Int, position: Int, timeInterval: Int): Int {
         if (insideTopY == upperLimit) {
@@ -188,7 +203,7 @@ internal class TSViewTimeUtil(
         return max(if (m % timeInterval >= timeInterval - timeInterval / 3F) {
             val minute = (m / timeInterval + 1) * timeInterval
             val hour = if (minute == 60) h + 1 else h
-            getCorrectHeight(hour, minute, position) + 1
+            getCorrectHeight(hour, minute, position) + 1 //+1 是为了保证两个相邻矩形在边界能有相同的时间，下同
         }else {
             val minute = m - m % timeInterval //间隔数为15，分钟数为16时，则取15
             getCorrectHeight(h, minute, position) + 1
@@ -218,6 +233,9 @@ internal class TSViewTimeUtil(
         }
     }
 
+    /**
+     * 这里不用像 getCorrectTopHeight 中 +1，是因为 bottom 值只用取得分钟的第一根线的高度值即可
+     */
     override fun getCorrectBottomHeight(insideBottomY: Int, lowerLimit: Int, position: Int, timeInterval: Int): Int {
         if (insideBottomY == lowerLimit) {
             return insideBottomY

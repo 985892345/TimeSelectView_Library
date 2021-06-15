@@ -23,9 +23,11 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
+ * 只处理长按空白区域、长按顶部区域和长按底部区域的绘制处理，长按内部区域在 ScrollLayout 中进行处理
+ *
+ * [com.ndhzs.timeselectview.layout.ChildLayout]之下
  * @author 985892345
  * @date 2021/3/20
- * @description [com.ndhzs.timeselectview.layout.ChildLayout]之下
  */
 @SuppressLint("ViewConstructor")
 internal class RectView(
@@ -122,6 +124,11 @@ internal class RectView(
 
     /**
      * 在能够摆脱时间间隔数控制的最小移动距离
+     *
+     * 意思就是因为我设置了时间间隔数（比如时间间隔数为15），
+     * 那我能移动的最小距离就是15分钟，但我想进行微调（比如调到17分钟），就需要这个东西来进行判断
+     *
+     * 默认是能微调10分钟以内
      */
     val mUnconstrainedDistance: Int = time.getMinuteBottomHeight(10)
 
@@ -248,6 +255,9 @@ internal class RectView(
         iRectView.setIsCanLongClick(true)
     }
 
+    /**
+     * 因每分钟的像素间隔不均匀，所以需要计算出真实的高度值
+     */
     private fun getCorrectRect(insideUpY: Int, rect: Rect, rectChangeEndCallbacks: () -> Unit): Rect? {
         if (rect.isEmpty) {
             rectChangeEndCallbacks.invoke()

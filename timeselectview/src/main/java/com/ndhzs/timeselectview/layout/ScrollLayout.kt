@@ -14,7 +14,7 @@ import com.ndhzs.timeselectview.viewinterface.IScrollLayout
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
- * 处理整体移动，一旦触发整体移动，触摸事件都会在此被拦截
+ * 处理整体移动，一旦触发整体移动，触摸事件都会在此被拦截，RectView 将收不到事件
  *
  * [TimeScrollView]之下，
  * [ParentLayout]、[StickerLayout]之上
@@ -39,7 +39,6 @@ internal class ScrollLayout(
 
         val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         attachViewToParent(iScrollLayout.getStickerLayout(), -1, lp2)
-
     }
 
     private var mInitialX = 0
@@ -109,7 +108,8 @@ internal class ScrollLayout(
         val position = inWindowLeftAndInsideTop[2]
         iScrollLayout.slideEndRectImgView(inWindowFinalLeft, insideFinalTop) {
             val topBottom = if (y <= mInitialY + iScrollLayout.getUnconstrainedDistance()) { //说明矩形向上移动
-                time.getCorrectTopHeight(insideFinalTop,
+                time.getCorrectTopHeight(
+                        insideFinalTop,
                         insideFinalTop,
                         rectManger.getLowerLimit(insideFinalTop, position),
                         position,
@@ -117,7 +117,8 @@ internal class ScrollLayout(
             }else { //说明矩形向下移动
                 //因为是向下滑动的，所以之前计算的是正确的bottom值
                 val correctBottom = insideFinalTop + inWindowRect.height()
-                time.getCorrectBottomHeight(correctBottom,
+                time.getCorrectBottomHeight(
+                        correctBottom,
                         rectManger.getUpperLimit(correctBottom, position),
                         correctBottom,
                         position,
@@ -142,6 +143,14 @@ internal class ScrollLayout(
     }
 
     private var mIsBack = false
+
+    /**
+     * 得到不同情况的整体移动后应该放置的矩形的 RawLeft、InsideTop
+     *
+     * RawLeft：矩形的 left 值，该值为距离窗口的 left 值
+     *
+     * InsideTop：矩形的 top 值，该值为 ScrollView 内部坐标系下的值，可看 [getInsideTop]
+     */
     private fun getRawLeftAndInsideTop(inWindowRect: Rect, prePosition: Int, nowPosition: Int, insideUpY: Int): IntArray {
         if (prePosition == nowPosition) {
             val inWindowLeft = getInWindowLeft(prePosition)
@@ -200,9 +209,10 @@ internal class ScrollLayout(
     }
 
     /**
-     * 注意：只用于在一个RectView中上下滑动
+     * **WARNING：** 只用于在一个RectView中上下滑动
      *
-     * 返回整体移动放手后矩形该放置的位置的内部高度值
+     * 返回整体移动放手后矩形该放置的位置的 ScrollView 内部高度值
+     *
      * @param rawRect 传入左右值为相对于屏幕坐标，上下值为内部坐标的Rect
      * @return 内部高度值
      */

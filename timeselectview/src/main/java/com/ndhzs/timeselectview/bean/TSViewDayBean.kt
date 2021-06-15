@@ -13,7 +13,9 @@ import kotlin.collections.ArrayList
 class TSViewDayBean {
 
     var date: String
+        private set
     var tSViewTaskBeans: MutableList<TSViewTaskBean>
+        private set
 
     constructor(date: String) {
         this.date = date
@@ -21,7 +23,7 @@ class TSViewDayBean {
     }
 
     constructor(date: Date) {
-        val sdf = SimpleDateFormat("yyyy-M-d")
+        val sdf = SimpleDateFormat("yyyy-M-d", Locale.CHINA)
         this.date = sdf.format(date)
         tSViewTaskBeans = LinkedList()
     }

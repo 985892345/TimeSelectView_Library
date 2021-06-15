@@ -12,9 +12,9 @@ import com.ndhzs.timeselectview.viewinterface.IRectViewRectManger
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
+ * 用来专门管理与Rect相关的计算，比如求上下其他的 Rect 的边界
  * @author 985892345
  * @date 2021/3/22
- * @description 用来专门管理与Rect相关的计算，比如求上下其他的Rect的边界
  */
 internal class RectManger(
         private val attrs: TSViewAttrs,
@@ -140,7 +140,7 @@ internal class RectManger(
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean
      */
     override fun longClickConditionJudge(insideY: Int, position: Int) {
-        mMyIRectViews[position].deleteRect(insideY)
+        mMyIRectViews[position].longClickStart(insideY)
     }
 
     inner class MyIRectViewRectManger : IRectViewRectManger {
@@ -241,7 +241,7 @@ internal class RectManger(
             return null
         }
 
-        fun deleteRect(insideY: Int) {
+        fun longClickStart(insideY: Int) {
             val rectWithBean = getRectWithBeanMap()
             mClickUpperLimit = getUpperLimit(insideY, rectWithBean)
             mClickLowerLimit = getLowerLimit(insideY, rectWithBean)
@@ -258,18 +258,21 @@ internal class RectManger(
                         //此时你点击的区域是上矩形的下方额外区域，但这里刚好属于下矩形内部，此时按用户的想法是控制下矩形，所以，跳过此次循环
                         continue
                     }
-                    if (mClickLowerLimit + SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.top) { //此时你点击的区域在矩形上方，得到的下限值不对
+                    //此时你点击的区域在矩形上方，得到的下限值不对
+                    //不对的原因在于设置了矩形以外的短距离区域也能长按
+                    if (mClickLowerLimit + SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.top) {
                         mClickLowerLimit = getLowerLimit(rect.bottom, rectWithBean)
-                    }
-                    if (mClickUpperLimit - SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.bottom) { //此时你点击的区域在矩形下方，得到的上限值不对
+                    }else if (mClickUpperLimit - SeparatorLineView.HORIZONTAL_LINE_WIDTH == rect.bottom) { //此时你点击的区域在矩形下方，得到的上限值不对
                         mClickUpperLimit = getUpperLimit(rect.top, rectWithBean)
                     }
+
                     mDeletedRect.set(rect)
                     mDeletedTaskBean = it.value
+
                     //先在mAllRectWithBean中移去点击的矩形
                     if (attrs.mTSViewAmount == 1) {
                         mAllRectWithBean.remove(rect)
-                    }else {
+                    }else { // 在有多个时间轴的时候，不同时间轴的 Rect 的 top、bottom 值不同
                         for (i in mAllRectWithBean) {
                             if (i.value == it.value) {
                                 mAllRectWithBean.remove(i.key)
@@ -277,6 +280,8 @@ internal class RectManger(
                             }
                         }
                     }
+
+                    // 以下为判断长按的情况并回调
                     if (insideY - (rect.top - TOP_BOTTOM_WIDTH/3) < TOP_BOTTOM_WIDTH) {
                         attrs.mCondition = TSViewLongClick.TOP
                         clickTopBottomCallbacks

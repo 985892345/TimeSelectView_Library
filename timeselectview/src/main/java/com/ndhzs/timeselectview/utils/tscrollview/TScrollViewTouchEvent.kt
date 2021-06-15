@@ -38,7 +38,10 @@ internal abstract class TScrollViewTouchEvent(
                 val nowY = animator.animatedValue as Int
                 this.scrollY = nowY
             }
-            it.addListener(onEnd = { mAnimator = null })
+            it.addListener(
+                    onEnd = { mAnimator = null },
+                    onCancel = { mAnimator = null }
+            )
             it.duration = (abs(this.scrollY - scrollY).toDouble().pow(0.3) * 66 + 80).toLong()
             it.interpolator = OvershootInterpolator(1F)
             it.start()
@@ -59,7 +62,6 @@ internal abstract class TScrollViewTouchEvent(
         mAnimator?.let {
             if (it.isRunning) {
                 it.cancel()
-                mAnimator = null
             }
         }
     }
@@ -293,6 +295,11 @@ internal abstract class TScrollViewTouchEvent(
             }
         }
         return super.onTouchEvent(ev)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        cancelSlowlyScroll()
     }
 
     /**

@@ -21,7 +21,7 @@ internal interface IRectManger {
     /**
      * 判断长按的情况，并求出此时上下边界、记录长按的起始点、在数组中删除Rect和Bean
      *
-     * 调用该方法后可以使用RectManger的getDeletedRect()、getDeletedBean()、getUpperLimit()、getLowerLimit()方法
+     * 调用该方法后可以使用 RectManger 的 getDeletedBean()、getUpperLimit()、getLowerLimit() 方法
      */
     fun longClickConditionJudge(insideY: Int, position: Int)
 }
