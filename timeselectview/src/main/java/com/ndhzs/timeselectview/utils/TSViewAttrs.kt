@@ -39,6 +39,9 @@ class TSViewAttrs private constructor() {
         private set
     internal var mIntervalRight = 10 //右侧水平线空出来的宽度
         private set
+
+    internal var mIsSuitableIntervalHeight = false // 是否设置成合适的一个小时的间隔高度
+        private set
     internal var mIntervalHeight = 0 //一个小时的间隔高度
         private set
     internal var mDefaultBorderColor = 0xFFFF0000.toInt() //默认矩形边框颜色
@@ -111,7 +114,7 @@ class TSViewAttrs private constructor() {
                 .getDimension(R.styleable.TimeSelectView_timelineInterval, mTimelineInterval.toFloat()).toInt()
         mTimeInterval = ty.getInt(R.styleable.TimeSelectView_timeInterval, mTimeInterval)
         mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, 0F).toInt()
-        mIntervalHeight = ty.getDimension(R.styleable.TimeSelectView_intervalHeight, 0F).toInt()
+        mIntervalHeight = ty.getLayoutDimension(R.styleable.TimeSelectView_intervalHeight, 0)
         mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, mDefaultBorderColor)
         mDefaultInsideColor = ty.getColor(R.styleable.TimeSelectView_defaultInsideColor, mDefaultInsideColor)
         mDefaultTaskName = ty.getString(R.styleable.TimeSelectView_defaultTaskName).toString()
@@ -138,7 +141,7 @@ class TSViewAttrs private constructor() {
             mIntervalLeft = (mTimelineWidth / 4.6F).toInt()
         }
         if (mIntervalHeight == 0) {
-            mIntervalHeight = mTimelineWidth + 20
+            mIsSuitableIntervalHeight = true
         }
         if (mDefaultTaskName == "null") {
             mDefaultTaskName = "任务名称"
@@ -192,6 +195,14 @@ class TSViewAttrs private constructor() {
                 throwError("timeRangeArray")
             }
         }
+    }
+
+    internal fun setSuitableIntervalHeight(height: Int) {
+        mIntervalHeight = height
+        mExtraHeight = mIntervalHeight / 2
+        mInsideTotalHeight = mTimelineRange * mIntervalHeight + 2 * mExtraHeight
+        mRectViewTop = mExtraHeight + SeparatorLineView.HORIZONTAL_LINE_WIDTH
+        mRectViewBottom = mInsideTotalHeight - mExtraHeight
     }
 
     private fun throwError(attrName: String) {
@@ -258,7 +269,7 @@ class TSViewAttrs private constructor() {
         }
 
         /**
-         * 设置相邻时间轴间隔宽度
+         * 设置相邻时间轴间隔宽度，输入 0 或者不调用该函数可以设置成根据控件外高度自动调整 intervalHeight
          */
         fun setTimelineInterval(interval: Int): Builder {
             mAttrs.mTimelineInterval = interval

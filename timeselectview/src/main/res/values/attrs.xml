@@ -34,7 +34,10 @@
         <!--时间轴左侧的时间文字间隔宽度-->
         <attr name="intervalLeft" format="dimension"/>
         <!--时间轴每小时间的间隔高度-->
-        <attr name="intervalHeight" format="dimension"/>
+        <attr name="intervalHeight" format="dimension">
+            <!--根据控件外高度自动调整为合适的高度-->
+            <enum name="suitable" value="0"/>
+        </attr>
 
         <!--默认任务边框颜色-->
         <attr name="defaultBorderColor" format="reference|color"/>

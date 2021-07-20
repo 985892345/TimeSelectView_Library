@@ -3,6 +3,7 @@ package com.ndhzs.demo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.Toast
 import com.ndhzs.timeselectview.TimeSelectView
 import com.ndhzs.timeselectview.bean.TSViewDayBean
 import java.util.*
@@ -21,6 +22,10 @@ class MainActivity1 : AppCompatActivity() {
         }
         val timeView = findViewById<TimeSelectView>(R.id.time_view_1)
         timeView.initializeBean(beans, 0)
+
+        timeView.setOnTSVClickListener {
+            Toast.makeText(this, it.name, Toast.LENGTH_SHORT).show()
+        }
 
         findViewById<Button>(R.id.button_back_1).setOnClickListener {
             timeView.notifyItemRefresh(isBackToCurrentTime = true)

@@ -74,7 +74,7 @@ dependencies {
 | app:timelineInterval    | 相邻时间轴间隔|
 | app:timeInterval        | 时间间隔数，必须为60的因数，若不是，将以15为间隔数|
 | app:intervalLeft        | 时间轴左侧的时间文字间隔宽度|
-| app:intervalHeight      | 时间轴每小时间的间隔高度|
+| app:intervalHeight      | 时间轴每小时间的间隔高度，不设置或设置成0和"suitable"时会根据控件外高度自动调整|
 | app:defaultTaskName     | 默认任务名称|
 | app:defaultBorderColor  | 默认任务边框颜色|
 | app:defaultInsideColor  | 默认任务内部颜色|

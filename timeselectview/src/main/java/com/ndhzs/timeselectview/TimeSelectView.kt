@@ -2,23 +2,19 @@ package com.ndhzs.timeselectview
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
-import android.view.View
 import android.widget.FrameLayout
-import androidx.core.view.NestedScrollingParent2
-import androidx.core.view.NestedScrollingParentHelper
 import androidx.viewpager2.widget.ViewPager2
 import androidx.viewpager2.widget.ViewPager2.OnPageChangeCallback
 import com.ndhzs.timeselectview.adapter.TSViewVpAdapter
 import com.ndhzs.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeselectview.layout.BackCardView
-import com.ndhzs.timeselectview.layout.TimeScrollView
 import com.ndhzs.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewLongClick
 import com.ndhzs.timeselectview.utils.tscrollview.TScrollViewTouchEvent
+import kotlin.math.abs
 
 /**
  * @author 985892345
@@ -261,13 +257,18 @@ class TimeSelectView : FrameLayout {
     private val mViewPager2 = ViewPager2(context)
     private lateinit var mVpAdapter: TSViewVpAdapter
 
+    private var mWidth = 0
+    private var mHeight = 0
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        var width = MeasureSpec.getSize(widthMeasureSpec)
+        var height = MeasureSpec.getSize(heightMeasureSpec)
         val minWidth = mAttrs.mAllTimelineWidth + BackCardView.LEFT_RIGHT_MARGIN * 2
         var newWidthMS = widthMeasureSpec
         var newHeightMS = heightMeasureSpec
         when (MeasureSpec.getMode(widthMeasureSpec)) {
             MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
                 newWidthMS = MeasureSpec.makeMeasureSpec(minWidth, MeasureSpec.EXACTLY)
+                width = minWidth
             }
             MeasureSpec.EXACTLY -> {
             }
@@ -276,11 +277,36 @@ class TimeSelectView : FrameLayout {
         when (MeasureSpec.getMode(heightMeasureSpec)) {
             MeasureSpec.AT_MOST, MeasureSpec.UNSPECIFIED -> {
                 newHeightMS = MeasureSpec.makeMeasureSpec(1000, MeasureSpec.EXACTLY)
+                height = 1000
             }
             MeasureSpec.EXACTLY -> {
             }
         }
         super.onMeasure(newWidthMS, newHeightMS)
+        if (mWidth != width || mHeight != height) {
+            mWidth = width
+            mHeight = height
+            measureOver()
+        }
+    }
+
+    private fun measureOver() {
+        calculateIntervalHeight()
+    }
+
+    private fun calculateIntervalHeight() {
+        if (mAttrs.mIntervalHeight == 0) {
+            var intervalHeight = mAttrs.mTimelineWidth / 1.6F
+            val m = mHeight / intervalHeight
+            val n = m - m.toInt()
+            if (n !in 0.4F..0.5F) {
+                val p = if (abs(n - 0.4) < abs(n - 0.5)) {
+                    m.toInt() + 0.4F
+                }else m.toInt() + 0.5F
+                intervalHeight = mHeight / p
+            }
+            mAttrs.setSuitableIntervalHeight(intervalHeight.toInt())
+        }
     }
 
     interface OnDataChangeListener {

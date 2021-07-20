@@ -23,7 +23,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:timeRangeString="6-6"
         app:timelineWidth="160dp"
-        app:intervalHeight="100dp"/>
+        app:intervalHeight="suitable"/>
 
     <Button
         android:id="@+id/button_back_1"
