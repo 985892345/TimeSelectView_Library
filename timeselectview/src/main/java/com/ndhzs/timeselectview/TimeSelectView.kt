@@ -31,16 +31,14 @@ class TimeSelectView : FrameLayout {
         mAttrs.initialize(context, attrs)
     }
 
-    constructor(context: Context, attrs: TSViewAttrs) : super(context) {
-        mAttrs = attrs
-        attrs.setAttrs()
+    constructor(context: Context, tsViewAttrs: TSViewAttrs) : super(context) {
+        mAttrs = tsViewAttrs
+        mAttrs.setAttrs()
     }
 
     /**
      * 初始化数据，传入 TSViewDayBean 的数组
      *
-     * **注意：** 暂不支持嵌套在竖向的 ViewPager2 中，但支持横向 ViewPager2，且解决滑动冲突请使用 [isDealWithTouchEvent]；
-     * 也不支持镶嵌在 RecyclerView 中；嵌套在 ViewPager 中可能也会出现问题
      * @param dayBeans 以 beans 的一维长度为 ViewPager2 的 item 数
      * @param showNowTimeLinePosition 显示时间线的位置，从0开始，传入负数将不会显示
      * @param currentItem 内部 ViewPager2 的 item 位置，默认值为0
@@ -59,17 +57,17 @@ class TimeSelectView : FrameLayout {
     }
 
     /**
-     * 当前页面时间轴的滑动回调，不是ViewPager2的滑动回调
+     * 当前页面时间轴的滑动回调，不是 ViewPager2 的滑动回调
      *
-     * 若你想监听ViewPager2的滑动，请使用[registerOnPageChangeCallback]
+     * **NOTE：** 若你想监听 ViewPager2 的滑动，请使用 [registerOnPageChangeCallback]
      */
     fun setOnScrollListener(l: (scrollY: Int, itemPosition: Int) -> Unit) {
         mVpAdapter.setOnScrollListener(l)
     }
 
     /**
-     * 设置时间间隔数，必须为60的因数，若不是，将以15为间隔数
-     * @param timeInterval 必须为60的因数，若不是，将以15为间隔数
+     * 设置时间间隔数，必须为 60 的因数，若不是，将以 15 为间隔数
+     * @param timeInterval 必须为 60 的因数，若不是，将以 15 为间隔数
      */
     fun setTimeInterval(timeInterval: Int) {
         if (60 % timeInterval == 0) {
@@ -102,7 +100,7 @@ class TimeSelectView : FrameLayout {
     /**
      * 点击当前任务的监听，会返回当前点击任务的数据类
      *
-     * **注意：** 对 [TSViewTaskBean] 修改数据后并不会自己刷新，请手动调用 [notifyItemRefresh] 进行刷新
+     * **WARNING：** 对 [TSViewTaskBean] 修改数据后并不会自己刷新，请手动调用 [notifyItemRefresh] 进行刷新
      */
     fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit) {
         mListeners.mOnClickListener = onClick
@@ -119,7 +117,7 @@ class TimeSelectView : FrameLayout {
     /**
      * 对数据改变进行监听
      *
-     * **注意：** 在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
+     * **WARNING：** 在任务被移至删除区域被删除或长按添加新任务时传进来的数组同样也会改变，所以在数据改变后的回调中不需删掉或增加数据
      */
     fun setOnDataListener(l: OnDataChangeListener) {
         mListeners.mOnDataChangeListener = l
@@ -127,7 +125,7 @@ class TimeSelectView : FrameLayout {
 
     /**
      * 得到当前页面的 TimeSelectView 是否处于长按状态。
-     * 若你想得到软件中所有的 TimeSelectView 是否存在处于长按状态的，可以使用[TSViewLongClick.sHasLongClick]
+     * 若你想得到软件中所有的 TimeSelectView 是否存在处于长按状态的，可以使用 [TSViewLongClick.sHasLongClick]
      */
     fun getIsLongClick(): Boolean {
         return mAttrs.mIsLongClick
@@ -143,7 +141,7 @@ class TimeSelectView : FrameLayout {
     /**
      * 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
      *
-     * **注意：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用[notifyItemDataChanged]
+     * **WARNING：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用 [notifyItemDataChanged]
      * @param isBackToCurrentTime 是否回到 xml 中设置的 CurrentTime
      */
     fun notifyItemRefresh(position: Int = mViewPager2.currentItem, isBackToCurrentTime: Boolean = false) {
@@ -160,7 +158,7 @@ class TimeSelectView : FrameLayout {
     }
 
     /**
-     * 通知ViewPager2的所有item刷新
+     * 通知 ViewPager2 的所有 item 刷新
      */
     fun notifyAllItemRefresh() {
         mVpAdapter.notifyAllItemRefresh()
@@ -233,17 +231,17 @@ class TimeSelectView : FrameLayout {
 
     companion object {
         /**
-         * 识别是长按而能移动的阈值，默认为5
+         * 识别是长按而能移动的阈值，默认为 5
          */
         const val MOVE_THRESHOLD = TScrollViewTouchEvent.MOVE_THRESHOLD
 
         /**
-         * 在多个时间轴中左右拖动时的默认阻力值，默认为20
+         * 在多个时间轴中左右拖动时的默认阻力值，默认为 20
          */
         const val DEFAULT_DRAG_RESISTANCE = RectImgView.DEFAULT_DRAG_RESISTANCE
 
         /**
-         * 判定为长按所需要的时间，默认为300毫秒
+         * 判定为长按所需要的时间，默认为 300 毫秒
          */
         @JvmStatic
         var LONG_CLICK_TIMEOUT = TScrollViewTouchEvent.LONG_CLICK_TIMEOUT

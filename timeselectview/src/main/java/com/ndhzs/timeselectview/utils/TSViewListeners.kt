@@ -9,7 +9,7 @@ import com.ndhzs.timeselectview.bean.TSViewTaskBean
  * @email 2767465918@qq.com
  * @data 2021/6/10
  */
-class TSViewListeners {
+internal class TSViewListeners {
     var mOnDataChangeListener: TimeSelectView.OnDataChangeListener? = null //数据改变监听
     var mOnClickListener: ((taskBean: TSViewTaskBean) -> Unit)? = null
     var mOnLongClickStartListener: ((condition: TSViewLongClick) -> Unit)? = null

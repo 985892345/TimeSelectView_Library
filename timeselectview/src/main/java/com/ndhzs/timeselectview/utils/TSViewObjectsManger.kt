@@ -26,7 +26,7 @@ internal class TSViewObjectsManger(
         private val firstDay: String
 ) {
 
-    var mVpPosition = -1
+    var mVpPosition = -1 // 每个 VpLayout 在 ViewPager2 中的位置
 
     private val mTime = TSViewTimeUtil(attrs)
     private val mRectDraw = RectDraw(attrs)

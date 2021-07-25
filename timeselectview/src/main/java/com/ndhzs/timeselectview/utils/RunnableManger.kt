@@ -9,7 +9,7 @@ import kotlin.collections.HashSet
  * @email 2767465918@qq.com
  * @data 2021/5/29
  */
-class RunnableManger(private val view: View) {
+internal class RunnableManger(private val view: View) {
 
     private val hashSet = HashSet<Runnable>()
 

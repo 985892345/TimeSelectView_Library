@@ -28,6 +28,8 @@ class TSViewDayBean {
         tSViewTaskBeans = LinkedList()
     }
 
+    constructor(calendar: Calendar) : this(calendar.time)
+
     constructor(day: String, taskBeans: MutableList<TSViewTaskBean>) {
         this.date = day
         this.tSViewTaskBeans = taskBeans

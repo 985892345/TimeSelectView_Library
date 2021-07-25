@@ -31,7 +31,8 @@
         <!--时间默认间隔数，必须为60的因数，若不是，将以15为间隔数-->
         <attr name="timeInterval" format="integer"/>
 
-        <!--时间轴左侧的时间文字间隔宽度-->
+        <!--时间轴左侧的时间文字间隔宽度。
+        不建议修改该值，该宽度随 timelineWidth 而改变 -->
         <attr name="intervalLeft" format="dimension"/>
         <!--时间轴每小时间的间隔高度-->
         <attr name="intervalHeight" format="dimension">
@@ -46,7 +47,8 @@
         <!--默认任务名称-->
         <attr name="defaultTaskName" format="string"/>
 
-        <!--时间轴左侧时间文字大小-->
+        <!--时间轴左侧时间文字的大小。
+        不建议修改该值，该值随 intervalLeft 而改变 -->
         <attr name="timeTextSize" format="dimension"/>
         <!--任务名称文字大小(不设置的情况下随时间轴左侧时间文字大小改变)-->
         <attr name="taskTextSize" format="dimension"/>

@@ -48,7 +48,7 @@ internal class SeparatorLineView(
         mLeftTimePaint.color = 0xFF505050.toInt()
         mLeftTimePaint.isAntiAlias = true
         mLeftTimePaint.textAlign = Paint.Align.CENTER
-        mLeftTimePaint.textSize = this.attrs.mTimeTextSize
+        mLeftTimePaint.textSize = attrs.mTimeTextSize
         val fontMetrics = mLeftTimePaint.fontMetrics
         mLeftTimeCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
     }

@@ -1,10 +1,12 @@
 package com.ndhzs.timeselectview.utils
 
 import android.content.Context
+import android.graphics.Paint
 import android.util.AttributeSet
 import com.ndhzs.timeselectview.R
 import com.ndhzs.timeselectview.layout.view.RectImgView
 import com.ndhzs.timeselectview.layout.view.SeparatorLineView
+import kotlin.math.abs
 
 /**
  * .....
@@ -15,7 +17,7 @@ import com.ndhzs.timeselectview.layout.view.SeparatorLineView
 class TSViewAttrs private constructor() {
 
     companion object {
-        internal val Library_name = "TimeSelectView"
+        internal const val Library_name = "TimeSelectView"
     }
 
     internal var mTSViewAmount = 1 //时间轴个数
@@ -30,7 +32,7 @@ class TSViewAttrs private constructor() {
         intArrayOf(it * timelineRange, (it + 1) * timelineRange)
     }
         private set
-    internal var mTimelineWidth = 320 //时间轴宽度
+    internal var mTimelineWidth = 440 //时间轴宽度
         private set
     internal var mTimelineInterval = 30 //相邻时间轴间隔
         private set
@@ -108,18 +110,22 @@ class TSViewAttrs private constructor() {
         mCardCornerRadius = ty.getDimension(R.styleable.TimeSelectView_cardRadius, mCardCornerRadius)
         mCenterTime = ty.getFloat(R.styleable.TimeSelectView_centerTime, mCenterTime)
         mTimeRangeString = ty.getString(R.styleable.TimeSelectView_timeRangeString)
-        mTimelineWidth = ty
-                .getDimension(R.styleable.TimeSelectView_timelineWidth, mTimelineWidth.toFloat()).toInt()
-        mTimelineInterval = ty
-                .getDimension(R.styleable.TimeSelectView_timelineInterval, mTimelineInterval.toFloat()).toInt()
+        mTimelineWidth = ty.getDimension(R.styleable.TimeSelectView_timelineWidth,
+            mTimelineWidth.toFloat()
+        ).toInt()
+        mTimelineInterval = ty.getDimension(R.styleable.TimeSelectView_timelineInterval,
+            mTimelineInterval.toFloat()
+        ).toInt()
         mTimeInterval = ty.getInt(R.styleable.TimeSelectView_timeInterval, mTimeInterval)
-        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft, 0F).toInt()
-        mIntervalHeight = ty.getLayoutDimension(R.styleable.TimeSelectView_intervalHeight, 0)
+        mIntervalLeft = ty.getDimension(R.styleable.TimeSelectView_intervalLeft,
+            mIntervalLeft.toFloat()
+        ).toInt()
+        mIntervalHeight = ty.getLayoutDimension(R.styleable.TimeSelectView_intervalHeight, mIntervalHeight)
         mDefaultBorderColor = ty.getColor(R.styleable.TimeSelectView_defaultBorderColor, mDefaultBorderColor)
         mDefaultInsideColor = ty.getColor(R.styleable.TimeSelectView_defaultInsideColor, mDefaultInsideColor)
         mDefaultTaskName = ty.getString(R.styleable.TimeSelectView_defaultTaskName).toString()
-        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, 0F)
-        mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, 0F)
+        mTimeTextSize = ty.getDimension(R.styleable.TimeSelectView_timeTextSize, mTimeTextSize)
+        mTaskTextSize = ty.getDimension(R.styleable.TimeSelectView_taskTextSize, mTaskTextSize)
         mIsShowDiffTime = ty.getBoolean(R.styleable.TimeSelectView_isShowDiffTime, true)
         mIsShowStartEndTime = ty.getBoolean(R.styleable.TimeSelectView_isShowTopBottomTime, true)
         ty.recycle()
@@ -138,16 +144,51 @@ class TSViewAttrs private constructor() {
             throwError("timeInterval")
         }
         if (mIntervalLeft == 0) {
-            mIntervalLeft = (mTimelineWidth / 4.6F).toInt()
+            if (mTimeTextSize == 0F) {
+                val intervalLeft = 0.23F * mTimelineWidth
+                mTimeTextSize = intervalLeft / 4
+                val paint = Paint()
+                var i = 0
+                // 对于不同的字体由不同的宽度值，下面的循环是为了找到合适的左侧宽度与文字大小
+                // 用循环原因在于我没有找到一个函数能通过宽度值反推字体大小
+                while (abs(mIntervalLeft - intervalLeft) > 5 || mIntervalLeft == 0) {
+                    i++
+                    mTimeTextSize += 1
+                    paint.textSize = mTimeTextSize
+                    mIntervalLeft = paint.measureText("166:661").toInt()
+                    if (i > 50) {
+                        mTimeTextSize = intervalLeft * 0.35F
+                        break
+                    }
+                }
+            }else {
+                val paint = Paint()
+                paint.textSize = mTimeTextSize
+                mIntervalLeft = paint.measureText("166:661").toInt()
+            }
+        }else {
+            if (mTimeTextSize == 0F) {
+                val intervalLeft = mIntervalLeft.toFloat()
+                mTimeTextSize = intervalLeft / 4
+                val paint = Paint()
+                var i = 0
+                while (abs(mIntervalLeft - intervalLeft) > 5 || mIntervalLeft == 0) {
+                    i++
+                    mTimeTextSize += 1
+                    paint.textSize = mTimeTextSize
+                    mIntervalLeft = paint.measureText("166:661").toInt()
+                    if (i > 50) {
+                        mTimeTextSize = intervalLeft * 0.35F
+                        break
+                    }
+                }
+            }
         }
         if (mIntervalHeight == 0) {
             mIsSuitableIntervalHeight = true
         }
         if (mDefaultTaskName == "null") {
             mDefaultTaskName = "任务名称"
-        }
-        if (mTimeTextSize == 0F) {
-            mTimeTextSize = mIntervalLeft / 2.8F
         }
         if (mTaskTextSize == 0F) {
             mTaskTextSize = mTimeTextSize * 1.16F

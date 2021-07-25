@@ -14,14 +14,14 @@ import com.ndhzs.timeselectview.viewinterface.IChildLayout
 @SuppressLint("ViewConstructor")
 internal class ChildLayout(
         context: Context,
-        private val iChildLayout: IChildLayout,
+        iChildLayout: IChildLayout,
         private val attrs: TSViewAttrs,
         position: Int
 ) : FrameLayout(context) {
 
     init {
         val lp = LayoutParams(attrs.mRectViewWidth, LayoutParams.MATCH_PARENT)
-        lp.leftMargin = this.attrs.mIntervalLeft
+        lp.leftMargin = attrs.mIntervalLeft
         attachViewToParent(iChildLayout.getRectView(position), -1, lp)
         val lp2 = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         attachViewToParent(iChildLayout.getSeparatorLineView(position), -1, lp2)

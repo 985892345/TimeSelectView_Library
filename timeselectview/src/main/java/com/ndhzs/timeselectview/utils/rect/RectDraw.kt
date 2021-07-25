@@ -13,7 +13,7 @@ internal class RectDraw(
         attrs: TSViewAttrs
 ) : IRectDraw {
 
-    private val mData = attrs
+    private val mAttrs = attrs
     private val mTextPaint: Paint //任务名称画笔
     private val mDTimePaint: Paint //时间差值画笔
     private val mInsidePaint: Paint //圆角矩形内部画笔
@@ -28,7 +28,7 @@ internal class RectDraw(
     private val mRectMinHeight: Float //能生成任务的最小高度
     private val mRectShowStartEndTimeHeight: Float //显示顶部和底部的最小高度
     private val mTextCenter: Float //任务名称的水平线
-    private var mDTimeCenter: Float //时间差值的水平线
+    private val mDTimeCenter: Float //时间差值的水平线
     private val mDTimeHalfHeight: Float //右侧时间的字体高度的一半
 
     companion object {
@@ -40,11 +40,11 @@ internal class RectDraw(
 
     init {
         mArrowsPaint = generatePaint(0xFF000000.toInt(), 2, Paint.Style.STROKE)
-        mInsidePaint = generatePaint(mData.mDefaultInsideColor)
-        mBorderPaint = generatePaint(mData.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
-        mTextPaint = generateTextPaint(mData.mTaskTextSize)
-        mDTimePaint = generateTextPaint(DIFF_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.RIGHT)
-        mStartEndTimePaint = generateTextPaint(START_END_TIME_MULTIPLE * mData.mTimeTextSize, Paint.Align.LEFT)
+        mInsidePaint = generatePaint(mAttrs.mDefaultInsideColor)
+        mBorderPaint = generatePaint(mAttrs.mDefaultBorderColor, BORDER_WIDTH, Paint.Style.STROKE)
+        mTextPaint = generateTextPaint(mAttrs.mTaskTextSize)
+        mDTimePaint = generateTextPaint(DIFF_TIME_MULTIPLE * mAttrs.mTimeTextSize, Paint.Align.RIGHT)
+        mStartEndTimePaint = generateTextPaint(START_END_TIME_MULTIPLE * mAttrs.mTimeTextSize, Paint.Align.LEFT)
 
         var fontMetrics = mTextPaint.fontMetrics
         mTextCenter = (fontMetrics.bottom - fontMetrics.top) / 2 - fontMetrics.bottom
@@ -100,7 +100,7 @@ internal class RectDraw(
     override fun drawRect(canvas: Canvas, rect: Rect, name: String, borderColor: Int, insideColor: Int, nameSize: Float) {
         mTextPaint.textSize = nameSize
         drawRect(canvas, rect, name, borderColor, insideColor)
-        mTextPaint.textSize = mData.mTaskTextSize
+        mTextPaint.textSize = mAttrs.mTaskTextSize
     }
 
     override fun drawArrows(canvas: Canvas, rect: Rect, dTime: String) {
@@ -135,7 +135,7 @@ internal class RectDraw(
     override fun drawArrows(canvas: Canvas, rect: Rect, dTime: String, timeSize: Float) {
         mDTimePaint.textSize = timeSize * DIFF_TIME_MULTIPLE
         drawArrows(canvas, rect, dTime)
-        mDTimePaint.textSize = mData.mTimeTextSize * DIFF_TIME_MULTIPLE
+        mDTimePaint.textSize = mAttrs.mTimeTextSize * DIFF_TIME_MULTIPLE
     }
 
     override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String) {
@@ -151,6 +151,6 @@ internal class RectDraw(
     override fun drawStartEndTime(canvas: Canvas, rect: Rect, sTime: String, eTime: String, timeSize: Float) {
         mStartEndTimePaint.textSize = timeSize * START_END_TIME_MULTIPLE
         drawStartEndTime(canvas, rect, sTime, eTime)
-        mStartEndTimePaint.textSize = mData.mTimeTextSize * START_END_TIME_MULTIPLE
+        mStartEndTimePaint.textSize = mAttrs.mTimeTextSize * START_END_TIME_MULTIPLE
     }
 }
