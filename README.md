@@ -23,7 +23,7 @@ allprojects {
 ### Module build  
 ```groovy
 dependencies {
-    implementation 'com.github.985892345:TimeSelectView_Library:1.1.1'
+    implementation 'com.github.985892345:TimeSelectView_Library:1.1.2'
 }
 ```
 
@@ -392,6 +392,9 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 
 ---
 # 更新日志
+* 1.1.2
+  增加了滑到边界时回弹效果失效的处理
+
 * 1.1.1
   intervalHeight 属性添加根据控件外高度自动调整为合适的高度的选项  
   时间轴左侧时间文字的大小将随左侧宽度 intervalLeft 而改变，使得能根据不同的字体而统一显示效果
