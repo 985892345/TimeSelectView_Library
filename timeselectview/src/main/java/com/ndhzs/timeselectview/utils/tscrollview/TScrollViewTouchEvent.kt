@@ -1,16 +1,13 @@
 package com.ndhzs.timeselectview.utils.tscrollview
 
+import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.os.Vibrator
-import android.util.Log
 import android.view.MotionEvent
-import android.view.animation.OvershootInterpolator
+import android.view.animation.*
 import android.widget.ScrollView
 import androidx.core.animation.addListener
-import androidx.core.view.NestedScrollingChild2
-import androidx.core.view.NestedScrollingChildHelper
-import androidx.core.widget.NestedScrollView
 import androidx.viewpager2.widget.ViewPager2
 import kotlin.math.abs
 import kotlin.math.pow
@@ -26,13 +23,28 @@ internal abstract class TScrollViewTouchEvent(
         delayMillis: Long = 300
 ) : ScrollView(context) {
 
+    private val mInsideHeight by lazy {
+        getChildAt(0).height
+    }
     private var mAnimator: ValueAnimator? = null
     /**
-     * 与[scrollTo]类似，但速度较缓慢
+     * 与[scrollTo]类似，但速度较缓慢，有回弹效果
      */
     fun slowlyScrollTo(scrollY: Int) {
         cancelSlowlyScroll()
-        mAnimator = ValueAnimator.ofInt(this.scrollY, scrollY)
+        var interpolator: TimeInterpolator = OvershootInterpolator(1F)
+        var duration = (abs(this.scrollY - scrollY).toDouble().pow(0.3) * 66 + 80).toLong()
+        var suitableScrollY = scrollY // 优化滑到边界回弹失效的处理
+        if (scrollY + 20 > mInsideHeight - height) {
+            suitableScrollY = mInsideHeight - height
+            interpolator = DecelerateInterpolator()
+            duration = 300
+        }else if (scrollY <= 20) {
+            suitableScrollY = 0
+            interpolator = DecelerateInterpolator()
+            duration = 300
+        }
+        mAnimator = ValueAnimator.ofInt(this.scrollY, suitableScrollY)
         mAnimator?.let {
             it.addUpdateListener { animator ->
                 val nowY = animator.animatedValue as Int
@@ -42,8 +54,8 @@ internal abstract class TScrollViewTouchEvent(
                     onEnd = { mAnimator = null },
                     onCancel = { mAnimator = null }
             )
-            it.duration = (abs(this.scrollY - scrollY).toDouble().pow(0.3) * 66 + 80).toLong()
-            it.interpolator = OvershootInterpolator(1F)
+            it.duration = duration
+            it.interpolator = interpolator
             it.start()
         }
     }
@@ -164,7 +176,6 @@ internal abstract class TScrollViewTouchEvent(
                             }else {
                                 parent.requestDisallowInterceptTouchEvent(true)
                             }
-                            Log.d("123","(TScrollViewTouchEvent.kt:167)-->> +++++++++++++")
                             /*
                             * 这里 return true 可以终止事件向下传递，意思就是 MOVE 事件会一直卡在这里
                             * onInterceptTouchEvent 和 onTouchEvent 将会收不到 MOVE 这个事件，将不会被调用
@@ -269,7 +280,10 @@ internal abstract class TScrollViewTouchEvent(
                 judgeNumber = 0
             }
             MotionEvent.ACTION_MOVE -> {
+                judgeNumber++
                 if (judgeNumber < 3) {
+                    return true
+                }else if (judgeNumber == 3){
                     if (abs(x - mOuterInitialX) > abs(y - mOuterInitialY)) {
                         if (mLinkViewPager2 != null) {
                             mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(false)
@@ -279,7 +293,6 @@ internal abstract class TScrollViewTouchEvent(
                         return false
                     }
                 }
-                judgeNumber++
             }
         }
         if (mLinkViewPager2 != null) {
