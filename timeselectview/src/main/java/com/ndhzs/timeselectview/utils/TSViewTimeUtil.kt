@@ -1,7 +1,7 @@
 package com.ndhzs.timeselectview.utils
 
+import com.ndhzs.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.max
@@ -41,15 +41,6 @@ internal class TSViewTimeUtil(
          * String时间文字的小时与分钟的分隔符
          */
         private const val TIME_STRING_SPLIT_SYMBOL = ":"
-
-        fun getDay(firstDate: String, diff: Int): String {
-            val sdf = SimpleDateFormat("yyyy-M-d", Locale.CHINA)
-            val date = sdf.parse(firstDate)
-            val calendar = Calendar.getInstance()
-            calendar.time = date!!
-            calendar.add(Calendar.DATE, diff)
-            return sdf.format(calendar.time)
-        }
     }
 
     private val mExtraHeight = attrs.mExtraHeight //上方或下方其中一方多余的高度

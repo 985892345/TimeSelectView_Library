@@ -164,6 +164,7 @@ internal abstract class TScrollViewTouchEvent(
                             }else {
                                 parent.requestDisallowInterceptTouchEvent(true)
                             }
+                            Log.d("123","(TScrollViewTouchEvent.kt:167)-->> +++++++++++++")
                             /*
                             * 这里 return true 可以终止事件向下传递，意思就是 MOVE 事件会一直卡在这里
                             * onInterceptTouchEvent 和 onTouchEvent 将会收不到 MOVE 这个事件，将不会被调用
@@ -229,7 +230,7 @@ internal abstract class TScrollViewTouchEvent(
             * onTouchEvent，不会再经过 onInterceptTouchEvent 的 MOVE 一句话总结就是 onInterceptTouchEvent
             * 一旦 return true，就不会再被调用
             *
-            * 所以这里的 MOVE 只有在完全分辨出是长按且没有在 onInterceptTouchEvent 的 Down 事件中被 return true
+            * 所以这里的 MOVE 只有在完全分辨出是否是长按且没有在 onInterceptTouchEvent 的 Down 事件中被 return true
             * 才会被调用
             * */
             MotionEvent.ACTION_MOVE -> {
@@ -237,7 +238,7 @@ internal abstract class TScrollViewTouchEvent(
                 if (mIsLongClick) {
                     automaticSlide(x, y, x + scrollX, y + scrollY)
                 }else {
-                    return true
+                    return true // 不是长按直接拦截
                 }
             }
             /*
@@ -259,19 +260,26 @@ internal abstract class TScrollViewTouchEvent(
         return false
     }
 
+    private var judgeNumber = 0
     override fun onTouchEvent(ev: MotionEvent): Boolean {
         val x = ev.x.toInt()
         val y = ev.y.toInt()
         when (ev.action) {
+            MotionEvent.ACTION_DOWN -> {
+                judgeNumber = 0
+            }
             MotionEvent.ACTION_MOVE -> {
-                if (abs(x - mOuterInitialX) > abs(y - mOuterInitialY)) {
-                    if (mLinkViewPager2 != null) {
-                        mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(false)
-                    }else {
-                        parent.requestDisallowInterceptTouchEvent(false)
+                if (judgeNumber < 3) {
+                    if (abs(x - mOuterInitialX) > abs(y - mOuterInitialY)) {
+                        if (mLinkViewPager2 != null) {
+                            mLinkViewPager2!!.parent.requestDisallowInterceptTouchEvent(false)
+                        }else {
+                            parent.requestDisallowInterceptTouchEvent(false)
+                        }
+                        return false
                     }
-                    return false
                 }
+                judgeNumber++
             }
         }
         if (mLinkViewPager2 != null) {
@@ -294,7 +302,8 @@ internal abstract class TScrollViewTouchEvent(
                 }
             }
         }
-        return super.onTouchEvent(ev)
+        super.onTouchEvent(ev)
+        return true
     }
 
     override fun onDetachedFromWindow() {

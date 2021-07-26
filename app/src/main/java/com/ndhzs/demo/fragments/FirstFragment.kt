@@ -34,7 +34,7 @@ class FirstFragment : Fragment() {
         val beans = ArrayList<TSViewDayBean>()
         val calendar = Calendar.getInstance()
         repeat(20) {
-            beans.add(TSViewDayBean(calendar.time))
+            beans.add(TSViewDayBean(calendar))
             calendar.add(Calendar.DATE, 1)
         }
         mTimeSelectView.initializeBean(beans, 0)

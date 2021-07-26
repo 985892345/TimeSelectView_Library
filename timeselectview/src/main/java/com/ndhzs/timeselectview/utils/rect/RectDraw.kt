@@ -10,7 +10,7 @@ import com.ndhzs.timeselectview.viewinterface.IRectDraw
  * @description 用来绘制任务的类
  */
 internal class RectDraw(
-        attrs: TSViewAttrs
+    attrs: TSViewAttrs
 ) : IRectDraw {
 
     private val mAttrs = attrs

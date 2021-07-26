@@ -1,5 +1,7 @@
 package com.ndhzs.timeselectview.viewinterface
 
+import java.util.*
+
 /**
  * @author 985892345
  * @email 2767465918@qq.com
@@ -10,5 +12,5 @@ internal interface IRectView {
     fun notifyAllRectViewRefresh()
     fun notifyTimeScrollViewScrollToSuitableHeight()
     fun setIsCanLongClick(boolean: Boolean)
-    fun getDay(): String
+    fun getDay(): Calendar
 }

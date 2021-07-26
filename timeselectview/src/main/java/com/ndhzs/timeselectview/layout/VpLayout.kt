@@ -10,21 +10,24 @@ import com.ndhzs.timeselectview.utils.TSViewAttrs
 import com.ndhzs.timeselectview.utils.TSViewListeners
 import com.ndhzs.timeselectview.utils.TSViewObjectsManger
 
+/**
+ * 在 ViewPager2 之下
+ */
 @SuppressLint("ViewConstructor")
 internal class VpLayout(
         context: Context,
         attrs: TSViewAttrs,
         listeners: TSViewListeners,
         viewPager2: ViewPager2,
-        firstDate: String,
+        private val dayBeans: List<TSViewDayBean>,
         isShowNowTimeLine: Boolean
 ) : FrameLayout(context) {
 
     /**
      * 初始化
      */
-    fun initialize(dayBeans: TSViewDayBean, vpPosition: Int) {
-        mIVpLayout.initializeBean(dayBeans.tSViewTaskBeans)
+    fun initialize(vpPosition: Int) {
+        mIVpLayout.initializeBean(dayBeans[vpPosition].tSViewTaskBeans)
         mObjectManger.mVpPosition = vpPosition
     }
 
@@ -85,7 +88,7 @@ internal class VpLayout(
         mIVpLayout.notifyRectViewDataChanged()
     }
 
-    private val mObjectManger = TSViewObjectsManger(context, attrs, listeners, firstDate)
+    private val mObjectManger = TSViewObjectsManger(context, attrs, listeners, dayBeans)
     private val mIVpLayout = mObjectManger.My1IVpLayout()
 
     init {

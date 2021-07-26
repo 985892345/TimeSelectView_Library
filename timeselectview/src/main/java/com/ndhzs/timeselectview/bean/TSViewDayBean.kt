@@ -1,8 +1,8 @@
 package com.ndhzs.timeselectview.bean
 
+import com.ndhzs.timeselectview.utils.TSViewAttrs
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 /**
  *@author 985892345
@@ -12,30 +12,56 @@ import kotlin.collections.ArrayList
  */
 class TSViewDayBean {
 
-    var date: String
+    companion object {
+        /**
+         * 统一时间格式
+         */
+        val sdf = SimpleDateFormat("yyyy-M-d", Locale.CHINA)
+    }
+
+    var calendar = Calendar.getInstance()
         private set
     var tSViewTaskBeans: MutableList<TSViewTaskBean>
         private set
 
+    /**
+     * 请注意时间格式为 yyyy-M-d
+     */
     constructor(date: String) {
-        this.date = date
-        tSViewTaskBeans = LinkedList()
+        try {
+            calendar.time = sdf.parse(date)!!
+        }catch (e: Exception) {
+            throw RuntimeException("${TSViewAttrs.Library_name}: " +
+                    "Your time format is wrong!")
+        }
+        tSViewTaskBeans = LinkedList<TSViewTaskBean>()
     }
 
     constructor(date: Date) {
-        val sdf = SimpleDateFormat("yyyy-M-d", Locale.CHINA)
-        this.date = sdf.format(date)
-        tSViewTaskBeans = LinkedList()
+        calendar.time = date
+        tSViewTaskBeans = LinkedList<TSViewTaskBean>()
     }
 
-    constructor(calendar: Calendar) : this(calendar.time)
-
-    constructor(day: String, taskBeans: MutableList<TSViewTaskBean>) {
-        this.date = day
-        this.tSViewTaskBeans = taskBeans
+    constructor(calendar: Calendar) {
+        this.calendar = calendar
+        tSViewTaskBeans = LinkedList<TSViewTaskBean>()
     }
 
-    fun size(): Int {
+    constructor(date: String, taskBeans: MutableList<TSViewTaskBean>) {
+        try {
+            calendar.time = sdf.parse(date)!!
+        }catch (e: Exception) {
+            throw RuntimeException("${TSViewAttrs.Library_name}: " +
+                    "Your time format is wrong!")
+        }
+        tSViewTaskBeans = taskBeans
+    }
+
+    fun taskSize(): Int {
         return tSViewTaskBeans.size
+    }
+
+    fun date(): String {
+        return sdf.format(calendar.time)
     }
 }

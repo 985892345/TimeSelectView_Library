@@ -293,14 +293,16 @@ class TimeSelectView : FrameLayout {
     }
 
     private fun calculateIntervalHeight() {
-        if (mAttrs.mIntervalHeight == 0) {
+        if (mAttrs.mIsSuitableIntervalHeight) {
             var intervalHeight = mAttrs.mTimelineWidth / 1.6F
             val m = mHeight / intervalHeight
             val n = m - m.toInt()
-            if (n !in 0.4F..0.5F) {
-                val p = if (abs(n - 0.4) < abs(n - 0.5)) {
-                    m.toInt() + 0.4F
-                }else m.toInt() + 0.5F
+            val lower = 0.85F
+            val upper = 0.99F
+            if (n !in lower..upper) {
+                val p = if (abs(n - lower) < abs(n - upper)) {
+                    m.toInt() + lower
+                }else m.toInt() + upper
                 intervalHeight = mHeight / p
             }
             mAttrs.setSuitableIntervalHeight(intervalHeight.toInt())

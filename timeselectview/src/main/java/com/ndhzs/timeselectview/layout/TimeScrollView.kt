@@ -16,7 +16,7 @@ import kotlin.math.min
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description [com.ndhzs.timeselectview.TimeSelectView]之下，[ScrollLayout]之上
+ * @description [com.ndhzs.timeselectview.layout.VpLayout]之下，[ScrollLayout]之上
  */
 @SuppressLint("ViewConstructor")
 internal class TimeScrollView(

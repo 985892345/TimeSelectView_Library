@@ -137,26 +137,24 @@ class TSViewAttrs private constructor() {
      */
     internal fun setAttrs() {
         if (mTSViewAmount < 0 || 24 % mTSViewAmount != 0) {
-            throwError("amount")
+            throwException("amount")
         }
         setTimeRangeArray(mTimeRangeString)
         if (60 % mTimeInterval != 0) {
-            throwError("timeInterval")
+            throwException("timeInterval")
         }
         if (mIntervalLeft == 0) {
             if (mTimeTextSize == 0F) {
                 val intervalLeft = 0.23F * mTimelineWidth
-                mTimeTextSize = intervalLeft / 4
+                mTimeTextSize = intervalLeft / 3.5F
                 val paint = Paint()
-                var i = 0
                 // 对于不同的字体由不同的宽度值，下面的循环是为了找到合适的左侧宽度与文字大小
                 // 用循环原因在于我没有找到一个函数能通过宽度值反推字体大小
                 while (abs(mIntervalLeft - intervalLeft) > 5 || mIntervalLeft == 0) {
-                    i++
-                    mTimeTextSize += 1
+                    mTimeTextSize += if (intervalLeft - mIntervalLeft > 10) 2 else 1
                     paint.textSize = mTimeTextSize
                     mIntervalLeft = paint.measureText("166:661").toInt()
-                    if (i > 50) {
+                    if (mIntervalLeft - intervalLeft > 5) {
                         mTimeTextSize = intervalLeft * 0.35F
                         break
                     }
@@ -168,16 +166,14 @@ class TSViewAttrs private constructor() {
             }
         }else {
             if (mTimeTextSize == 0F) {
-                val intervalLeft = mIntervalLeft.toFloat()
-                mTimeTextSize = intervalLeft / 4
+                val intervalLeft = mIntervalLeft
+                mTimeTextSize = intervalLeft / 3.5F
                 val paint = Paint()
-                var i = 0
-                while (abs(mIntervalLeft - intervalLeft) > 5 || mIntervalLeft == 0) {
-                    i++
-                    mTimeTextSize += 1
+                while (abs(mIntervalLeft - intervalLeft) > 5 || mIntervalLeft == intervalLeft) {
+                    mTimeTextSize += if (intervalLeft - mIntervalLeft > 10) 2 else 1
                     paint.textSize = mTimeTextSize
                     mIntervalLeft = paint.measureText("166:661").toInt()
-                    if (i > 50) {
+                    if (mIntervalLeft - intervalLeft > 5) {
                         mTimeTextSize = intervalLeft * 0.35F
                         break
                     }
@@ -233,7 +229,7 @@ class TSViewAttrs private constructor() {
                     intArrayOf(startHour, endHour)
                 }
             }catch (e: Exception) {
-                throwError("timeRangeArray")
+                throwException("timeRangeArray")
             }
         }
     }
@@ -246,8 +242,8 @@ class TSViewAttrs private constructor() {
         mRectViewBottom = mInsideTotalHeight - mExtraHeight
     }
 
-    private fun throwError(attrName: String) {
-        throw IllegalAccessException("${Library_name}: " +
+    private fun throwException(attrName: String) {
+        throw RuntimeException("${Library_name}: " +
                 "Your attrs of $attrName is wrong!")
     }
 

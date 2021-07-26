@@ -134,7 +134,7 @@ internal class TSViewVpAdapter(
     private var mScrollY = 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = VpLayout(parent.context, attrs, listeners, viewPager2, dayBeans[0].date, viewType == SHOW_NOW_TIME_LINE_POSITION)
+        val view = VpLayout(parent.context, attrs, listeners, viewPager2, dayBeans, viewType == SHOW_NOW_TIME_LINE_POSITION)
         view.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         return ViewHolder(view)
     }
@@ -177,7 +177,7 @@ internal class TSViewVpAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val vpLayout = holder.mVpLayout
-        vpLayout.initialize(dayBeans[position], position)
+        vpLayout.initialize(position)
     }
 
     override fun getItemCount(): Int {

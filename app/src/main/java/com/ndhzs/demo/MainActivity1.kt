@@ -17,7 +17,7 @@ class MainActivity1 : AppCompatActivity() {
         val beans = ArrayList<TSViewDayBean>()
         val calendar = Calendar.getInstance()
         repeat(20) {
-            beans.add(TSViewDayBean(calendar.time))
+            beans.add(TSViewDayBean(calendar))
             calendar.add(Calendar.DATE, 1)
         }
         val timeView = findViewById<TimeSelectView>(R.id.time_view_1)

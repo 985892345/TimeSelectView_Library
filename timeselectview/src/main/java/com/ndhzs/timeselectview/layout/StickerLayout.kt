@@ -9,7 +9,7 @@ import com.ndhzs.timeselectview.viewinterface.IStickerLayout
 import com.ndhzs.timeselectview.viewinterface.ITSViewTimeUtil
 
 /**
- * 用来放置RectImgView和NowTimeLineView，放这里的原因是为了把当前时间线显示在最顶层
+ * 用来放置 RectImgView 和 NowTimeLineView，放这里的原因是为了把当前时间线显示在最顶层
  *
  * [ScrollLayout]之下，
  * [com.ndhzs.timeselectview.layout.view.RectImgView]、
@@ -31,19 +31,19 @@ internal class StickerLayout(
      * 设置是否显示当前时间线
      */
     fun showNowTimeLine() {
-        if (mNowTimeLineViews.size != attrs.mTSViewAmount) {
+        if (mNowTimeLineViewSize != attrs.mTSViewAmount) {
             post {
-                for (i in mNowTimeLineViews.size until attrs.mTSViewAmount) {
+                for (i in mNowTimeLineViewSize until attrs.mTSViewAmount) { // 在多个时间轴时
                     val nowTimeLineView = NowTimeLineView(context, attrs, time, i)
-                    mNowTimeLineViews.add(nowTimeLineView)
                     val lp = LayoutParams(iStickerLayout.getChildLayoutWidth(), LayoutParams.WRAP_CONTENT)
                     lp.leftMargin = iStickerLayout.getChildLayoutToStickerLayoutDistance(i)
-                    addView(nowTimeLineView, lp)//由于这个只会在一个TimeSelectView中添加，所以就不写在TSViewObjectsManger中
+                    addView(nowTimeLineView, lp) // 由于这个只会在一个 TimeSelectView 中添加，所以就不写在 TSViewObjectsManger 中
                 }
             }
         }
     }
-    private var mNowTimeLineViews = ArrayList<NowTimeLineView>()
+
+    private var mNowTimeLineViewSize = 0
 
     init {
         val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)

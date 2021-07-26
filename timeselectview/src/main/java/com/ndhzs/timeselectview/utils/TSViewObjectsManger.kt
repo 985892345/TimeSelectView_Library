@@ -3,6 +3,7 @@ package com.ndhzs.timeselectview.utils
 import android.content.Context
 import android.graphics.Rect
 import androidx.viewpager2.widget.ViewPager2
+import com.ndhzs.timeselectview.bean.TSViewDayBean
 import com.ndhzs.timeselectview.bean.TSViewTaskBean
 import com.ndhzs.timeselectview.layout.*
 import com.ndhzs.timeselectview.layout.view.RectImgView
@@ -17,13 +18,13 @@ import kotlin.collections.ArrayList
 /**
  * @author 985892345
  * @date 2021/3/20
- * @description 所有内部 View 对象的管理工具
+ * @description 所有内部 View 对象的管理工具，只管理 ViewPager2 之下的一个页面
  */
 internal class TSViewObjectsManger(
         private val context: Context,
         private val attrs: TSViewAttrs,
         private val listeners: TSViewListeners,
-        private val firstDay: String
+        private val dayBeans: List<TSViewDayBean> // 因为 VpLayout 才开始创建时不知道 mVpPosition，所以就传整个数组进来
 ) {
 
     var mVpPosition = -1 // 每个 VpLayout 在 ViewPager2 中的位置
@@ -356,8 +357,8 @@ internal class TSViewObjectsManger(
             mTimeScrollView.setIsCanLongClick(boolean)
         }
 
-        override fun getDay(): String {
-            return TSViewTimeUtil.getDay(firstDay, mVpPosition)
+        override fun getDay(): Calendar {
+            return dayBeans[mVpPosition].calendar
         }
     }
 }

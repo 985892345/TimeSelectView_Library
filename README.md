@@ -23,7 +23,7 @@ allprojects {
 ### Module build  
 ```groovy
 dependencies {
-    implementation 'com.github.985892345:TimeSelectView_Library:1.1.0'
+    implementation 'com.github.985892345:TimeSelectView_Library:1.1.1'
 }
 ```
 
@@ -73,12 +73,12 @@ dependencies {
 | app:timelineWidth       | 时间轴宽度|
 | app:timelineInterval    | 相邻时间轴间隔|
 | app:timeInterval        | 时间间隔数，必须为60的因数，若不是，将以15为间隔数|
-| app:intervalLeft        | 时间轴左侧的时间文字间隔宽度|
+| app:intervalLeft        | 时间轴左侧的时间文字间隔宽度，不建议修改该值|
 | app:intervalHeight      | 时间轴每小时间的间隔高度，不设置或设置成0和"suitable"时会根据控件外高度自动调整|
 | app:defaultTaskName     | 默认任务名称|
 | app:defaultBorderColor  | 默认任务边框颜色|
 | app:defaultInsideColor  | 默认任务内部颜色|
-| app:timeTextSize        | 时间轴左侧时间文字大小|
+| app:timeTextSize        | 时间轴左侧时间文字大小，不建议修改该值|
 | app:taskTextSize        | 任务名称文字大小|
 | app:isShowDiffTime      | 最终的任务区域是否显示时间差|
 | app:isShowTopBottomTime | 最终的任务区域是否显示上下边界时间|
@@ -179,7 +179,7 @@ fun initializeBean(dayBeans: List<TSViewDayBean>,
                    smoothScroll: Boolean = false)
 ````
 用于初始化数据  
-**注意：**必须调用，不调用将不会显示 View
+**WARNING：** 必须调用，不调用将不会显示 View
 
 |     **Parameters**     | |
 | :--------------------- | :-----------|
@@ -202,7 +202,7 @@ fun notifyItemDataChanged(position: Int = mViewPager2.currentItem,
                           isBackToCurrentTime: Boolean = false)
 ````
 该方法用于任务在外面被增加或删除时提醒控件重新读取数据  
-**注意：** 控件内部数据的增加或删除也会引起外面传进来的数组中数据的改变
+**WARNING：** 控件内部数据的增加或删除也会引起外面传进来的数组中数据的改变
 
 |      **Parameters**      | |
 | :----------------------- | -----------|
@@ -216,7 +216,7 @@ fun notifyItemRefresh(position: Int = mViewPager2.currentItem,
                       isBackToCurrentTime: Boolean = false)
 ````
 默认通知当前页面所有的任务刷新，可输入索引值定向刷新
-**注意：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用 [notifyItemDataChanged](#notifyitemdatachanged)
+**WARNING：** 在任务增加或被删掉时调用此方法并不会有刷新作用，请调用 [notifyItemDataChanged](#notifyitemdatachanged)
 
 |      **Parameters**      | |
 | :----------------------- | ------------|
@@ -269,7 +269,7 @@ setOnDataListener
 fun setOnDataListener(l: OnDataChangeListener)
 ````
 对数据改变进行监听  
-**注意：** 任务移至删除区域被删除或长按添加新任务时会引起外面传进来的数组中数据的改变，
+**WARNING：** 任务移至删除区域被删除或长按添加新任务时会引起外面传进来的数组中数据的改变，
 所以在数据改变后的回调中不需删掉或增加数据
 
 setOnTSVClickListener
@@ -278,7 +278,7 @@ setOnTSVClickListener
 fun setOnTSVClickListener(onClick: (taskBean: TSViewTaskBean) -> Unit)
 ````
 点击当前任务的监听，会返回当前点击任务的数据类  
-**注意：** 对 [TSViewTaskBean](#tsviewtaskbean) 修改数据后并不会自己刷新，请手动调用 [notifyItemRefresh](#notifyitemrefresh) 进行刷新
+**WARNING：** 对 [TSViewTaskBean](#tsviewtaskbean) 修改数据后并不会自己刷新，请手动调用 [notifyItemRefresh](#notifyitemrefresh) 进行刷新
 
 |      **Parameters**      | |
 | :----------------------- | ------------|
@@ -316,7 +316,7 @@ setTimeInterval
 fun setTimeInterval(timeInterval: Int)
 ````
 设置时间间隔数  
-**注意：** 必须为60的因数，若不是，将以15为间隔数
+**WARNING：** 必须为60的因数，若不是，将以15为间隔数
 
 timeLineScrollBy
 ---
@@ -348,7 +348,7 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 
 | **Variables** | |
 | :------------ | ----------|
-| val date      | String: 该 TSViewDayBean 所代表的日期，**注意：** 日期格式必须为"yyyy-M-d"，如：2021-5-14|
+| val date      | Calendar: 该 TSViewDayBean 所代表的日期|
 | val tSViewTaskBeans | MutableList<TSViewTaskBean>: 该 TSViewDayBean 所存储的当天所有任务 |
 
 # TSViewTaskBean
@@ -392,6 +392,12 @@ fun timeLineSlowlyScrollTo(scrollY: Int)
 
 ---
 # 更新日志
+* 1.1.1
+  intervalHeight 属性添加根据控件外高度自动调整为合适的高度的选项  
+  时间轴左侧时间文字的大小将随左侧宽度 intervalLeft 而改变，使得能根据不同的字体而统一显示效果
+  将 TSViewDayBean#date 改为 calendar
+  优化部分体验
+  
 * 1.1.0  
   更改事件分发的解决方案，删除 isDealWithTouchEvent 方法，目前可解决大部分 View 的滑动冲突  
   增加 TSViewAttrs 类，可用于用代码动态添加 TimeSelectView  

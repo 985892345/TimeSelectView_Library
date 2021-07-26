@@ -18,6 +18,7 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 /**
+ * 绘制整体移动和顶部与底部的灰色区域
  * @author 985892345
  * @date 2021/3/20
  * @description [com.ndhzs.timeselectview.layout.ScrollLayout]之下
